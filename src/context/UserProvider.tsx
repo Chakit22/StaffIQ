@@ -1,3 +1,4 @@
+"use client";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { User, DEFAULT_USERS } from "../types/User";
 
@@ -15,6 +16,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [users, setUsers] = useState<User[]>([]);
 
   useEffect(() => {
+    console.log("Inside auth provider use effect!");
     // Initialize users from localStorage or use defaults
     const storedUsers = localStorage.getItem("users");
     if (!storedUsers) {
