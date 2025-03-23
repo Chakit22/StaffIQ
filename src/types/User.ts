@@ -13,7 +13,7 @@ export const DEFAULT_USERS: User[] = [
     lastname: "bhandari",
     phone: 434057320,
     email: "chakitbhandari22@gmail.com",
-    password: "chuck@123",
+    password: "Chuck@123",
     role: "tutor",
   },
 ];

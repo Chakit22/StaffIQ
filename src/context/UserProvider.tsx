@@ -5,7 +5,7 @@ import { User, DEFAULT_USERS } from "../types/User";
 interface AuthContextType {
   user: User | null;
   users: User[];
-  login: (username: string, password: string) => boolean;
+  login: (email: string, password: string) => boolean;
   logout: () => void;
 }
 
