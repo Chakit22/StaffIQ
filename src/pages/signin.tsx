@@ -1,6 +1,6 @@
 "use client";
 import { useAuth } from "@/context/UserProvider";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { LoginFormType } from "@/types/LoginFormType";
 import {
@@ -35,15 +35,19 @@ export default function SignInForm() {
   } = useForm<LoginFormType>();
 
   const onSubmit = (data: LoginFormType) => {
-    const areCredsValid = login(data.email, data.password);
-
-    if (areCredsValid) {
-      toast.success("User Logged in Successfully!");
-      router.replace(`/${user?.role}`);
-    } else {
+    const isValidUser = login(data.email, data.password);
+    if (!isValidUser) {
       toast.error("Invalid Username or Password!");
     }
   };
+
+  useEffect(() => {
+    // Navigate only when the user updates
+    if (user?.role) {
+      toast.success("User Logged in Successfully!");
+      router.replace(`/${user?.role}`);
+    }
+  }, [user]);
 
   return (
     <div className="w-screen min-h-screen flex justify-center items-center">
