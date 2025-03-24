@@ -19,12 +19,15 @@ import PasswordRules from "@/components/password-rules";
 import { passwordRules } from "@/utils/password-rules";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import CAPTCHA from "@/components/captcha";
 
 export default function SignInForm() {
   const { user, login } = useAuth();
   const [showPassword, setShowPassword] = useState<boolean>(true);
   const [isPasswordFocused, setIsPasswordFocused] = useState<boolean>(false);
   const router = useRouter();
+  const [openDialog, setOpenDialog] = useState<boolean>(false);
 
   // Initialize react-hook-form
   const {
@@ -115,6 +118,8 @@ export default function SignInForm() {
                 <span className="text-red-500">{errors.password.message}</span>
               )}
             </div>
+
+            {/* Captcha Verification */}
 
             {/* Login Button */}
             <Button type="submit" className="w-full rounded-sm text-md">
