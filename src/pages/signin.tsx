@@ -19,7 +19,6 @@ import PasswordRules from "@/components/password-rules";
 import { passwordRules } from "@/utils/password-rules";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import Captcha from "@/components/captcha";
 
 export default function SignInForm() {
@@ -27,7 +26,7 @@ export default function SignInForm() {
   const [showPassword, setShowPassword] = useState<boolean>(true);
   const [isPasswordFocused, setIsPasswordFocused] = useState<boolean>(false);
   const router = useRouter();
-  const [openDialog, setOpenDialog] = useState<boolean>(false);
+  const [isVerified, setIsVerified] = useState<boolean>(false);
 
   // Initialize react-hook-form
   const {
@@ -38,6 +37,13 @@ export default function SignInForm() {
   } = useForm<LoginFormType>();
 
   const onSubmit = (data: LoginFormType) => {
+    if (!isVerified) {
+      toast.error(
+        "User is not verified as a human. Please verify and then try again!"
+      );
+      return;
+    }
+
     const isValidUser = login(data.email, data.password);
     if (!isValidUser) {
       toast.error("Invalid Username or Password!");
@@ -120,7 +126,7 @@ export default function SignInForm() {
             </div>
 
             {/* Captcha Verification */}
-            <Captcha />
+            {!isVerified && <Captcha setIsVerified={setIsVerified} />}
 
             {/* Login Button */}
             <Button type="submit" className="w-full rounded-sm text-md">

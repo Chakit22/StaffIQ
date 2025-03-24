@@ -6,54 +6,120 @@ import {
   DialogContent,
   DialogTrigger,
   DialogDescription,
+  DialogTitle,
 } from "./ui/dialog";
-import { useState } from "react";
 import { Checkbox } from "./ui/checkbox";
+import { CaptchaImage } from "@/types/CaptchaImage";
+import { useState } from "react";
+import { shuffleArray } from "@/utils/shuffleArray";
+import { images } from "../utils/captcha";
+import { Button } from "./ui/button";
+import { captchaCategories } from "../utils/captcha";
+import { toast } from "sonner";
+import { Shield } from "lucide-react";
 
-const images = [
-  "/images/dog1.jpg",
-  "/images/dog2.jpg",
-  "/images/dog3.jpg",
-  "/images/cat1.jpg",
-  "/images/cat2.jpg",
-  "/images/elephant1.jpg",
-  "/images/elephant2.jpg",
-  "/images/bird1.jpg",
-  "/images/bird2.jpg",
-];
+export default function CAPTCHA({
+  setIsVerified,
+}: {
+  setIsVerified: (isVerified: boolean) => void;
+}) {
+  const [currentCaptchaImages, setCurrentCaptchaImages] =
+    useState<CaptchaImage[]>(images);
+  const [selectedImages, setSelectedImages] = useState<CaptchaImage[]>([]);
+  const [currentCategoryIdx, setCurrentCategoryIdx] = useState<number>(0);
 
-export default function CAPTCHA() {
-  const [openDialog, setOpenDialog] = useState<boolean>(false);
+  const handleImageToggleChange = (image: CaptchaImage) => {
+    setSelectedImages((prev) =>
+      prev.includes(image)
+        ? prev.filter((img) => img != image)
+        : [...prev, image]
+    );
+  };
+
+  const handleVerifyCaptcha = () => {
+    if (!selectedImages.length) {
+      toast.error("Please select atleast one image.");
+      return;
+    }
+
+    if (
+      selectedImages.length ==
+        currentCaptchaImages.filter(
+          (captchaImage) =>
+            captchaImage.category == captchaCategories[currentCategoryIdx]
+        ).length &&
+      selectedImages.every(
+        (captchaImage) =>
+          captchaImage.category == captchaCategories[currentCategoryIdx]
+      )
+    ) {
+      // Sucesfully verified
+      toast.success("Verified. You are a human!");
+
+      setIsVerified(true);
+    } else {
+      // Not verified
+      toast.error("Please try again!");
+
+      // Clear out all the checkboxes
+      setSelectedImages([]);
+
+      // Shuffle the Images
+      setCurrentCaptchaImages(shuffleArray(images));
+
+      // Shuffle the current Category
+      setCurrentCategoryIdx(
+        Math.floor(Math.random() * captchaCategories.length)
+      );
+    }
+  };
 
   return (
-    <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-      <DialogTrigger onClick={() => setOpenDialog(true)}>
-        Verify CAPTCHA
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button className="flex justify-center items-center gap-2 w-2/5">
+          <Shield className="h-5 w-5" />
+          Verify Captcha
+        </Button>
       </DialogTrigger>
       <DialogContent>
+        <DialogTitle className="text-black">CAPTCHA Verification</DialogTitle>
         <DialogDescription asChild>
           <div className="grid grid-cols-3 gap-8 justify-items-center">
-            {images.map((path, i) => (
-              <div className="flex flex-col justify-center items-center gap-2 w-full">
-                <div key={i} className="relative aspect-[16/9] w-full">
+            {currentCaptchaImages.map((image, i) => (
+              <div
+                key={i}
+                className="flex flex-col justify-center items-center gap-2 w-full"
+              >
+                <div className="relative aspect-square w-full h-full">
                   <Image
                     key={i}
-                    src={path}
+                    src={image.path}
                     alt=""
                     fill
-                    style={{
-                      objectFit: "cover",
-                      width: "100%",
-                      height: "100%",
-                    }}
-                    className="absolute"
+                    sizes="
+                    (max-width: 640px) 100vw,
+                    (max-width: 768px) 50vw,
+                    (max-width: 1024px) 33vw,
+                    25vw
+                    "
                   />
                 </div>
-                <Checkbox />
+                <Checkbox
+                  checked={selectedImages.includes(image)}
+                  onCheckedChange={() => {
+                    handleImageToggleChange(image);
+                  }}
+                />
               </div>
             ))}
           </div>
         </DialogDescription>
+        <div className="text-sm text-black flex justify-center">
+          Please select all the images that are{" "}
+          {captchaCategories[currentCategoryIdx]}
+        </div>
+        <Button onClick={handleVerifyCaptcha}>Verify</Button>
       </DialogContent>
     </Dialog>
   );
