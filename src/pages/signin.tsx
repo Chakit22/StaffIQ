@@ -20,7 +20,7 @@ import { passwordRules } from "@/utils/password-rules";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import CAPTCHA from "@/components/captcha";
+import Captcha from "@/components/captcha";
 
 export default function SignInForm() {
   const { user, login } = useAuth();
@@ -120,6 +120,7 @@ export default function SignInForm() {
             </div>
 
             {/* Captcha Verification */}
+            <Captcha />
 
             {/* Login Button */}
             <Button type="submit" className="w-full rounded-sm text-md">
