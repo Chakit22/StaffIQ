@@ -1,6 +1,7 @@
 "use client";
 import { useAuth } from "@/context/UserProvider";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import { LoginFormType } from "@/types/LoginFormType";
 import {
   Card,
@@ -18,47 +19,44 @@ import PasswordRules from "@/components/password-rules";
 import { passwordRules } from "@/utils/password-rules";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { PasswordRuleType } from "@/types/PasswordRuleType";
+import Captcha from "@/components/captcha";
 
 export default function SignInForm() {
   const { user, login } = useAuth();
-  const [showPassword, setshowPassword] = useState<boolean>(true);
+  const [showPassword, setShowPassword] = useState<boolean>(true);
   const [isPasswordFocused, setIsPasswordFocused] = useState<boolean>(false);
-  const [formData, setFormData] = useState<LoginFormType>({
-    email: "",
-    password: "",
-  });
   const router = useRouter();
+  const [isVerified, setIsVerified] = useState<boolean>(false);
 
-  const setValue = (name: string, value: string) => {
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-  };
+  // Initialize react-hook-form
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<LoginFormType>();
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const allPasswordRulesMet = passwordRules.every((rule: PasswordRuleType) =>
-      rule.validate(formData.password)
-    );
-
-    if (!allPasswordRulesMet) {
+  const onSubmit = (data: LoginFormType) => {
+    if (!isVerified) {
+      toast.error(
+        "User is not verified as a human. Please verify and then try again!"
+      );
       return;
     }
 
-    const areCredsValid = login(formData.email, formData.password);
-
-    if (areCredsValid) {
-      toast.success("User Logged in Sucessfully!");
-      router.replace(`/${user?.role}`);
-    } else {
-      toast.error("Invalid Username or password!");
-      setValue("email", "");
-      setValue("password", "");
+    const isValidUser = login(data.email, data.password);
+    if (!isValidUser) {
+      toast.error("Invalid Username or Password!");
     }
   };
+
+  useEffect(() => {
+    // Navigate only when the user updates
+    if (user?.role) {
+      toast.success("User Logged in Successfully!");
+      router.replace(`/${user?.role}`);
+    }
+  }, [user]);
 
   return (
     <div className="w-screen min-h-screen flex justify-center items-center">
@@ -69,7 +67,7 @@ export default function SignInForm() {
         <CardContent>
           <form
             className="flex flex-col justify-center gap-4"
-            onSubmit={handleSubmit}
+            onSubmit={handleSubmit(onSubmit)}
           >
             {/* Email */}
             <div className="flex flex-col gap-2 justify-center">
@@ -80,11 +78,12 @@ export default function SignInForm() {
                 id="email"
                 type="email"
                 placeholder="Email"
-                onChange={(e) => setValue("email", e.target.value)}
                 className="placeholder:text-md"
-                value={formData.email}
-                required
+                {...register("email", { required: "Email is required" })}
               />
+              {errors.email && (
+                <span className="text-red-500">{errors.email.message}</span>
+              )}
             </div>
 
             {/* Password */}
@@ -97,14 +96,17 @@ export default function SignInForm() {
                   id="password"
                   type={showPassword ? "password" : "text"}
                   placeholder="Password"
+                  className="placeholder:text-md"
+                  {...register("password", {
+                    required: "Password is required",
+                    validate: (value) =>
+                      passwordRules.every((rule) => rule.validate(value)) ||
+                      "Password does not meet the requirements",
+                  })}
                   onFocus={() => setIsPasswordFocused(true)}
                   onBlur={() => setIsPasswordFocused(false)}
-                  className="placeholder:text-md"
-                  onChange={(e) => setValue("password", e.target.value)}
-                  value={formData.password}
-                  required
                 />
-                <div onClick={() => setshowPassword(!showPassword)}>
+                <div onClick={() => setShowPassword(!showPassword)}>
                   {showPassword ? (
                     <FaEye className="absolute top-1/2 transform -translate-y-1/2 right-3" />
                   ) : (
@@ -112,11 +114,19 @@ export default function SignInForm() {
                   )}
                 </div>
               </div>
+
               {/* Password Rules */}
-              {(isPasswordFocused || formData.password) && (
-                <PasswordRules password={formData.password} />
+              {(isPasswordFocused || watch("password")) && (
+                <PasswordRules password={watch("password")} />
+              )}
+
+              {errors.password && (
+                <span className="text-red-500">{errors.password.message}</span>
               )}
             </div>
+
+            {/* Captcha Verification */}
+            {!isVerified && <Captcha setIsVerified={setIsVerified} />}
 
             {/* Login Button */}
             <Button type="submit" className="w-full rounded-sm text-md">
@@ -126,7 +136,7 @@ export default function SignInForm() {
         </CardContent>
         <CardFooter className="flex flex-col justify-center">
           <div className="text-md">
-            New User ?{" "}
+            New User?{" "}
             <span>
               <Link href={"/signup"} className="text-blue-400">
                 Register
