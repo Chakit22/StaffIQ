@@ -17,6 +17,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [users, setUsers] = useState<User[]>([]);
 
   useEffect(() => {
+    console.log("context useEffect!");
     // Initialize users from localStorage or use defaults
     const storedUsers = localStorage.getItem("users");
     if (!storedUsers) {
