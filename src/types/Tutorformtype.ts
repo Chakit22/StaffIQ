@@ -1,5 +1,5 @@
 export interface Tutorformtype {
-  course: string;
+  course_code: string;
   role: string;
   availability: string;
   skills: string;

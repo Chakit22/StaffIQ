@@ -2,6 +2,7 @@ import { User } from "@/types/User";
 
 export const DEFAULT_USERS: User[] = [
   {
+    id: 1,
     firstname: "chakit",
     lastname: "bhandari",
     phone: 434057320,
@@ -10,6 +11,7 @@ export const DEFAULT_USERS: User[] = [
     role: "tutor",
   },
   {
+    id: 2,
     firstname: "chakit",
     lastname: "bhandari",
     phone: 434057320,

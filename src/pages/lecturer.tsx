@@ -60,7 +60,14 @@ export default function Tutor() {
     <>
       <Navbar />
       {/* Main content */}
-      <Card></Card>
+      <Card className="m-12">
+        <CardHeader className="bg-blue-500">
+          <CardTitle className="text-white">Select Course</CardTitle>
+          <CardDescription>
+            View and manage tutor applications for a specific course
+          </CardDescription>
+        </CardHeader>
+      </Card>
       <Footer />
     </>
   );

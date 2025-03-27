@@ -43,7 +43,6 @@ export default function Tutor() {
   } = useForm<Tutorformtype>();
 
   const onSubmit = (formData: Tutorformtype) => {
-    console.log(formData);
     toast.success("Application submitted sucessfully!");
     // Reset the form
     reset();
@@ -80,7 +79,6 @@ export default function Tutor() {
                 <Controller
                   control={control}
                   name="course"
-                  defaultValue="Select course"
                   rules={{ required: "Please select your course" }}
                   render={({ field }) => (
                     <Select onValueChange={field.onChange} value={field.value}>
@@ -110,7 +108,6 @@ export default function Tutor() {
                 <Controller
                   control={control}
                   name="role"
-                  defaultValue="Select role"
                   rules={{ required: "Please select a role" }}
                   render={({ field }) => (
                     <Select onValueChange={field.onChange} value={field.value}>
@@ -138,7 +135,6 @@ export default function Tutor() {
                 <Controller
                   control={control}
                   name="availability"
-                  defaultValue="Select your availability"
                   rules={{ required: "Please select your availability" }}
                   render={({ field }) => (
                     <Select onValueChange={field.onChange} value={field.value}>
