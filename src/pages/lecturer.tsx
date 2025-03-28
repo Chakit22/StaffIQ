@@ -37,8 +37,8 @@ export default function Lecturer() {
   }, []);
 
   return (
-    <ApplicantProvider>
+    <Layout>
       <LecturerComponent />
-    </ApplicantProvider>
+    </Layout>
   );
 }

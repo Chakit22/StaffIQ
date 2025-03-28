@@ -18,5 +18,6 @@ export const DEFAULT_USERS: User[] = [
     email: "chakitbhandari93@gmail.com",
     password: "Chuck@123",
     role: "lecturer",
+    courseIds: ["COSC1234", "COSC3456"],
   },
 ];

@@ -43,6 +43,8 @@ export function ApplicantProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem("applicants", JSON.stringify([] as Applicant[]));
     }
 
+    console.log(storedApplicants_);
+
     setApplicants(storedApplicants_);
   }, []);
 
