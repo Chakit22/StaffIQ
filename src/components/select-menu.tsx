@@ -1,6 +1,6 @@
 "use client";
 
-import { Tutorformtype } from "@/types/TutorFormtype";
+import { Tutorformtype } from "@/types/Tutorformtype";
 import {
   Select,
   SelectContent,

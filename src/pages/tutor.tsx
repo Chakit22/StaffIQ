@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tutorformtype } from "@/types/TutorFormtype";
+import { Tutorformtype } from "@/types/Tutorformtype";
 import { useAuth } from "@/context/UserProvider";
 import { Label } from "@radix-ui/react-label";
 import { useRouter } from "next/navigation";
@@ -29,10 +29,13 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { roles } from "@/utils/roles";
 import { availability } from "@/utils/availbility";
+import Layout from "@/components/layout";
+import { useApplicant } from "@/context/ApplicantProvider";
 
 export default function Tutor() {
   const { user } = useAuth();
   const router = useRouter();
+  const { applicants } = useApplicant();
 
   const {
     register,
@@ -56,9 +59,8 @@ export default function Tutor() {
   }, []);
 
   return (
-    <>
-      <Navbar />
-      {/* Main content */}
+    <Layout>
+      {" "}
       <div className="grid grid-cols-2 w-full p-8 justify-items-center">
         {/* Form to fill the information */}
         <Card className="py-8 rounded-lg shadow-2xl w-2xs md:w-md bg-blue-50">
@@ -78,7 +80,7 @@ export default function Tutor() {
                 <Label>Course</Label>
                 <Controller
                   control={control}
-                  name="course"
+                  name="course_code"
                   rules={{ required: "Please select your course" }}
                   render={({ field }) => (
                     <Select onValueChange={field.onChange} value={field.value}>
@@ -88,7 +90,7 @@ export default function Tutor() {
                       <SelectContent>
                         <SelectGroup>
                           {courses.map((course, i) => (
-                            <SelectItem value={course.label}>
+                            <SelectItem value={course.code}>
                               {course.label}
                             </SelectItem>
                           ))}
@@ -97,8 +99,10 @@ export default function Tutor() {
                     </Select>
                   )}
                 />
-                {errors.course && (
-                  <span className="text-red-500">{errors.course.message}</span>
+                {errors.course_code && (
+                  <span className="text-red-500">
+                    {errors.course_code.message}
+                  </span>
                 )}
               </div>
 
@@ -199,7 +203,6 @@ export default function Tutor() {
         </Card>
         <div>Previous Roles</div>
       </div>
-      <Footer />
-    </>
+    </Layout>
   );
 }
