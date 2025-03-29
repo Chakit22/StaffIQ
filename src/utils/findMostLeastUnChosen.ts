@@ -6,9 +6,9 @@ export const getMostLeastAndUnchosen = (
   rankings: Ranking,
   applicants: string[]
 ): {
-  mostChosenApplicants: string[] | null;
-  leastChosenApplicants: string[] | null;
-  unChosenApplicants: string[] | null;
+  mostChosenApplicant: string | undefined;
+  leastChosenApplicant: string | undefined;
+  unChosenApplicants: string[] | undefined;
 } => {
   const n = applicants.length;
   //   Map<app_ids, ranks[]>
@@ -44,8 +44,7 @@ export const getMostLeastAndUnchosen = (
   let max_cnt = -Infinity,
     min_cnt = Infinity;
 
-  for (const app_id of Object.keys(rankMap)) {
-    const arr = rankMap.get(app_id)!;
+  for (const [app_id, arr] of rankMap) {
     let chosen_cnt = 0;
     for (let i = 0; i < arr.length; ++i) {
       chosen_cnt += arr[i];
@@ -60,17 +59,6 @@ export const getMostLeastAndUnchosen = (
     }
   }
 
-  if (min_cnt == max_cnt) {
-    // All are equall chosen so no most and least chosen candidates
-    return {
-      mostChosenApplicants: null,
-      leastChosenApplicants: null,
-      unChosenApplicants: chosenApplicants
-        .filter((applicant) => applicant.cnt === 0)
-        .map((applicant) => applicant.id),
-    };
-  }
-
   const mostChosenApplicants = chosenApplicants
     .filter((applicant) => applicant.cnt === max_cnt)
     .map((applicant) => applicant.id);
@@ -79,14 +67,33 @@ export const getMostLeastAndUnchosen = (
     .filter((applicant) => applicant.cnt === min_cnt)
     .map((applicant) => applicant.id);
 
+  if (min_cnt == max_cnt) {
+    // All are equall chosen so no most and least chosen candidates
+    // return {
+    //   mostChosenApplicant: null,
+    //   leastChosenApplicant: null,
+    //   unChosenApplicants: chosenApplicants
+    //     .filter((applicant) => applicant.cnt === 0)
+    //     .map((applicant) => applicant.id),
+    // };
+
+    // For now return the first value from the list
+    return {
+      mostChosenApplicant: mostChosenApplicants[0],
+      leastChosenApplicant: leastChosenApplicants[0],
+      unChosenApplicants: chosenApplicants
+        .filter((applicant) => applicant.cnt === 0)
+        .map((applicant) => applicant.id),
+    };
+  }
+
   // Returns the lsit of mostChosen and leastChosen Applicants
+  // Picks the first one
   return {
-    mostChosenApplicants,
-    leastChosenApplicants,
+    mostChosenApplicant: mostChosenApplicants[0],
+    leastChosenApplicant: leastChosenApplicants[0],
     unChosenApplicants: chosenApplicants
       .filter((applicant) => applicant.cnt === 0)
       .map((applicant) => applicant.id),
   };
-
-  //   Tie breaker logic to be implemnted
 };
