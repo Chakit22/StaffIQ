@@ -1,5 +1,5 @@
 export interface Applicant {
-  id: number;
+  id: string;
   firstname: string;
   lastname: string;
   phone: number;
