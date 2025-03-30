@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/table";
 import { Checkbox } from "./ui/checkbox";
 import { RankingEditor } from "./RankingEditor";
+import ViewDetailsDialog from "./ViewDetailsDialog";
 
 export default function LecturerComponent() {
   const router = useRouter();
@@ -123,7 +124,9 @@ export default function LecturerComponent() {
                       <TableCell>
                         {applicant.availability.toUpperCase()}
                       </TableCell>
-                      <TableCell>View Details</TableCell>
+                      <TableCell>
+                        <ViewDetailsDialog applicant={applicant} />
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
