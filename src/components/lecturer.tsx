@@ -17,9 +17,7 @@ import { Applicant } from "@/types/ApplicantType";
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
-  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -29,13 +27,11 @@ import { RankingEditor } from "./RankingEditor";
 
 export default function LecturerComponent() {
   const router = useRouter();
-  const { applicants, getApplicantsByCourse, getApplicantsByCourseAndRole } =
-    useApplicant();
+  const { applicants, getApplicantsByCourse } = useApplicant();
   const { user } = useAuth();
   const [selectedCourse, setSelectedCourse] = useState<string | undefined>(
     undefined
   );
-  const [loading, setLoading] = useState<boolean>(true);
   const [currentApplicants, setCurrentApplicants] = useState<
     Applicant[] | null
   >([]);
@@ -46,7 +42,6 @@ export default function LecturerComponent() {
       router.replace("/");
     }
 
-    setLoading(false);
     // Filter the applicants by the current selected course
     if (selectedCourse) {
       console.log(selectedCourse);
@@ -80,7 +75,7 @@ export default function LecturerComponent() {
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                {courses.map((course, i) => (
+                {courses.map((course) => (
                   <SelectItem value={course.code}>{course.label}</SelectItem>
                 ))}
               </SelectGroup>
@@ -139,15 +134,17 @@ export default function LecturerComponent() {
           </div>
         </div>
       )}
-      {selectedApplicants.length !== 0 && (
+      {selectedCourse && selectedApplicants.length !== 0 && (
         <div className="grid grid-cols-2 w-full p-8 justify-items-center gap-24">
           <RankingEditor
+            course_code={selectedCourse}
             role="tutor"
             selectedApplicants={selectedApplicants.filter(
               (applicant) => applicant.role.toLowerCase() === "tutor"
             )}
           />
           <RankingEditor
+            course_code={selectedCourse}
             role="lab assistant"
             selectedApplicants={selectedApplicants.filter(
               (applicant) => applicant.role.toLowerCase() === "lab assistant"

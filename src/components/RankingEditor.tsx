@@ -6,8 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Applicant } from "@/types/ApplicantType";
 import { toast } from "sonner";
+import { useRanking } from "@/context/RankingProvider";
+import { useAuth } from "@/context/UserProvider";
+import { useRouter } from "next/navigation";
 
 interface RankingEditorProps {
+  course_code: string;
   role: string;
   selectedApplicants: Applicant[];
   onCommentClick?: (applicantId: number) => void;
@@ -18,11 +22,14 @@ type ApplicantWithRanking = Applicant & {
 };
 
 export function RankingEditor({
+  course_code,
   role,
   selectedApplicants,
 }: RankingEditorProps) {
   const [rankingData, setRankingData] = useState<ApplicantWithRanking[]>([]);
-  console.log(selectedApplicants);
+  const { saveRanking, rankings, getMostLeastAndUnchosen } = useRanking();
+  const { user } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
     // Updated the rankingData and sorted by the normal order
@@ -31,6 +38,11 @@ export function RankingEditor({
         return { ...selectedApplicant, rank: index + 1 };
       })
     );
+
+    console.log(user);
+    if (!user) {
+      router.replace("/");
+    }
   }, [selectedApplicants]);
 
   const handleRankMove = (id: number, direction: "up" | "down") => {
@@ -57,7 +69,13 @@ export function RankingEditor({
 
   const handleSaveRankingData = () => {
     // This updated the ranking data. So we need to have a hook or something to update the ranking
-    toast.success("Preferences saved sucessfully!");
+    saveRanking(
+      course_code,
+      role,
+      user?.id!,
+      rankingData.map((app) => app.id)
+    );
+    toast.success("Preferences saved successfully!");
   };
 
   return (
