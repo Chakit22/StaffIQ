@@ -47,7 +47,7 @@ export const RankingProvider = ({
   ) => {
     const updatedRankings = [...rankings];
 
-    let courseIndex = updatedRankings.findIndex(
+    const courseIndex = updatedRankings.findIndex(
       (c) => c[courseCode] != undefined
     );
 
@@ -78,7 +78,7 @@ export const RankingProvider = ({
     rankings: Rankings,
     applicants: number[]
   ) => {
-    let courseIndex = rankings.findIndex((c) => c[courseCode] != undefined);
+    const courseIndex = rankings.findIndex((c) => c[courseCode] != undefined);
 
     // There is not ratings updated for this course
     if (courseIndex === -1) {
@@ -89,12 +89,12 @@ export const RankingProvider = ({
       };
     }
 
-    let relevantRankings: { [lecturerId: number]: number[] } =
+    const relevantRankings: { [lecturerId: number]: number[] } =
       rankings[courseIndex][courseCode][role];
 
     const n = applicants.length;
-    let rankMap: Map<number, number[]> = new Map();
-    let chosenApplicants: { id: number; cnt: number }[] = [];
+    const rankMap: Map<number, number[]> = new Map();
+    const chosenApplicants: { id: number; cnt: number }[] = [];
 
     for (const app of applicants) {
       rankMap.set(app, Array(n).fill(0));
@@ -111,7 +111,7 @@ export const RankingProvider = ({
       for (const lecturerId in relevantRankings) {
         if (i < relevantRankings[lecturerId].length) {
           const app_id = relevantRankings[lecturerId][i];
-          let rank_arr = rankMap.get(app_id)!;
+          const rank_arr = rankMap.get(app_id)!;
           rank_arr[i]++;
           rankMap.set(app_id, rank_arr);
         }
@@ -121,7 +121,7 @@ export const RankingProvider = ({
     let max_cnt = -Infinity,
       min_cnt = Infinity;
     for (const [app_id, arr] of rankMap) {
-      let chosen_cnt = arr.reduce((sum, val) => sum + val, 0);
+      const chosen_cnt = arr.reduce((sum, val) => sum + val, 0);
       chosenApplicants.push({ id: app_id, cnt: chosen_cnt });
       if (chosen_cnt !== 0 && chosen_cnt > max_cnt) max_cnt = chosen_cnt;
       if (chosen_cnt !== 0 && chosen_cnt < min_cnt) min_cnt = chosen_cnt;

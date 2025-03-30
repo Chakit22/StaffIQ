@@ -89,7 +89,7 @@ export default function TutorComponent() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        {courses.map((course, i) => (
+                        {courses.map((course) => (
                           <SelectItem value={course.code}>
                             {course.label}
                           </SelectItem>
@@ -120,7 +120,7 @@ export default function TutorComponent() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        {roles.map((role, i) => (
+                        {roles.map((role) => (
                           <SelectItem value={role}>{role}</SelectItem>
                         ))}
                       </SelectGroup>
@@ -147,7 +147,7 @@ export default function TutorComponent() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        {availability.map((availability, i) => (
+                        {availability.map((availability) => (
                           <SelectItem value={availability}>
                             {availability}
                           </SelectItem>
