@@ -26,7 +26,7 @@ export default function SignInForm() {
   const [showPassword, setShowPassword] = useState<boolean>(true);
   const [isPasswordFocused, setIsPasswordFocused] = useState<boolean>(false);
   const router = useRouter();
-  const [isVerified, setIsVerified] = useState<boolean>(false);
+  const [isVerified, setIsVerified] = useState<boolean>(true);
 
   // Initialize react-hook-form
   const {
@@ -51,10 +51,11 @@ export default function SignInForm() {
   };
 
   useEffect(() => {
+    console.log("useeffect!");
     // Navigate only when the user updates
     if (user?.role) {
       toast.success("User Logged in Successfully!");
-      router.replace(`/${user?.role}`);
+      router.push(`/${user?.role}`);
     }
   }, [user]);
 
