@@ -14,6 +14,11 @@ import { createContext, useContext, useEffect, useState } from "react";
 interface ApplicantContextProps {
   applicants: Applicant[];
   addApplicant: (applicant: Applicant) => void;
+  getApplicantsByCourse: (course_code: string) => Applicant[];
+  getApplicantsByCourseAndRole: (
+    course_code: string,
+    role: string
+  ) => Applicant[];
 }
 
 const ApplicantContext = createContext<ApplicantContextProps | undefined>(
@@ -23,6 +28,7 @@ const ApplicantContext = createContext<ApplicantContextProps | undefined>(
 export function ApplicantProvider({ children }: { children: React.ReactNode }) {
   const [applicants, setApplicants] = useState<Applicant[]>([]);
 
+  // Add an applicant into the list of applicants
   const addApplicant = (applicant: Applicant) => {
     const storedApplicants = localStorage.getItem("applicants");
     const storedApplicants_: Applicant[] = storedApplicants
@@ -31,6 +37,21 @@ export function ApplicantProvider({ children }: { children: React.ReactNode }) {
     storedApplicants_.push(applicant);
     localStorage.setItem("applicants", JSON.stringify(storedApplicants_));
     setApplicants(storedApplicants_);
+  };
+
+  // Get an applicant of a particular course
+  const getApplicantsByCourse = (course_code: string) => {
+    return applicants.filter(
+      (applicant) => applicant.course_code === course_code
+    );
+  };
+
+  // Get an applicant of a particular course
+  const getApplicantsByCourseAndRole = (course_code: string, role: string) => {
+    return applicants.filter(
+      (applicant) =>
+        applicant.course_code === course_code && applicant.role === role
+    );
   };
 
   useEffect(() => {
@@ -49,7 +70,14 @@ export function ApplicantProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <ApplicantContext.Provider value={{ applicants, addApplicant }}>
+    <ApplicantContext.Provider
+      value={{
+        applicants,
+        addApplicant,
+        getApplicantsByCourse,
+        getApplicantsByCourseAndRole,
+      }}
+    >
       {children}
     </ApplicantContext.Provider>
   );

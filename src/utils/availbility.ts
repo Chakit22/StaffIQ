@@ -1,1 +1,1 @@
-export const availability = ["Part Time", "Full Time"];
+export const availability = ["part time", "full time"];

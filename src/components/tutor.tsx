@@ -48,7 +48,7 @@ export default function TutorComponent() {
   const onSubmit = (formData: Tutorformtype) => {
     toast.success("Application submitted sucessfully!");
     // Reset the form
-    const { id, password, role, courseIds, ...filteredUser } = user!;
+    const { id, password, role, ...filteredUser } = user!;
     addApplicant({ id: applicants.length + 1, ...filteredUser, ...formData });
     reset();
   };

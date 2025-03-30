@@ -1,12 +1,31 @@
 import { User } from "@/types/User";
 
+// A lecturer teaches all the courses, considering that
 export const DEFAULT_USERS: User[] = [
   {
     id: 1,
     firstname: "chakit",
     lastname: "bhandari",
     phone: 434057320,
-    email: "chakitbhandari22@gmail.com",
+    email: "chakit@gmail.com",
+    password: "Chuck@123",
+    role: "tutor",
+  },
+  {
+    id: 3,
+    firstname: "chuck",
+    lastname: "bhandari",
+    phone: 434057320,
+    email: "chuck@gmail.com",
+    password: "Chuck@123",
+    role: "tutor",
+  },
+  {
+    id: 4,
+    firstname: "nope",
+    lastname: "bhandari",
+    phone: 434057320,
+    email: "nope@gmail.com",
     password: "Chuck@123",
     role: "tutor",
   },
@@ -18,6 +37,5 @@ export const DEFAULT_USERS: User[] = [
     email: "chakitbhandari93@gmail.com",
     password: "Chuck@123",
     role: "lecturer",
-    courseIds: ["COSC1234", "COSC3456"],
   },
 ];
