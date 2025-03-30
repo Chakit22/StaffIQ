@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { useRanking } from "@/context/RankingProvider";
 import { useAuth } from "@/context/UserProvider";
 import { useRouter } from "next/navigation";
+import CommentDialog from "./CommentDialog";
 
 interface RankingEditorProps {
   course_code: string;
@@ -29,7 +30,7 @@ export function RankingEditor({
   applicants,
 }: RankingEditorProps) {
   const [rankingData, setRankingData] = useState<ApplicantWithRanking[]>([]);
-  const { saveRanking, rankings, getMostLeastAndUnchosen } = useRanking();
+  const { saveRanking, rankings } = useRanking();
   const { user } = useAuth();
   const router = useRouter();
 
@@ -74,10 +75,16 @@ export function RankingEditor({
     saveRanking(
       course_code,
       role,
-      user?.id!,
+      user!.id,
       rankingData.map((app) => app.id)
     );
     toast.success("Preferences saved successfully!");
+  };
+
+  const handleSaveComment = (comment: string) => {
+    // To implement to save comments for the applicant
+    console.log(applicants, rankings, comment);
+    toast.success("Comment added sucesfully!");
   };
 
   return (
@@ -128,17 +135,7 @@ export function RankingEditor({
               </div>
               <div className="flex items-center gap-2">
                 <Badge className="bg-blue-600">{`Rank: ${applicant.rank}`}</Badge>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    // Add the code for updating the comments
-                    // onCommentClick(applicant.id);
-                  }}
-                  className="border-blue-300 hover:bg-blue-100 text-blue-700"
-                >
-                  Add comment
-                </Button>
+                <CommentDialog handleSaveComment={handleSaveComment} />
               </div>
             </div>
           ))}

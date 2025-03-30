@@ -1,7 +1,5 @@
 "use client";
 
-import Footer from "@/components/footer";
-import Navbar from "@/components/navbar";
 import {
   Card,
   CardContent,
@@ -21,7 +19,7 @@ import { Tutorformtype } from "@/types/Tutorformtype";
 import { useAuth } from "@/context/UserProvider";
 import { Label } from "@radix-ui/react-label";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { courses } from "@/utils/courses";
 import { Textarea } from "@/components/ui/textarea";
@@ -29,7 +27,6 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { roles } from "@/utils/roles";
 import { availability } from "@/utils/availbility";
-import Layout from "@/components/layout";
 import { useApplicant } from "@/context/ApplicantProvider";
 
 export default function TutorComponent() {
@@ -49,6 +46,7 @@ export default function TutorComponent() {
     toast.success("Application submitted sucessfully!");
     // Reset the form
     const { id, password, role, ...filteredUser } = user!;
+    console.log(id, password, role);
     addApplicant({ id: applicants.length + 1, ...filteredUser, ...formData });
     reset();
   };
@@ -89,8 +87,8 @@ export default function TutorComponent() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        {courses.map((course) => (
-                          <SelectItem value={course.code}>
+                        {courses.map((course, i) => (
+                          <SelectItem key={i} value={course.code}>
                             {course.label}
                           </SelectItem>
                         ))}
@@ -120,8 +118,10 @@ export default function TutorComponent() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        {roles.map((role) => (
-                          <SelectItem value={role}>{role}</SelectItem>
+                        {roles.map((role, i) => (
+                          <SelectItem key={i} value={role}>
+                            {role}
+                          </SelectItem>
                         ))}
                       </SelectGroup>
                     </SelectContent>
@@ -147,8 +147,8 @@ export default function TutorComponent() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        {availability.map((availability) => (
-                          <SelectItem value={availability}>
+                        {availability.map((availability, i) => (
+                          <SelectItem key={i} value={availability}>
                             {availability}
                           </SelectItem>
                         ))}
