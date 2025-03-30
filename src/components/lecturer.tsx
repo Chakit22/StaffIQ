@@ -76,8 +76,10 @@ export default function LecturerComponent() {
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                {courses.map((course) => (
-                  <SelectItem value={course.code}>{course.label}</SelectItem>
+                {courses.map((course, i) => (
+                  <SelectItem key={i} value={course.code}>
+                    {course.label}
+                  </SelectItem>
                 ))}
               </SelectGroup>
             </SelectContent>

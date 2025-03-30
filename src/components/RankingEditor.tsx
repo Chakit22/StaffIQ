@@ -30,7 +30,7 @@ export function RankingEditor({
   applicants,
 }: RankingEditorProps) {
   const [rankingData, setRankingData] = useState<ApplicantWithRanking[]>([]);
-  const { saveRanking, rankings, getMostLeastAndUnchosen } = useRanking();
+  const { saveRanking, rankings } = useRanking();
   const { user } = useAuth();
   const router = useRouter();
 
@@ -75,7 +75,7 @@ export function RankingEditor({
     saveRanking(
       course_code,
       role,
-      user?.id!,
+      user!.id,
       rankingData.map((app) => app.id)
     );
     toast.success("Preferences saved successfully!");
@@ -83,6 +83,7 @@ export function RankingEditor({
 
   const handleSaveComment = (comment: string) => {
     // To implement to save comments for the applicant
+    console.log(applicants, rankings, comment);
     toast.success("Comment added sucesfully!");
   };
 
