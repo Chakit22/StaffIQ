@@ -12,6 +12,7 @@ interface RankingContextType {
     applicants: number[]
   ) => void;
   getMostLeastAndUnchosen: (
+    courseCode: string,
     role: string,
     rankings: Rankings,
     applicants: number[]
@@ -46,7 +47,12 @@ export const RankingProvider = ({
   ) => {
     const updatedRankings = [...rankings];
 
-    let courseIndex = updatedRankings.findIndex((c) => c[courseCode]);
+    let courseIndex = updatedRankings.findIndex(
+      (c) => c[courseCode] != undefined
+    );
+
+    console.log("updated Rankings :");
+    console.log(updatedRankings);
     if (courseIndex === -1) {
       updatedRankings.push({
         [courseCode]: {
@@ -67,22 +73,24 @@ export const RankingProvider = ({
   };
 
   const getMostLeastAndUnchosen = (
+    courseCode: string,
     role: string,
     rankings: Rankings,
     applicants: number[]
   ) => {
-    let relevantRankings: { [lecturerId: number]: number[] } = {};
+    let courseIndex = rankings.findIndex((c) => c[courseCode] != undefined);
 
-    rankings.forEach((course) => {
-      for (const courseCode in course) {
-        if (course[courseCode][role]) {
-          relevantRankings = {
-            ...relevantRankings,
-            ...course[courseCode][role],
-          };
-        }
-      }
-    });
+    // There is not ratings updated for this course
+    if (courseIndex === -1) {
+      return {
+        mostChosenApplicant: undefined,
+        leastChosenApplicant: undefined,
+        unChosenApplicants: undefined,
+      };
+    }
+
+    let relevantRankings: { [lecturerId: number]: number[] } =
+      rankings[courseIndex][courseCode][role];
 
     const n = applicants.length;
     let rankMap: Map<number, number[]> = new Map();
@@ -94,16 +102,15 @@ export const RankingProvider = ({
 
     let max_ranks = -Infinity;
     for (const lecturerId in relevantRankings) {
-      if (relevantRankings[Number(lecturerId)].length > max_ranks) {
+      if (relevantRankings[lecturerId].length > max_ranks) {
         max_ranks = relevantRankings[Number(lecturerId)].length;
       }
     }
 
     for (let i = 0; i < max_ranks; ++i) {
       for (const lecturerId in relevantRankings) {
-        const lecturerIdNum = Number(lecturerId);
-        if (i < relevantRankings[lecturerIdNum].length) {
-          const app_id = relevantRankings[lecturerIdNum][i];
+        if (i < relevantRankings[lecturerId].length) {
+          const app_id = relevantRankings[lecturerId][i];
           let rank_arr = rankMap.get(app_id)!;
           rank_arr[i]++;
           rankMap.set(app_id, rank_arr);

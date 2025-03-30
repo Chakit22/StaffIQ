@@ -134,24 +134,28 @@ export default function LecturerComponent() {
           </div>
         </div>
       )}
-      {selectedCourse && selectedApplicants.length !== 0 && (
-        <div className="grid grid-cols-2 w-full p-8 justify-items-center gap-24">
-          <RankingEditor
-            course_code={selectedCourse}
-            role="tutor"
-            selectedApplicants={selectedApplicants.filter(
-              (applicant) => applicant.role.toLowerCase() === "tutor"
-            )}
-          />
-          <RankingEditor
-            course_code={selectedCourse}
-            role="lab assistant"
-            selectedApplicants={selectedApplicants.filter(
-              (applicant) => applicant.role.toLowerCase() === "lab assistant"
-            )}
-          />
-        </div>
-      )}
+      {currentApplicants &&
+        selectedCourse &&
+        selectedApplicants.length !== 0 && (
+          <div className="grid grid-cols-2 w-full p-8 justify-items-center gap-24">
+            <RankingEditor
+              course_code={selectedCourse}
+              role="tutor"
+              selectedApplicants={selectedApplicants.filter(
+                (applicant) => applicant.role.toLowerCase() === "tutor"
+              )}
+              applicants={currentApplicants?.map((applicant) => applicant.id)}
+            />
+            <RankingEditor
+              course_code={selectedCourse}
+              role="lab assistant"
+              selectedApplicants={selectedApplicants.filter(
+                (applicant) => applicant.role.toLowerCase() === "lab assistant"
+              )}
+              applicants={currentApplicants?.map((applicant) => applicant.id)}
+            />
+          </div>
+        )}
     </div>
   );
 }

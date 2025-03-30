@@ -14,6 +14,7 @@ interface RankingEditorProps {
   course_code: string;
   role: string;
   selectedApplicants: Applicant[];
+  applicants: number[];
   onCommentClick?: (applicantId: number) => void;
 }
 
@@ -25,6 +26,7 @@ export function RankingEditor({
   course_code,
   role,
   selectedApplicants,
+  applicants,
 }: RankingEditorProps) {
   const [rankingData, setRankingData] = useState<ApplicantWithRanking[]>([]);
   const { saveRanking, rankings, getMostLeastAndUnchosen } = useRanking();

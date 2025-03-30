@@ -38,4 +38,22 @@ export const DEFAULT_USERS: User[] = [
     password: "Chuck@123",
     role: "lecturer",
   },
+  {
+    id: 5,
+    firstname: "chakit",
+    lastname: "bhandari",
+    phone: 434057320,
+    email: "chakitbhandari25@gmail.com",
+    password: "Chuck@123",
+    role: "lecturer",
+  },
+  {
+    id: 6,
+    firstname: "chakit",
+    lastname: "bhandari",
+    phone: 434057320,
+    email: "chakitbhandari24@gmail.com",
+    password: "Chuck@123",
+    role: "lecturer",
+  },
 ];
