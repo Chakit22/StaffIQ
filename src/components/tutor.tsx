@@ -61,7 +61,7 @@ export default function TutorComponent() {
   return (
     <div className="grid grid-cols-2 w-full p-8 justify-items-center">
       {/* Form to fill the information */}
-      <Card className="py-8 rounded-lg shadow-2xl w-2xs md:w-md bg-blue-50">
+      <Card className="py-8 rounded-lg shadow-2xl w-2xs md:w-md">
         <CardHeader>
           <CardTitle>Apply for Roles</CardTitle>
           <CardDescription>
@@ -80,22 +80,28 @@ export default function TutorComponent() {
                 control={control}
                 name="course_code"
                 rules={{ required: "Please select your course" }}
-                render={({ field }) => (
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select course" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        {courses.map((course, i) => (
-                          <SelectItem key={i} value={course.code}>
-                            {course.label}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                )}
+                render={({ field }) => {
+                  console.log(field.value);
+                  return (
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select course" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          {courses.map((course, i) => (
+                            <SelectItem key={i} value={course.code}>
+                              {course.label}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  );
+                }}
               />
               {errors.course_code && (
                 <span className="text-red-500">
