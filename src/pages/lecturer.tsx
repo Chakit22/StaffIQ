@@ -1,4 +1,4 @@
-"use client";
+"use client"; //Runs on the client side
 
 import { useAuth } from "@/context/UserProvider";
 import { useRouter } from "next/navigation";
@@ -6,20 +6,19 @@ import { useEffect } from "react";
 import Layout from "@/components/layout";
 import LecturerComponent from "@/components/lecturer";
 
-export default function Lecturer() {
-  const { user } = useAuth();
-  const router = useRouter();
+export default function LecturerPage() {
+  const { user } = useAuth(); //Get current user
+  const router = useRouter(); //For navigation
 
   useEffect(() => {
-    console.log(user);
     if (!user) {
-      router.replace("/");
+      router.replace("/signin"); //Redirect if not signed in
     }
-  }, []);
+  }, [user]);
 
   return (
     <Layout>
-      <LecturerComponent />
+      <LecturerComponent /> {/*Main lecturer dashboard content*/}
     </Layout>
   );
 }

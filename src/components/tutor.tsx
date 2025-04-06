@@ -30,7 +30,7 @@ import { availability } from "@/utils/availbility";
 import { useApplicant } from "@/context/ApplicantProvider";
 
 export default function TutorComponent() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const router = useRouter();
   const { addApplicant, applicants } = useApplicant();
 
@@ -42,25 +42,45 @@ export default function TutorComponent() {
     reset,
   } = useForm<Tutorformtype>();
 
-  const onSubmit = (formData: Tutorformtype) => {
-    toast.success("Application submitted sucessfully!");
-    // Reset the form
-    const { id, password, role, ...filteredUser } = user!;
-    console.log(id, password, role);
-    addApplicant({ id: applicants.length + 1, ...filteredUser, ...formData });
-    reset();
-  };
-
   useEffect(() => {
-    console.log(user);
-    if (!user) {
-      router.replace("/");
+    if (!loading && !user) {
+      router.replace("/signin"); //redirect if not logged in
     }
-  }, [applicants]);
+  }, [loading, user]);
+
+  const onSubmit = (formData: Tutorformtype) => {
+    if (!user) {
+      toast.error("User not logged in.");
+      return;
+    }
+
+    const { id, password, role, ...filteredUser } = user; //remove sensitive fields
+
+    const hasAlreadyApplied = applicants.some(
+      (a) =>
+        a.id === id &&
+        a.course_code === formData.course_code &&
+        a.role === formData.role
+    );
+
+    if (hasAlreadyApplied) {
+      toast.error("You've already applied for this role in this course."); //prevent duplicate
+      return;
+    }
+
+    const newApplicant = {
+      id,
+      ...filteredUser,
+      ...formData,
+    };
+
+    addApplicant(newApplicant); //save applicant
+    toast.success("Application submitted successfully!");
+    reset(); //reset form
+  };
 
   return (
     <div className="grid grid-cols-2 w-full p-8 justify-items-center">
-      {/* Form to fill the information */}
       <Card className="py-8 rounded-lg shadow-2xl w-2xs md:w-md bg-blue-50">
         <CardHeader>
           <CardTitle>Apply for Roles</CardTitle>
@@ -73,8 +93,8 @@ export default function TutorComponent() {
             className="flex flex-col justify-center gap-4"
             onSubmit={handleSubmit(onSubmit)}
           >
-            {/* Select a course */}
-            <div className="flex flex-col gap-2 justify-center">
+            {/*Course*/}
+            <div className="flex flex-col gap-2">
               <Label>Course</Label>
               <Controller
                 control={control}
@@ -82,7 +102,7 @@ export default function TutorComponent() {
                 rules={{ required: "Please select your course" }}
                 render={({ field }) => (
                   <Select onValueChange={field.onChange} value={field.value}>
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger>
                       <SelectValue placeholder="Select course" />
                     </SelectTrigger>
                     <SelectContent>
@@ -104,8 +124,8 @@ export default function TutorComponent() {
               )}
             </div>
 
-            {/* Select a role */}
-            <div className="flex flex-col gap-2 justify-center">
+            {/*Role*/}
+            <div className="flex flex-col gap-2">
               <Label>Role</Label>
               <Controller
                 control={control}
@@ -113,7 +133,7 @@ export default function TutorComponent() {
                 rules={{ required: "Please select a role" }}
                 render={({ field }) => (
                   <Select onValueChange={field.onChange} value={field.value}>
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger>
                       <SelectValue placeholder="Select role" />
                     </SelectTrigger>
                     <SelectContent>
@@ -133,8 +153,8 @@ export default function TutorComponent() {
               )}
             </div>
 
-            {/* Select availability */}
-            <div className="flex flex-col gap-2 justify-center">
+            {/*Availability*/}
+            <div className="flex flex-col gap-2">
               <Label>Availability</Label>
               <Controller
                 control={control}
@@ -142,14 +162,14 @@ export default function TutorComponent() {
                 rules={{ required: "Please select your availability" }}
                 render={({ field }) => (
                   <Select onValueChange={field.onChange} value={field.value}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select your availability" />
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select availability" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        {availability.map((availability, i) => (
-                          <SelectItem key={i} value={availability}>
-                            {availability}
+                        {availability.map((a, i) => (
+                          <SelectItem key={i} value={a}>
+                            {a}
                           </SelectItem>
                         ))}
                       </SelectGroup>
@@ -164,13 +184,14 @@ export default function TutorComponent() {
               )}
             </div>
 
-            {/* Skills */}
-            <div className="flex flex-col gap-2 justify-center">
+            {/*Skills*/}
+            <div className="flex flex-col gap-2">
               <Label>Skills</Label>
               <Textarea
-                placeholder="List your relavant skills and experience..."
+                placeholder="List your relevant skills..."
                 {...register("skills", {
-                  required: "Skills must be atleast 10 characters",
+                  required: "Skills must be at least 10 characters",
+                  minLength: 10,
                 })}
               />
               {errors.skills && (
@@ -178,14 +199,14 @@ export default function TutorComponent() {
               )}
             </div>
 
-            {/* Aacademic credentials */}
-            <div className="flex flex-col gap-2 justify-center">
+            {/*Academic Credentials*/}
+            <div className="flex flex-col gap-2">
               <Label>Academic Credentials</Label>
               <Textarea
-                placeholder="List your academic qualifications..."
+                placeholder="Your academic qualifications..."
                 {...register("academic_creds", {
-                  required:
-                    "Academic Credentials must be atleast 10 characters",
+                  required: "Credentials must be at least 10 characters",
+                  minLength: 10,
                 })}
               />
               {errors.academic_creds && (
@@ -195,12 +216,13 @@ export default function TutorComponent() {
               )}
             </div>
 
-            <Button type="submit" className="w-full rounded-sm text-md">
+            <Button type="submit" className="w-full">
               Submit Application
             </Button>
           </form>
         </CardContent>
       </Card>
+
       <div>Previous Roles</div>
     </div>
   );
