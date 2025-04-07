@@ -13,7 +13,7 @@ export const DEFAULT_USERS: User[] = [
   },
   {
     id: 2,
-    firstname: "chakit",
+    firstname: "chuck",
     lastname: "bhandari",
     phone: 434057320,
     email: "tut2@gmail.com",
@@ -22,7 +22,7 @@ export const DEFAULT_USERS: User[] = [
   },
   {
     id: 3,
-    firstname: "chakit",
+    firstname: "tutor3",
     lastname: "bhandari",
     phone: 434057320,
     email: "tut3@gmail.com",

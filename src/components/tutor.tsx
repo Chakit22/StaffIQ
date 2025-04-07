@@ -56,7 +56,7 @@ export default function TutorComponent() {
     if (!user) {
       router.replace("/");
     }
-  }, [applicants]);
+  }, [applicants, user]);
 
   return (
     <div className="grid grid-cols-2 w-full p-8 justify-items-center">

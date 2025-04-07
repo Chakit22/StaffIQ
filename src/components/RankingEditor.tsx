@@ -46,7 +46,7 @@ export function RankingEditor({
     if (!user) {
       router.replace("/");
     }
-  }, [selectedApplicants]);
+  }, [selectedApplicants, user, router]);
 
   const handleRankMove = (id: number, direction: "up" | "down") => {
     const index = rankingData.findIndex((applicant) => applicant.id === id);
@@ -134,7 +134,7 @@ export function RankingEditor({
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <Badge className="bg-blue-600">{`Rank: ${applicant.rank}`}</Badge>
+                <Badge className="bg-blue-500">{`Rank: ${applicant.rank}`}</Badge>
                 <CommentDialog handleSaveComment={handleSaveComment} />
               </div>
             </div>

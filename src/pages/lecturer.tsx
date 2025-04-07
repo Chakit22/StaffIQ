@@ -15,7 +15,7 @@ export default function Lecturer() {
     if (!user) {
       router.replace("/");
     }
-  }, []);
+  }, [user]);
 
   return (
     <Layout>

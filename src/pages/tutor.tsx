@@ -15,7 +15,7 @@ export default function Tutor() {
     if (!user) {
       router.replace("/");
     }
-  }, []);
+  }, [user]);
 
   return (
     <Layout>

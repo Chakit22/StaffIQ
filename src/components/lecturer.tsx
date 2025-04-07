@@ -50,7 +50,7 @@ export default function LecturerComponent() {
       // Set the elected applicants only if you selected a course
       setCurrentApplicants(getApplicantsByCourse(selectedCourse!));
     }
-  }, [applicants, selectedCourse]);
+  }, [applicants, selectedCourse, user]);
 
   const handleSelectedApplicantsChange = (applicant: Applicant) => {
     setSelectedApplicants((prev) =>
