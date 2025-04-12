@@ -19,7 +19,7 @@ import { Tutorformtype } from "@/types/Tutorformtype";
 import { useAuth } from "@/context/UserProvider";
 import { Label } from "@radix-ui/react-label";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { courses } from "@/utils/courses";
 import { Textarea } from "@/components/ui/textarea";
@@ -28,11 +28,13 @@ import { toast } from "sonner";
 import { roles } from "@/utils/roles";
 import { availability } from "@/utils/availbility";
 import { useApplicant } from "@/context/ApplicantProvider";
+import { Applicant } from "@/types/ApplicantType";
 
 export default function TutorComponent() {
   const { user } = useAuth();
   const router = useRouter();
-  const { addApplicant, applicants } = useApplicant();
+  const { addApplicant, applicants, getApplicationsOfCurrentUser } =
+    useApplicant();
 
   const {
     register,
@@ -47,7 +49,12 @@ export default function TutorComponent() {
     // Reset the form
     const { id, password, role, ...filteredUser } = user!;
     console.log(id, password, role);
-    addApplicant({ id: applicants.length + 1, ...filteredUser, ...formData });
+    addApplicant({
+      id: applicants.length + 1,
+      ...filteredUser,
+      ...formData,
+      user_id: id,
+    });
     reset();
   };
 
@@ -56,6 +63,10 @@ export default function TutorComponent() {
     if (!user) {
       router.replace("/");
     }
+  }, [applicants, user]);
+
+  const previousRoles = useMemo(() => {
+    return getApplicationsOfCurrentUser(user?.id!);
   }, [applicants, user]);
 
   return (
@@ -207,7 +218,42 @@ export default function TutorComponent() {
           </form>
         </CardContent>
       </Card>
-      <div>Previous Roles</div>
+      <Card className="py-8 rounded-lg shadow-2xl w-2xs md:w-md">
+        <CardHeader>
+          <CardTitle>Previous Roles</CardTitle>
+          <CardDescription>
+            List of previous roles you have applied for and general experience
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="h-full flex flex-col gap-4">
+          {previousRoles.length > 0 &&
+            previousRoles.map((role: Applicant) => (
+              <Card key={role.id}>
+                <CardHeader>
+                  <CardTitle>{role.role.toUpperCase()}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>
+                    <span className="font-bold">Skills:</span> {role.skills}
+                  </p>
+                  <p>
+                    <span className="font-bold">Academic Credentials:</span>{" "}
+                    {role.academic_creds}
+                  </p>
+                  <p>
+                    <span className="font-bold">Availability:</span>{" "}
+                    {role.availability}
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
+          {previousRoles.length == 0 && (
+            <div className="flex justify-center items-center h-full">
+              <div>No previous roles applied for</div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

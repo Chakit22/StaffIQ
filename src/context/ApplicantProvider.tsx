@@ -19,6 +19,7 @@ interface ApplicantContextProps {
     course_code: string,
     role: string
   ) => Applicant[];
+  getApplicationsOfCurrentUser: (user_id: number) => Applicant[];
 }
 
 const ApplicantContext = createContext<ApplicantContextProps | undefined>(
@@ -37,6 +38,11 @@ export function ApplicantProvider({ children }: { children: React.ReactNode }) {
     storedApplicants_.push(applicant);
     localStorage.setItem("applicants", JSON.stringify(storedApplicants_));
     setApplicants(storedApplicants_);
+  };
+
+  // Get applications of the current user
+  const getApplicationsOfCurrentUser = (user_id: number) => {
+    return applicants.filter((applicant) => applicant.user_id === user_id);
   };
 
   // Get an applicant of a particular course
@@ -76,6 +82,7 @@ export function ApplicantProvider({ children }: { children: React.ReactNode }) {
         addApplicant,
         getApplicantsByCourse,
         getApplicantsByCourseAndRole,
+        getApplicationsOfCurrentUser,
       }}
     >
       {children}

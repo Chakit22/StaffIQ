@@ -1,5 +1,6 @@
 export interface Applicant {
   id: number;
+  user_id: number;
   firstname: string;
   lastname: string;
   phone: number;
