@@ -59,13 +59,20 @@ export default function TutorComponent() {
   };
 
   useEffect(() => {
+    console.log("Inside useEffect");
     console.log(user);
     if (!user) {
       router.replace("/");
     }
-  }, [applicants, user]);
+  }, [user]);
 
+  /**
+   * More efficient way to get the previous roles as,
+   * it does not re-render the component when the applicants change.
+   * Otherwise using useEffect would re-render the component when new applicants are added.
+   */
   const previousRoles = useMemo(() => {
+    console.log("Inside useMemo");
     return getApplicationsOfCurrentUser(user?.id!);
   }, [applicants, user]);
 
