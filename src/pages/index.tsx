@@ -2,6 +2,8 @@
 
 import { useRouter } from "next/navigation"; //For navigation (redirecting)
 import { Button } from "@/components/ui/button"; //Reusable styled buttons
+import React from "react";
+
 
 export default function HomePage() {
   const router = useRouter(); //Hook for navigating programmatically

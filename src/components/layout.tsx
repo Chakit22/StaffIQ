@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import Navbar from "./navbar";
 import Footer from "./footer";
 import { ApplicantProvider } from "@/context/ApplicantProvider";
