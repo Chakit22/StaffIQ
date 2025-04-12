@@ -4,6 +4,7 @@ import { useApplicant } from "@/context/ApplicantProvider";
 import { courses } from "@/utils/courses";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import React from "react";
 import ApplicantStats from "./ApplicantStats";
 import { useAuth } from "@/context/UserProvider";
 import { useRouter } from "next/navigation";
@@ -42,6 +43,7 @@ export default function LecturerComponent() {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [availabilityFilter, setAvailabilityFilter] = useState<string>("");
   const [sortBy, setSortBy] = useState<string>("");
+  <h1 className="text-2xl font-bold mb-4">Lecturer Dashboard</h1>
 
   //redirect if not logged in
   useEffect(() => {

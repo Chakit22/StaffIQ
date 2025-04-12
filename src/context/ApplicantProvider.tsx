@@ -1,7 +1,10 @@
 "use client";
 
+import React from "react";
 import { Applicant } from "@/types/ApplicantType";
 import { createContext, useContext, useEffect, useState } from "react";
+
+
 
 interface ApplicantContextProps {
   applicants: Applicant[];
