@@ -17,9 +17,9 @@ export function CourseProvider({ children }: { children: React.ReactNode }) {
     const storedCourses = localStorage.getItem("currentcourses");
     if (!storedCourses) {
       localStorage.setItem("currentcourses", JSON.stringify(courses));
-      setCurrentCourses(currentcourses);
+      setCurrentCourses(courses);
     } else {
-      setCurrentCourses(currentcourses);
+      setCurrentCourses(JSON.parse(storedCourses));
     }
   }, []);
 

@@ -2,7 +2,7 @@
 
 import { useApplicant } from "@/context/ApplicantProvider";
 import { useAuth } from "@/context/UserProvider";
-import { useRanking } from "@/context/RankingProvider";
+import { useRanking, RankingProvider } from "@/context/RankingProvider";
 import { courses } from "@/utils/courses";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -20,23 +20,34 @@ import {
   LineChart,
   Line,
 } from "recharts";
+import Layout from "@/components/layout";
 
 //color palette for charts
 const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444"];
 
 export default function GraphPage() {
-  const { applicants } = useApplicant();
-  const { rankings } = useRanking();
   const { user, loading } = useAuth();
   const router = useRouter();
-
-  const [selectedCourse, setSelectedCourse] = useState<string>("");
-  const [selectedRole, setSelectedRole] = useState<string>("");
 
   //redirect to signin if not logged in
   useEffect(() => {
     if (!loading && !user) router.replace("/signin");
   }, [loading, user, router]);
+
+  return (
+    <RankingProvider>
+      <GraphContent />
+    </RankingProvider>
+  );
+}
+
+function GraphContent() {
+  const { applicants } = useApplicant();
+  const { rankings } = useRanking();
+  const router = useRouter();
+
+  const [selectedCourse, setSelectedCourse] = useState<string>("");
+  const [selectedRole, setSelectedRole] = useState<string>("");
 
   //remove duplicates based on id, role, and course
   const uniqueApplicants = useMemo(() => {
@@ -52,8 +63,12 @@ export default function GraphPage() {
   //filter applicants by selected course and role
   const filteredApplicants = useMemo(() => {
     return uniqueApplicants.filter((a) => {
-      const matchCourse = selectedCourse ? a.course_code === selectedCourse : true;
-      const matchRole = selectedRole ? a.role.toLowerCase() === selectedRole.toLowerCase() : true;
+      const matchCourse = selectedCourse
+        ? a.course_code === selectedCourse
+        : true;
+      const matchRole = selectedRole
+        ? a.role.toLowerCase() === selectedRole.toLowerCase()
+        : true;
       return matchCourse && matchRole;
     });
   }, [uniqueApplicants, selectedCourse, selectedRole]);
@@ -81,13 +96,22 @@ export default function GraphPage() {
 
   //create bar chart data grouped by course and role
   const courseWiseData = useMemo(() => {
-    const map: Record<string, { course: string; tutor: number; "lab assistant": number }> = {};
+    const map: Record<
+      string,
+      { course: string; tutor: number; "lab assistant": number }
+    > = {};
     filteredApplicants.forEach((a) => {
       const courseMeta = courses.find((c) => c.code === a.course_code);
-      const courseLabel = courseMeta ? `${courseMeta.code} - ${courseMeta.label}` : a.course_code;
+      const courseLabel = courseMeta
+        ? `${courseMeta.code} - ${courseMeta.label}`
+        : a.course_code;
 
       if (!map[courseLabel]) {
-        map[courseLabel] = { course: courseLabel, tutor: 0, "lab assistant": 0 };
+        map[courseLabel] = {
+          course: courseLabel,
+          tutor: 0,
+          "lab assistant": 0,
+        };
       }
       const role = a.role.toLowerCase() as "tutor" | "lab assistant";
       map[courseLabel][role]++;
@@ -125,8 +149,13 @@ export default function GraphPage() {
     <div className="min-h-screen bg-gray-50 text-blue-900">
       {/*header section*/}
       <header className="bg-blue-600 text-white py-4 px-6 shadow">
-        <h1 className="text-2xl font-bold text-center">📊 Applicant Analytics</h1>
-        <div className="text-sm mt-2 text-center underline cursor-pointer" onClick={() => router.push("/lecturer")}>
+        <h1 className="text-2xl font-bold text-center">
+          📊 Applicant Analytics
+        </h1>
+        <div
+          className="text-sm mt-2 text-center underline cursor-pointer"
+          onClick={() => router.push("/lecturer")}
+        >
           ← Back to Lecturer Dashboard
         </div>
       </header>
@@ -158,23 +187,33 @@ export default function GraphPage() {
 
       {/*summary stats boxes*/}
       <section className="bg-white shadow rounded-lg p-6 w-full max-w-5xl mx-auto mb-10">
-        <h2 className="text-lg font-semibold mb-4 text-center">Summary Stats</h2>
+        <h2 className="text-lg font-semibold mb-4 text-center">
+          Summary Stats
+        </h2>
         <div className="grid grid-cols-3 gap-4 text-center">
-          <div className="bg-blue-100 p-4 rounded">Total: {filteredApplicants.length}</div>
-          <div className="bg-green-100 p-4 rounded">Tutors: {summaryStats.tutor}</div>
-          <div className="bg-yellow-100 p-4 rounded">Lab Assistants: {summaryStats["lab assistant"]}</div>
+          <div className="bg-blue-100 p-4 rounded">
+            Total: {filteredApplicants.length}
+          </div>
+          <div className="bg-green-100 p-4 rounded">
+            Tutors: {summaryStats.tutor}
+          </div>
+          <div className="bg-yellow-100 p-4 rounded">
+            Lab Assistants: {summaryStats["lab assistant"]}
+          </div>
         </div>
       </section>
 
       {/*line chart of applicant selections*/}
       <section className="bg-white p-6 rounded-lg shadow max-w-5xl mx-auto mb-10">
-        <h2 className="text-lg font-semibold mb-4 text-center">Applicant Popularity Insights</h2>
+        <h2 className="text-lg font-semibold mb-4 text-center">
+          Applicant Popularity Insights
+        </h2>
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={applicantSelectionStats}>
             <XAxis dataKey="name" angle={-20} interval={0} textAnchor="end" />
             <YAxis allowDecimals={false} />
             <Tooltip
-              formatter={(value, name, props) => [`${value} selections`, "Selections"]}
+              formatter={(value) => [`${value} selections`, "Selections"]}
               labelFormatter={(label, payload) => {
                 const item = payload[0]?.payload;
                 return `Applicant: ${item?.name}\n${item?.role} (${item?.course})`;
@@ -194,7 +233,9 @@ export default function GraphPage() {
 
       {/*table showing course-wise applicant stats*/}
       <section className="bg-white p-6 rounded-lg shadow max-w-5xl mx-auto mb-20">
-        <h2 className="text-lg font-semibold mb-6 text-center">📋 Course-wise Applicant Summary</h2>
+        <h2 className="text-lg font-semibold mb-6 text-center">
+          📋 Course-wise Applicant Summary
+        </h2>
         {courses.map((course) => {
           const applicantsForCourse = applicantSelectionStats.filter(
             (a) => a.course === course.code
@@ -204,7 +245,9 @@ export default function GraphPage() {
 
           const max = Math.max(...applicantsForCourse.map((a) => a.count));
           const min = Math.min(
-            ...applicantsForCourse.filter((a) => a.count > 0).map((a) => a.count)
+            ...applicantsForCourse
+              .filter((a) => a.count > 0)
+              .map((a) => a.count)
           );
 
           return (
@@ -225,11 +268,16 @@ export default function GraphPage() {
                   <tbody>
                     {applicantsForCourse.map((a) => {
                       let category = "Unchosen";
-                      if (a.count === max && a.count > 0) category = "Most Chosen";
-                      else if (a.count === min && a.count > 0) category = "Least Chosen";
+                      if (a.count === max && a.count > 0)
+                        category = "Most Chosen";
+                      else if (a.count === min && a.count > 0)
+                        category = "Least Chosen";
 
                       return (
-                        <tr key={`${course.code}-${a.id}-${a.role}`} className="border-b last:border-none">
+                        <tr
+                          key={`${course.code}-${a.id}-${a.role}`}
+                          className="border-b last:border-none"
+                        >
                           <td className="px-4 py-2 capitalize">{a.name}</td>
                           <td className="px-4 py-2 capitalize">{a.role}</td>
                           <td className="px-4 py-2">{a.count}</td>
@@ -261,7 +309,9 @@ export default function GraphPage() {
       <section className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto mb-20">
         {/*availability pie chart*/}
         <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-lg font-semibold mb-4 text-center">Availability Distribution</h2>
+          <h2 className="text-lg font-semibold mb-4 text-center">
+            Availability Distribution
+          </h2>
           <ResponsiveContainer width="100%" height={250}>
             <PieChart>
               <Pie
@@ -274,7 +324,10 @@ export default function GraphPage() {
                 label
               >
                 {availabilityData.map((_, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={COLORS[index % COLORS.length]}
+                  />
                 ))}
               </Pie>
               <Tooltip />
@@ -284,7 +337,9 @@ export default function GraphPage() {
 
         {/*course-role bar chart*/}
         <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-lg font-semibold mb-4 text-center">Course-wise Role Distribution</h2>
+          <h2 className="text-lg font-semibold mb-4 text-center">
+            Course-wise Role Distribution
+          </h2>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={courseWiseData} layout="vertical">
               <XAxis type="number" allowDecimals={false} />

@@ -63,7 +63,7 @@ export default function TutorComponent() {
     if (!loading && !user) {
       router.replace("/signin"); //redirect if not logged in
     }
-  }, [loading, user]);
+  }, [loading, user, router]);
 
   useEffect(() => {
     // Update the form's skills value when skills array changes
@@ -71,8 +71,9 @@ export default function TutorComponent() {
   }, [skills, form]);
 
   const previousRoles = useMemo(() => {
-    return applicants.filter((a) => a.user_id === user?.id);
-  }, [applicants, user]);
+    if (!user) return [];
+    return getApplicationsOfCurrentUser(user.id);
+  }, [applicants, user, getApplicationsOfCurrentUser]);
 
   const handleAddSkill = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && skillInput.trim()) {
@@ -96,7 +97,7 @@ export default function TutorComponent() {
       return;
     }
 
-    const { id, password, role, ...filteredUser } = user; //remove sensitive fields
+    const { id, ...filteredUser } = user; //remove sensitive fields
 
     const newApplicant = {
       id: applicants.length + 1,

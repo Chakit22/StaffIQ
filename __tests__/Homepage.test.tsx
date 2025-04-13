@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import HomePage from "../index";
+import HomePage from "@/pages/index";
 
 //Mock next/router
 jest.mock("next/navigation", () => ({

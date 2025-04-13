@@ -5,6 +5,7 @@ import { useAuth } from "@/context/UserProvider";
 import { useRouter } from "next/navigation";
 import Layout from "@/components/layout";
 import LecturerComponent from "@/components/lecturer";
+import { RankingProvider } from "@/context/RankingProvider";
 
 export default function LecturerPage() {
   const { user, loading: userLoading } = useAuth(); //Get current user
@@ -14,7 +15,7 @@ export default function LecturerPage() {
     if (!userLoading && !user) {
       router.replace("/signin"); //Redirect if not signed in
     }
-  }, [user, userLoading]);
+  }, [user, userLoading, router]);
 
   return (
     <div
@@ -27,7 +28,9 @@ export default function LecturerPage() {
       {/* Overlay with blur and light background */}
       <div className="min-h-screen bg-white/80 backdrop-blur-sm">
         <Layout>
-          <LecturerComponent /> {/*Main lecturer dashboard content*/}
+          <RankingProvider>
+            <LecturerComponent /> {/*Main lecturer dashboard content*/}
+          </RankingProvider>
         </Layout>
       </div>
     </div>

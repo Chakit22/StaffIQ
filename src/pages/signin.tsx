@@ -26,7 +26,7 @@ export default function SignInForm() {
   const [showPassword, setShowPassword] = useState<boolean>(true);
   const [isPasswordFocused, setIsPasswordFocused] = useState<boolean>(false);
   const router = useRouter();
-  const [isVerified, setIsVerified] = useState<boolean>(true);
+  const [isVerified, setIsVerified] = useState<boolean>(false);
 
   // Initialize react-hook-form
   const {
@@ -57,7 +57,7 @@ export default function SignInForm() {
       // toast.success("User Logged in Successfully!");
       router.push(`/${user?.role}`);
     }
-  }, [user]);
+  }, [user, router]);
 
   return (
     <div className="w-screen min-h-screen flex justify-center items-center">

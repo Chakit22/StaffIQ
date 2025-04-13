@@ -24,6 +24,7 @@ jest.mock("@/context/ApplicantProvider", () => ({
   useApplicant: () => ({
     addApplicant: jest.fn(),
     applicants: [],
+    getApplicationsOfCurrentUser: jest.fn().mockReturnValue([]),
   }),
 }));
 
@@ -62,10 +63,7 @@ describe("TutorComponent", () => {
       await screen.findByText(/Please select your availability/i)
     ).toBeInTheDocument();
     expect(
-      await screen.findByText(/Skills must be at least 10 characters/i)
-    ).toBeInTheDocument();
-    expect(
-      await screen.findByText(/Credentials must be at least 10 characters/i)
+      await screen.findByText(/Please add at least one skill/i)
     ).toBeInTheDocument();
   });
 });

@@ -14,7 +14,7 @@ export default function Tutor() {
     if (!userLoading && !user) {
       router.replace("/");
     }
-  }, [user, userLoading]);
+  }, [user, userLoading, router]);
 
   return (
     <div
