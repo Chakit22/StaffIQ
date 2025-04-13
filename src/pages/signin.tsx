@@ -20,13 +20,16 @@ import { passwordRules } from "@/utils/password-rules";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import Captcha from "@/components/captcha";
+import { LoadingOverlay } from "@/components/ui/loading-overlay";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function SignInForm() {
-  const { user, login } = useAuth();
+  const { user, login, loading: authLoading } = useAuth();
   const [showPassword, setShowPassword] = useState<boolean>(true);
   const [isPasswordFocused, setIsPasswordFocused] = useState<boolean>(false);
   const router = useRouter();
   const [isVerified, setIsVerified] = useState<boolean>(true);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   // Initialize react-hook-form
   const {
@@ -44,23 +47,40 @@ export default function SignInForm() {
       return;
     }
 
+    setIsSubmitting(true);
     const isValidUser = login(data.email, data.password);
     if (!isValidUser) {
       toast.error("Invalid Username or Password!");
+      setIsSubmitting(false);
     }
   };
 
   useEffect(() => {
-    console.log("useeffect!");
-    // Navigate only when the user updates
-    if (user?.role) {
+    console.log("first");
+    // Navigate only when the user updates and auth is complete
+    if (!authLoading && user?.role) {
       toast.success("User Logged in Successfully!");
-      router.push(`/${user?.role}`);
+      // More robust role-based redirection
+      switch (user.role) {
+        case "lecturer":
+          router.replace("/lecturer");
+          break;
+        case "tutor":
+        case "student":
+          router.replace("/tutor");
+          break;
+        default:
+          // Default fallback route
+          router.replace("/");
+      }
     }
-  }, [user]);
+  }, [user, authLoading, router]);
 
   return (
-    <div className="w-screen min-h-screen flex justify-center items-center">
+    <div className="w-screen min-h-screen flex justify-center items-center relative">
+      {/* Show loading overlay when submitting */}
+      {isSubmitting && <LoadingOverlay fullScreen text="Logging in..." />}
+
       <Card className="p-6 py-8 rounded-lg shadow-2xl w-2xs md:w-md">
         <CardHeader>
           <CardTitle className="text-center text-2xl">Login</CardTitle>
@@ -130,8 +150,19 @@ export default function SignInForm() {
             {!isVerified && <Captcha setIsVerified={setIsVerified} />}
 
             {/* Login Button */}
-            <Button type="submit" className="w-full rounded-sm text-md">
-              Login
+            <Button
+              type="submit"
+              className="w-full rounded-sm text-md"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <div className="flex items-center">
+                  <Spinner size="sm" className="mr-2" />
+                  Logging in...
+                </div>
+              ) : (
+                "Login"
+              )}
             </Button>
           </form>
         </CardContent>

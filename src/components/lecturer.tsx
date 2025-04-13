@@ -25,11 +25,17 @@ import {
 import { Checkbox } from "./ui/checkbox";
 import { RankingEditor } from "./RankingEditor";
 import ViewDetailsDialog from "./ViewDetailsDialog";
+import { LoadingOverlay } from "@/components/ui/loading-overlay";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function LecturerComponent() {
   const router = useRouter();
-  const { applicants, getApplicantsByCourse } = useApplicant();
-  const { user } = useAuth();
+  const {
+    applicants,
+    getApplicantsByCourse,
+    loading: applicantLoading,
+  } = useApplicant();
+  const { user, loading: authLoading } = useAuth();
   const [selectedCourse, setSelectedCourse] = useState<string | undefined>(
     undefined
   );
@@ -37,20 +43,29 @@ export default function LecturerComponent() {
     Applicant[] | null
   >([]);
   const [selectedApplicants, setSelectedApplicants] = useState<Applicant[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  // Combined loading state
+  const isPageLoading = authLoading || applicantLoading;
 
   useEffect(() => {
-    if (!user) {
+    if (!authLoading && !user) {
       router.replace("/");
     }
 
     // Filter the applicants by the current selected course
     if (selectedCourse) {
+      setIsLoading(true);
       console.log(selectedCourse);
       console.log(getApplicantsByCourse(selectedCourse!));
       // Set the elected applicants only if you selected a course
       setCurrentApplicants(getApplicantsByCourse(selectedCourse!));
+      // Simulate a small delay to show the loading state
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 300);
     }
-  }, [applicants, selectedCourse, user]);
+  }, [applicants, selectedCourse, user, authLoading]);
 
   const handleSelectedApplicantsChange = (applicant: Applicant) => {
     setSelectedApplicants((prev) =>
@@ -60,8 +75,20 @@ export default function LecturerComponent() {
     );
   };
 
+  // Show loading overlay for entire page
+  if (isPageLoading) {
+    return (
+      <div className="w-full h-screen relative">
+        <LoadingOverlay fullScreen text="Loading..." />
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col gap-10">
+    <div className="flex flex-col gap-10 relative">
+      {/* Loading overlay for course selection */}
+      {isLoading && <LoadingOverlay text="Loading applicants..." />}
+
       <div className="flex flex-col gap-6 w-full border shadow-sm rounded-xl">
         <div className="shadow-sm bg-blue-500 p-4 rounded-t-xl">
           <div className="text-2xl font-bold text-primary-foreground">
@@ -134,7 +161,16 @@ export default function LecturerComponent() {
                 </TableBody>
               </Table>
             ) : (
-              <div>No applicants</div>
+              <div className="py-4 text-center">
+                {isLoading ? (
+                  <div className="flex items-center justify-center">
+                    <Spinner size="md" className="mr-2" />
+                    <span>Loading applicants...</span>
+                  </div>
+                ) : (
+                  "No applicants found"
+                )}
+              </div>
             )}
           </div>
         </div>

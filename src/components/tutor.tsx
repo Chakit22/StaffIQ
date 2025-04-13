@@ -19,7 +19,7 @@ import { Tutorformtype } from "@/types/Tutorformtype";
 import { useAuth } from "@/context/UserProvider";
 import { Label } from "@radix-ui/react-label";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { courses } from "@/utils/courses";
 import { Textarea } from "@/components/ui/textarea";
@@ -29,12 +29,24 @@ import { roles } from "@/utils/roles";
 import { availability } from "@/utils/availbility";
 import { useApplicant } from "@/context/ApplicantProvider";
 import { Applicant } from "@/types/ApplicantType";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useCourse } from "@/context/CourseProvider";
+import { LoadingOverlay } from "@/components/ui/loading-overlay";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function TutorComponent() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const { loading: courseLoading } = useCourse();
+  const {
+    addApplicant,
+    applicants,
+    getApplicationsOfCurrentUser,
+    loading: applicantLoading,
+  } = useApplicant();
   const router = useRouter();
-  const { addApplicant, applicants, getApplicationsOfCurrentUser } =
-    useApplicant();
+
+  // Combined loading state
+  const isLoading = authLoading || courseLoading || applicantLoading;
 
   const {
     register,
@@ -44,27 +56,37 @@ export default function TutorComponent() {
     reset,
   } = useForm<Tutorformtype>();
 
+  // Add a state for form submission
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+
   const onSubmit = (formData: Tutorformtype) => {
-    toast.success("Application submitted sucessfully!");
-    // Reset the form
-    const { id, password, role, ...filteredUser } = user!;
-    console.log(id, password, role);
-    addApplicant({
-      id: applicants.length + 1,
-      ...filteredUser,
-      ...formData,
-      user_id: id,
-    });
-    reset();
+    setIsSubmitting(true);
+
+    // Add a small delay to simulate API call
+    setTimeout(() => {
+      toast.success("Application submitted successfully!");
+      // Reset the form
+      const { id, password, role, ...filteredUser } = user!;
+      console.log(id, password, role);
+      addApplicant({
+        id: applicants.length + 1,
+        ...filteredUser,
+        ...formData,
+        user_id: id,
+      });
+      reset();
+      setIsSubmitting(false);
+    }, 500);
   };
 
   useEffect(() => {
-    console.log("Inside useEffect");
+    console.log("Inside useEffect of TutorComponent");
     console.log(user);
-    if (!user) {
+    // Only redirect if auth loading is complete and user is not logged in
+    if (!authLoading && !user) {
       router.replace("/");
     }
-  }, [user]);
+  }, [authLoading, user]);
 
   /**
    * More efficient way to get the previous roles as,
@@ -73,9 +95,20 @@ export default function TutorComponent() {
    */
   const previousRoles = useMemo(() => {
     console.log("Inside useMemo");
-    return getApplicationsOfCurrentUser(user?.id!);
+    if (!user) return [];
+    return getApplicationsOfCurrentUser(user.id);
   }, [applicants, user]);
 
+  // Show loading overlay while loading
+  if (isLoading) {
+    return (
+      <div className="w-full h-screen relative">
+        <LoadingOverlay fullScreen text="Loading..." />
+      </div>
+    );
+  }
+
+  // Rest of the component remains unchanged
   return (
     <div className="grid grid-cols-2 w-full p-8 justify-items-center">
       {/* Form to fill the information */}
@@ -219,12 +252,25 @@ export default function TutorComponent() {
               )}
             </div>
 
-            <Button type="submit" className="w-full rounded-sm text-md">
-              Submit Application
+            <Button
+              type="submit"
+              className="w-full rounded-sm text-md"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <div className="flex items-center justify-center">
+                  <Spinner size="sm" className="mr-2" />
+                  Submitting...
+                </div>
+              ) : (
+                "Submit Application"
+              )}
             </Button>
           </form>
         </CardContent>
       </Card>
+
+      {/* Previous Roles */}
       <Card className="py-8 rounded-lg shadow-2xl w-2xs md:w-md">
         <CardHeader>
           <CardTitle>Previous Roles</CardTitle>
@@ -254,9 +300,9 @@ export default function TutorComponent() {
                 </CardContent>
               </Card>
             ))}
-          {previousRoles.length == 0 && (
-            <div className="flex justify-center items-center h-full">
-              <div>No previous roles applied for</div>
+          {previousRoles.length === 0 && (
+            <div className="text-center py-8 text-muted-foreground">
+              No previous applications found
             </div>
           )}
         </CardContent>

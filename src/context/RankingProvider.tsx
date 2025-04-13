@@ -5,6 +5,7 @@ import { Rankings } from "@/types/Ranking";
 
 interface RankingContextType {
   rankings: Rankings;
+  loading: boolean;
   saveRanking: (
     courseCode: string,
     role: string,
@@ -31,12 +32,17 @@ export const RankingProvider = ({
   children: React.ReactNode;
 }) => {
   const [rankings, setRankings] = useState<Rankings>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
+    setLoading(true);
+
     const storedRankings = localStorage.getItem("rankings");
     if (storedRankings) {
       setRankings(JSON.parse(storedRankings));
     }
+
+    setLoading(false);
   }, []);
 
   const saveRanking = (
@@ -145,7 +151,7 @@ export const RankingProvider = ({
 
   return (
     <RankingContext.Provider
-      value={{ rankings, saveRanking, getMostLeastAndUnchosen }}
+      value={{ rankings, saveRanking, getMostLeastAndUnchosen, loading }}
     >
       {children}
     </RankingContext.Provider>

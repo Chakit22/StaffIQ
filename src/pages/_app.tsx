@@ -7,13 +7,11 @@ import { RankingProvider } from "@/context/RankingProvider";
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
-    <RankingProvider>
-      <AuthProvider>
-        <CourseProvider>
-          <Toaster position="top-right" />
-          <Component {...pageProps} />
-        </CourseProvider>
-      </AuthProvider>
-    </RankingProvider>
+    <AuthProvider>
+      <CourseProvider>
+        <Toaster position="top-right" />
+        <Component {...pageProps} />
+      </CourseProvider>
+    </AuthProvider>
   );
 }

@@ -20,6 +20,7 @@ interface ApplicantContextProps {
     role: string
   ) => Applicant[];
   getApplicationsOfCurrentUser: (user_id: number) => Applicant[];
+  loading: boolean;
 }
 
 const ApplicantContext = createContext<ApplicantContextProps | undefined>(
@@ -28,6 +29,7 @@ const ApplicantContext = createContext<ApplicantContextProps | undefined>(
 
 export function ApplicantProvider({ children }: { children: React.ReactNode }) {
   const [applicants, setApplicants] = useState<Applicant[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
   // Add an applicant into the list of applicants
   const addApplicant = (applicant: Applicant) => {
@@ -61,6 +63,7 @@ export function ApplicantProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
+    setLoading(true);
     const storedApplicants = localStorage.getItem("applicants");
     const storedApplicants_: Applicant[] = storedApplicants
       ? JSON.parse(storedApplicants)
@@ -73,6 +76,7 @@ export function ApplicantProvider({ children }: { children: React.ReactNode }) {
     console.log(storedApplicants_);
 
     setApplicants(storedApplicants_);
+    setLoading(false);
   }, []);
 
   return (
@@ -83,6 +87,7 @@ export function ApplicantProvider({ children }: { children: React.ReactNode }) {
         getApplicantsByCourse,
         getApplicantsByCourseAndRole,
         getApplicationsOfCurrentUser,
+        loading,
       }}
     >
       {children}

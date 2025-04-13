@@ -8,6 +8,7 @@ interface AuthContextType {
   users: User[];
   login: (email: string, password: string) => boolean;
   logout: () => void;
+  loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -15,9 +16,11 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     // Initialize users from localStorage or use defaults
+    console.log("Inside useEffect of UserProvider");
     const storedUsers = localStorage.getItem("users");
     if (!storedUsers) {
       localStorage.setItem("users", JSON.stringify(DEFAULT_USERS));
@@ -31,6 +34,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
+    setLoading(false);
   }, []);
 
   const login = (email: string, password: string): boolean => {
@@ -52,7 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, users, login, logout }}>
+    <AuthContext.Provider value={{ user, users, login, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );

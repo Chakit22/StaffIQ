@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import Layout from "@/components/layout";
 import LecturerComponent from "@/components/lecturer";
+import { RankingProvider } from "@/context/RankingProvider";
 
 export default function Lecturer() {
   const { user } = useAuth();
@@ -19,7 +20,9 @@ export default function Lecturer() {
 
   return (
     <Layout>
-      <LecturerComponent />
+      <RankingProvider>
+        <LecturerComponent />
+      </RankingProvider>
     </Layout>
   );
 }

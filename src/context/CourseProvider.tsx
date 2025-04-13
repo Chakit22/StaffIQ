@@ -6,25 +6,32 @@ import { courses } from "@/utils/courses";
 
 interface CourseContextProps {
   currentcourses: Course[] | null;
+  loading: boolean;
 }
 
 const CourseContext = createContext<CourseContextProps | undefined>(undefined);
 
 export function CourseProvider({ children }: { children: React.ReactNode }) {
   const [currentcourses, setCurrentCourses] = useState<Course[] | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
+    console.log("Inside useEffect of CourseProvider");
+    setLoading(true);
+
     const storedCourses = localStorage.getItem("currentcourses");
     if (!storedCourses) {
       localStorage.setItem("currentcourses", JSON.stringify(courses));
-      setCurrentCourses(currentcourses);
+      setCurrentCourses(courses);
     } else {
-      setCurrentCourses(currentcourses);
+      setCurrentCourses(JSON.parse(storedCourses));
     }
+
+    setLoading(false);
   }, []);
 
   return (
-    <CourseContext.Provider value={{ currentcourses }}>
+    <CourseContext.Provider value={{ currentcourses, loading }}>
       {children}
     </CourseContext.Provider>
   );
