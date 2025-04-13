@@ -1,4 +1,5 @@
 "use client";
+import React from "react";
 
 import { useState, useEffect } from "react";
 import { ArrowUp, ArrowDown } from "lucide-react";
@@ -35,14 +36,14 @@ export function RankingEditor({
   const router = useRouter();
 
   useEffect(() => {
-    // Updated the rankingData and sorted by the normal order
+    //Updated rankingData and sorted by normal order
     setRankingData(
       selectedApplicants.map((selectedApplicant, index) => {
         return { ...selectedApplicant, rank: index + 1 };
       })
     );
 
-    console.log(user);
+    //Redirect if user is not logged in
     if (!user) {
       router.replace("/");
     }
@@ -55,23 +56,21 @@ export function RankingEditor({
     const newIndex = direction === "up" ? index - 1 : index + 1;
     if (newIndex < 0 || newIndex >= rankingData.length) return;
 
-    // Create a copy of the ranking data
+    //Create a copy of rankingData and swap ranks
     const updatedRankings = [...rankingData];
-
-    // Swap the ranks of the two applicants
     const temp = updatedRankings[index].rank;
     updatedRankings[index].rank = updatedRankings[newIndex].rank;
     updatedRankings[newIndex].rank = temp;
 
-    // Sort by rank to ensure correct order
+    //Sort by rank to ensure correct order
     updatedRankings.sort((a, b) => a.rank - b.rank);
 
-    // Update local state
+    //Update local state
     setRankingData(updatedRankings);
   };
 
   const handleSaveRankingData = () => {
-    // This updated the ranking data. So we need to have a hook or something to update the ranking
+    //Save the updated ranking data
     saveRanking(
       course_code,
       role,
@@ -82,9 +81,9 @@ export function RankingEditor({
   };
 
   const handleSaveComment = (comment: string) => {
-    // To implement to save comments for the applicant
+    //Save comment for the applicant
     console.log(applicants, rankings, comment);
-    toast.success("Comment added sucesfully!");
+    toast.success("Comment added successfully!");
   };
 
   return (

@@ -1,4 +1,5 @@
 "use client";
+
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { User } from "../types/User";
 import { DEFAULT_USERS } from "@/utils/default-users";
@@ -6,18 +7,19 @@ import { DEFAULT_USERS } from "@/utils/default-users";
 interface AuthContextType {
   user: User | null;
   users: User[];
+  loading: boolean;
   login: (email: string, password: string) => boolean;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export function UserProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState<boolean>(true); 
 
   useEffect(() => {
-    // Initialize users from localStorage or use defaults
     const storedUsers = localStorage.getItem("users");
     if (!storedUsers) {
       localStorage.setItem("users", JSON.stringify(DEFAULT_USERS));
@@ -26,11 +28,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUsers(JSON.parse(storedUsers));
     }
 
-    // Check for existing login
     const storedUser = localStorage.getItem("currentUser");
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
+
+    setLoading(false); 
   }, []);
 
   const login = (email: string, password: string): boolean => {
@@ -52,7 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, users, login, logout }}>
+    <AuthContext.Provider value={{ user, users, loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
