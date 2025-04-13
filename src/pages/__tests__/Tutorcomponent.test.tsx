@@ -24,7 +24,7 @@ jest.mock("@/context/ApplicantProvider", () => ({
 }));
 
 describe("TutorComponent", () => {
-  //Test 1: Ensure all sections render correctly
+  //Test 4: Ensure all sections render correctly
   it("renders all form sections and the submit button", () => {
     render(<TutorComponent />);
 
@@ -37,7 +37,7 @@ describe("TutorComponent", () => {
     expect(screen.getByRole("button", { name: /Submit Application/i })).toBeInTheDocument();
   });
 
-  //Test 2: Submitting empty form shows validation errors
+  //Test 5: Submitting empty form shows validation errors
   it("shows validation errors if fields are empty", async () => {
     render(<TutorComponent />);
 

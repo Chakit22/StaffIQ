@@ -1,6 +1,8 @@
 "use client"; //Marks this component to run on the client side in a Next.js app
 
 //Importing chart components from Recharts
+import React from "react";
+
 import {
   BarChart,
   Bar,

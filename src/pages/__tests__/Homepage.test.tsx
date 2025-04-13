@@ -26,7 +26,7 @@ describe("HomePage", () => {
     render(<HomePage />);
     const subtitle = screen.getByText(
       /smart solutions for structured academic staffing/i
-    ); // Replace with your actual text if different
+    ); //Replace with your actual text if different
     expect(subtitle).toBeInTheDocument();
   });
 
