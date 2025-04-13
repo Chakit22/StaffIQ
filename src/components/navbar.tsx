@@ -1,6 +1,6 @@
 "use client";
 
-import { LogOut } from "lucide-react";
+import { LogOut, Home } from "lucide-react";
 import { Button } from "./ui/button";
 import Link from "next/link";
 import { useAuth } from "@/context/UserProvider";
@@ -23,13 +23,23 @@ export default function Navbar() {
       >
         TeachTeam
       </Link>
-      <Button
-        className="flex justify-center items-center gap-2 cursor-pointer"
-        onClick={handleLogout}
-      >
-        <LogOut />
-        Logout
-      </Button>
+      <div className="flex gap-4">
+        <Button
+          className="flex justify-center items-center gap-2 cursor-pointer"
+          onClick={() => router.push("/")}
+          variant="outline"
+        >
+          <Home size={18} />
+          Home
+        </Button>
+        <Button
+          className="flex justify-center items-center gap-2 cursor-pointer"
+          onClick={handleLogout}
+        >
+          <LogOut />
+          Logout
+        </Button>
+      </div>
     </div>
   );
 }

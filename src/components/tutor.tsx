@@ -152,7 +152,7 @@ export default function TutorComponent() {
                         <SelectGroup>
                           {courses.map((course, i) => (
                             <SelectItem key={i} value={course.code}>
-                              {course.label}
+                              {course.code} - {course.label}
                             </SelectItem>
                           ))}
                         </SelectGroup>
@@ -272,10 +272,10 @@ export default function TutorComponent() {
                 control={form.control}
                 name="academic_creds"
                 rules={{
-                  required: "Credentials must be at least 10 characters",
+                  required: "Credentials must be at least 5 characters",
                   minLength: {
-                    value: 10,
-                    message: "Credentials must be at least 10 characters",
+                    value: 5,
+                    message: "Credentials must be at least 5 characters",
                   },
                 }}
                 render={({ field }) => (
