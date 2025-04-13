@@ -1,5 +1,4 @@
 "use client";
-import React from "react";
 
 import { useState, useEffect } from "react";
 import { ArrowUp, ArrowDown } from "lucide-react";
@@ -32,7 +31,7 @@ export function RankingEditor({
 }: RankingEditorProps) {
   const [rankingData, setRankingData] = useState<ApplicantWithRanking[]>([]);
   const { saveRanking, rankings } = useRanking();
-  const { user } = useAuth();
+  const { user, loading: userLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -44,10 +43,10 @@ export function RankingEditor({
     );
 
     //Redirect if user is not logged in
-    if (!user) {
+    if (!user && !userLoading) {
       router.replace("/");
     }
-  }, [selectedApplicants, user, router]);
+  }, [selectedApplicants, user, userLoading, router]);
 
   const handleRankMove = (id: number, direction: "up" | "down") => {
     const index = rankingData.findIndex((applicant) => applicant.id === id);

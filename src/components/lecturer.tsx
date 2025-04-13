@@ -4,7 +4,7 @@ import { useApplicant } from "@/context/ApplicantProvider";
 import { courses } from "@/utils/courses";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import React from "react";
+
 import ApplicantStats from "./ApplicantStats";
 import { useAuth } from "@/context/UserProvider";
 import { useRouter } from "next/navigation";

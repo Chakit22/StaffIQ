@@ -7,14 +7,14 @@ import Layout from "@/components/layout";
 import TutorComponent from "@/components/tutor";
 
 export default function Tutor() {
-  const { user } = useAuth();
+  const { user, loading: userLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!user) {
+    if (!userLoading && !user) {
       router.replace("/");
     }
-  }, [user]);
+  }, [user, userLoading]);
 
   return (
     <div

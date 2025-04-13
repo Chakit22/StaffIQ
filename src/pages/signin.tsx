@@ -54,7 +54,7 @@ export default function SignInForm() {
     console.log("useeffect!");
     // Navigate only when the user updates
     if (user?.role) {
-      toast.success("User Logged in Successfully!");
+      // toast.success("User Logged in Successfully!");
       router.push(`/${user?.role}`);
     }
   }, [user]);

@@ -1,4 +1,3 @@
-import React from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import HomePage from "../index";
@@ -15,8 +14,8 @@ describe("HomePage", () => {
   it("renders the welcome message", () => {
     render(<HomePage />);
     expect(
-      screen.getByText((_, element) =>
-        element?.textContent === "Welcome to TeachTeam"
+      screen.getByText(
+        (_, element) => element?.textContent === "Welcome to TeachTeam"
       )
     ).toBeInTheDocument();
   });

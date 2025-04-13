@@ -7,14 +7,14 @@ import Layout from "@/components/layout";
 import LecturerComponent from "@/components/lecturer";
 
 export default function LecturerPage() {
-  const { user } = useAuth(); //Get current user
+  const { user, loading: userLoading } = useAuth(); //Get current user
   const router = useRouter(); //For navigation
 
   useEffect(() => {
-    if (!user) {
+    if (!userLoading && !user) {
       router.replace("/signin"); //Redirect if not signed in
     }
-  }, [user]);
+  }, [user, userLoading]);
 
   return (
     <div

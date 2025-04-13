@@ -1,7 +1,6 @@
 "use client"; //Marks this component to run on the client side in a Next.js app
 
 //Importing chart components from Recharts
-import React from "react";
 
 import {
   BarChart,
@@ -43,7 +42,9 @@ export default function ApplicantStats({ applicants }: Props) {
   return (
     <div className="p-6 bg-white border rounded-lg shadow">
       {/*Title*/}
-      <h2 className="text-xl font-semibold mb-4">📊 Applicant Selection Stats</h2>
+      <h2 className="text-xl font-semibold mb-4">
+        📊 Applicant Selection Stats
+      </h2>
 
       {/*Show message if no applicants are available*/}
       {data.length === 0 ? (

@@ -2,8 +2,6 @@
 
 import { useRouter } from "next/navigation"; //For navigation (redirecting)
 import { Button } from "@/components/ui/button"; //Reusable styled buttons
-import React from "react";
-
 
 export default function HomePage() {
   const router = useRouter(); //Hook for navigating programmatically
@@ -19,7 +17,6 @@ export default function HomePage() {
     >
       {/* Card in the center with semi-transparent white background */}
       <div className="bg-white/70 backdrop-blur-md p-10 rounded-xl shadow-xl text-black max-w-lg w-full text-center space-y-6">
-        
         {/* Main heading */}
         <h1 className="text-4xl md:text-5xl font-bold">
           Welcome to <span className="text-blue-500">TeachTeam</span>

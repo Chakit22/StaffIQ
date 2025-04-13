@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import {
   Card,
   CardContent,
@@ -15,13 +16,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import React from "react";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Tutorformtype } from "@/types/Tutorformtype";
 import { useAuth } from "@/context/UserProvider";
-import { Label } from "@radix-ui/react-label";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useEffect, useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
 import { courses } from "@/utils/courses";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -30,20 +37,27 @@ import { roles } from "@/utils/roles";
 import { availability } from "@/utils/availbility";
 import { useApplicant } from "@/context/ApplicantProvider";
 import { Applicant } from "@/types/ApplicantType";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { X } from "lucide-react";
 
 export default function TutorComponent() {
   const { user, loading } = useAuth();
   const router = useRouter();
   const { addApplicant, applicants, getApplicationsOfCurrentUser } =
     useApplicant();
+  const [skillInput, setSkillInput] = useState("");
+  const [skills, setSkills] = useState<string[]>([]);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    control,
-    reset,
-  } = useForm<Tutorformtype>();
+  const form = useForm<Tutorformtype>({
+    defaultValues: {
+      course_code: "",
+      role: "",
+      availability: "",
+      skills: "",
+      academic_creds: "",
+    },
+  });
 
   useEffect(() => {
     if (!loading && !user) {
@@ -51,7 +65,32 @@ export default function TutorComponent() {
     }
   }, [loading, user]);
 
+  useEffect(() => {
+    // Update the form's skills value when skills array changes
+    form.setValue("skills", skills.join(", "));
+  }, [skills, form]);
+
+  const previousRoles = useMemo(() => {
+    return applicants.filter((a) => a.user_id === user?.id);
+  }, [applicants, user]);
+
+  const handleAddSkill = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && skillInput.trim()) {
+      e.preventDefault();
+      if (!skills.includes(skillInput.trim())) {
+        setSkills([...skills, skillInput.trim()]);
+      }
+      setSkillInput("");
+    }
+  };
+
+  const handleRemoveSkill = (skillToRemove: string) => {
+    console.log(skillToRemove);
+    setSkills(skills.filter((skill) => skill !== skillToRemove));
+  };
+
   const onSubmit = (formData: Tutorformtype) => {
+    console.log(formData.skills);
     if (!user) {
       toast.error("User not logged in.");
       return;
@@ -59,27 +98,25 @@ export default function TutorComponent() {
 
     const { id, password, role, ...filteredUser } = user; //remove sensitive fields
 
-    const hasAlreadyApplied = applicants.some(
-      (a) =>
-        a.id === id &&
-        a.course_code === formData.course_code &&
-        a.role === formData.role
-    );
-
-    if (hasAlreadyApplied) {
-      toast.error("You've already applied for this role in this course."); //prevent duplicate
-      return;
-    }
-
     const newApplicant = {
-      id,
+      id: applicants.length + 1,
       ...filteredUser,
       ...formData,
+      user_id: id,
     };
 
     addApplicant(newApplicant); //save applicant
     toast.success("Application submitted successfully!");
-    reset(); //reset form
+
+    // Reset the form and skills state
+    setSkills([]);
+    form.reset({
+      course_code: "",
+      role: "",
+      availability: "",
+      skills: "",
+      academic_creds: "",
+    });
   };
 
   return (
@@ -92,27 +129,25 @@ export default function TutorComponent() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form
-            className="flex flex-col justify-center gap-4"
-            onSubmit={handleSubmit(onSubmit)}
-          >
-            {/*Course*/}
-            <div className="flex flex-col gap-2">
-              <Label>Course</Label>
-              <Controller
-                control={control}
+          <Form {...form}>
+            <form
+              className="flex flex-col justify-center gap-4"
+              onSubmit={form.handleSubmit(onSubmit)}
+            >
+              {/* Course */}
+              <FormField
+                control={form.control}
                 name="course_code"
                 rules={{ required: "Please select your course" }}
-                render={({ field }) => {
-                  console.log(field.value);
-                  return (
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select course" />
-                      </SelectTrigger>
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Course</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select course" />
+                        </SelectTrigger>
+                      </FormControl>
                       <SelectContent>
                         <SelectGroup>
                           {courses.map((course, i) => (
@@ -123,114 +158,148 @@ export default function TutorComponent() {
                         </SelectGroup>
                       </SelectContent>
                     </Select>
-                  );
-                }}
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-              {errors.course_code && (
-                <span className="text-red-500">
-                  {errors.course_code.message}
-                </span>
-              )}
-            </div>
 
-            {/*Role*/}
-            <div className="flex flex-col gap-2">
-              <Label>Role</Label>
-              <Controller
-                control={control}
+              {/* Role */}
+              <FormField
+                control={form.control}
                 name="role"
                 rules={{ required: "Please select a role" }}
                 render={({ field }) => (
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        {roles.map((role, i) => (
-                          <SelectItem key={i} value={role}>
-                            {role}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
+                  <FormItem>
+                    <FormLabel>Role</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select role" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectGroup>
+                          {roles.map((role, i) => (
+                            <SelectItem key={i} value={role}>
+                              {role}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
                 )}
               />
-              {errors.role && (
-                <span className="text-red-500">{errors.role.message}</span>
-              )}
-            </div>
 
-            {/*Availability*/}
-            <div className="flex flex-col gap-2">
-              <Label>Availability</Label>
-              <Controller
-                control={control}
+              {/* Availability */}
+              <FormField
+                control={form.control}
                 name="availability"
                 rules={{ required: "Please select your availability" }}
                 render={({ field }) => (
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select availability" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        {availability.map((a, i) => (
-                          <SelectItem key={i} value={a}>
-                            {a}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
+                  <FormItem>
+                    <FormLabel>Availability</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select availability" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectGroup>
+                          {availability.map((a, i) => (
+                            <SelectItem key={i} value={a}>
+                              {a}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
                 )}
               />
-              {errors.availability && (
-                <span className="text-red-500">
-                  {errors.availability.message}
-                </span>
-              )}
-            </div>
 
-            {/*Skills*/}
-            <div className="flex flex-col gap-2">
-              <Label>Skills</Label>
-              <Textarea
-                placeholder="List your relevant skills..."
-                {...register("skills", {
-                  required: "Skills must be at least 10 characters",
-                  minLength: 10,
-                })}
+              {/* Skills */}
+              <FormField
+                control={form.control}
+                name="skills"
+                rules={{
+                  required: "Please add at least one skill",
+                  validate: (value) =>
+                    value.length > 0 || "Please add at least one skill",
+                }}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Skills</FormLabel>
+                    <FormControl>
+                      <div className="flex flex-col gap-2">
+                        <Input
+                          placeholder="Type a skill and press Enter..."
+                          value={skillInput}
+                          onChange={(e) => setSkillInput(e.target.value)}
+                          onKeyDown={handleAddSkill}
+                        />
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {skills.map((skill, index) => (
+                            <Badge
+                              key={index}
+                              variant="secondary"
+                              className="flex items-center gap-1 px-3 py-1"
+                            >
+                              <span>{skill}</span>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveSkill(skill)}
+                                className="inline-flex items-center justify-center h-4 w-4 rounded-full hover:bg-gray-300 focus:outline-none"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </Badge>
+                          ))}
+                        </div>
+                        <input type="hidden" {...field} />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-              {errors.skills && (
-                <span className="text-red-500">{errors.skills.message}</span>
-              )}
-            </div>
 
-            {/*Academic Credentials*/}
-            <div className="flex flex-col gap-2">
-              <Label>Academic Credentials</Label>
-              <Textarea
-                placeholder="Your academic qualifications..."
-                {...register("academic_creds", {
+              {/* Academic Credentials */}
+              <FormField
+                control={form.control}
+                name="academic_creds"
+                rules={{
                   required: "Credentials must be at least 10 characters",
-                  minLength: 10,
-                })}
+                  minLength: {
+                    value: 10,
+                    message: "Credentials must be at least 10 characters",
+                  },
+                }}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Academic Credentials</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Your academic qualifications..."
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-              {errors.academic_creds && (
-                <span className="text-red-500">
-                  {errors.academic_creds.message}
-                </span>
-              )}
-            </div>
 
-            <Button type="submit" className="w-full">
-              Submit Application
-            </Button>
-          </form>
+              <Button type="submit" className="w-full">
+                Submit Application
+              </Button>
+            </form>
+          </Form>
         </CardContent>
       </Card>
+
       <Card className="py-8 rounded-lg shadow-2xl w-2xs md:w-md">
         <CardHeader>
           <CardTitle>Previous Roles</CardTitle>
@@ -260,9 +329,9 @@ export default function TutorComponent() {
                 </CardContent>
               </Card>
             ))}
-          {previousRoles.length == 0 && (
-            <div className="flex justify-center items-center h-full">
-              <div>No previous roles applied for</div>
+          {previousRoles.length === 0 && (
+            <div className="text-center py-8 text-muted-foreground">
+              No previous applications found
             </div>
           )}
         </CardContent>
