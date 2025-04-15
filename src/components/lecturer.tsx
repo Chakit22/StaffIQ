@@ -29,11 +29,13 @@ import { Input } from "./ui/input";
 import { Checkbox } from "./ui/checkbox";
 import { RankingEditor } from "./RankingEditor";
 import ViewDetailsDialog from "./ViewDetailsDialog";
+import { useQueryState, parseAsInteger } from "nuqs";
 
 export default function LecturerComponent() {
   const { applicants, getApplicantsByCourse } = useApplicant();
   const router = useRouter();
   const { user, loading } = useAuth();
+  const [id, setId] = useQueryState("id", parseAsInteger.withDefault(-1));
 
   const [selectedCourse, setSelectedCourse] = useState<string>();
   const [currentApplicants, setCurrentApplicants] = useState<Applicant[]>([]);
@@ -43,12 +45,15 @@ export default function LecturerComponent() {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [availabilityFilter, setAvailabilityFilter] = useState<string>("");
   const [sortBy, setSortBy] = useState<string>("");
+
   <h1 className="text-2xl font-bold mb-4">Lecturer Dashboard</h1>;
 
   //redirect if not logged in
   useEffect(() => {
     if (!loading && !user) {
       router.replace("/signin");
+    } else if (!loading && user) {
+      setId(user!.id);
     }
   }, [loading, user]);
 

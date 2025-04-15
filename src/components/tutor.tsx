@@ -40,6 +40,7 @@ import { Applicant } from "@/types/ApplicantType";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { X } from "lucide-react";
+import { useQueryState, parseAsInteger } from "nuqs";
 
 export default function TutorComponent() {
   const { user, loading } = useAuth();
@@ -48,6 +49,10 @@ export default function TutorComponent() {
     useApplicant();
   const [skillInput, setSkillInput] = useState("");
   const [skills, setSkills] = useState<string[]>([]);
+  const [id, setId] = useQueryState<number>(
+    "id",
+    parseAsInteger.withDefault(-1)
+  );
 
   const form = useForm<Tutorformtype>({
     defaultValues: {
@@ -62,6 +67,8 @@ export default function TutorComponent() {
   useEffect(() => {
     if (!loading && !user) {
       router.replace("/signin"); //redirect if not logged in
+    } else if (!loading && user) {
+      setId(user!.id);
     }
   }, [loading, user, router]);
 
