@@ -7,6 +7,7 @@ import { useLoading } from "./LoadingProvider";
 
 interface CourseContextProps {
   currentcourses: Course[] | null;
+  courseLoading: boolean;
 }
 
 const CourseContext = createContext<CourseContextProps | undefined>(undefined);
@@ -26,8 +27,12 @@ export function CourseProvider({ children }: { children: React.ReactNode }) {
     setLoading("courseLoading", false);
   }, []);
 
+  console.log("Inside Course Provider!");
+
   return (
-    <CourseContext.Provider value={{ currentcourses }}>
+    <CourseContext.Provider
+      value={{ currentcourses, courseLoading: loadingStates["courseLoading"] }}
+    >
       {children}
     </CourseContext.Provider>
   );

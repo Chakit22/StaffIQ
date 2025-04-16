@@ -13,6 +13,7 @@ interface ApplicantContextProps {
     role: string
   ) => Applicant[];
   getApplicationsOfCurrentUser: (user_id: number) => Applicant[];
+  applicantsLoading: boolean;
 }
 
 const ApplicantContext = createContext<ApplicantContextProps | undefined>(
@@ -80,6 +81,8 @@ export function ApplicantProvider({ children }: { children: React.ReactNode }) {
     );
   };
 
+  console.log("Inside Applicants Provider!");
+
   return (
     <ApplicantContext.Provider
       value={{
@@ -88,6 +91,7 @@ export function ApplicantProvider({ children }: { children: React.ReactNode }) {
         getApplicantsByCourse,
         getApplicantsByCourseAndRole,
         getApplicationsOfCurrentUser,
+        applicantsLoading: loadingStates["applicantsLoading"],
       }}
     >
       {children}

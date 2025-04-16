@@ -56,6 +56,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem("currentUser");
   };
 
+  console.log("Inside User Provider!");
+
   return (
     <AuthContext.Provider
       value={{

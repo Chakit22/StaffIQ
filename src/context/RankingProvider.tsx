@@ -22,6 +22,7 @@ interface RankingContextType {
     leastChosenApplicant: number | undefined;
     unChosenApplicants: number[] | undefined;
   };
+  rankingLoading: boolean;
 }
 
 const RankingContext = createContext<RankingContextType | undefined>(undefined);
@@ -148,7 +149,12 @@ export const RankingProvider = ({
 
   return (
     <RankingContext.Provider
-      value={{ rankings, saveRanking, getMostLeastAndUnchosen }}
+      value={{
+        rankings,
+        saveRanking,
+        getMostLeastAndUnchosen,
+        rankingLoading: loadingStates["rankingLoading"],
+      }}
     >
       {children}
     </RankingContext.Provider>
