@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 import { Rankings } from "@/types/Ranking";
+import { useLoading } from "./LoadingProvider";
 
 interface RankingContextType {
   rankings: Rankings;
@@ -31,12 +32,14 @@ export const RankingProvider = ({
   children: React.ReactNode;
 }) => {
   const [rankings, setRankings] = useState<Rankings>([]);
+  const { loadingStates, setLoading } = useLoading();
 
   useEffect(() => {
     const storedRankings = localStorage.getItem("rankings");
     if (storedRankings) {
       setRankings(JSON.parse(storedRankings));
     }
+    setLoading("rankingLoading", false);
   }, []);
 
   const saveRanking = (

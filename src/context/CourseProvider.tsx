@@ -3,6 +3,7 @@
 import { Course } from "@/types/Course";
 import { createContext, useContext, useEffect, useState } from "react";
 import { courses } from "@/utils/courses";
+import { useLoading } from "./LoadingProvider";
 
 interface CourseContextProps {
   currentcourses: Course[] | null;
@@ -12,6 +13,7 @@ const CourseContext = createContext<CourseContextProps | undefined>(undefined);
 
 export function CourseProvider({ children }: { children: React.ReactNode }) {
   const [currentcourses, setCurrentCourses] = useState<Course[] | null>(null);
+  const { loadingStates, setLoading } = useLoading();
 
   useEffect(() => {
     const storedCourses = localStorage.getItem("currentcourses");
@@ -21,6 +23,7 @@ export function CourseProvider({ children }: { children: React.ReactNode }) {
     } else {
       setCurrentCourses(JSON.parse(storedCourses));
     }
+    setLoading("courseLoading", false);
   }, []);
 
   return (

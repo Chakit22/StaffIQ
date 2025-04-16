@@ -3,11 +3,12 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { User } from "../types/User";
 import { DEFAULT_USERS } from "@/utils/default-users";
+import { useLoading } from "./LoadingProvider";
 
 interface AuthContextType {
   user: User | null;
   users: User[];
-  loading: boolean;
+  userLoading: boolean;
   login: (email: string, password: string) => boolean;
   logout: () => void;
 }
@@ -15,10 +16,11 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
+  const { loadingStates, setLoading } = useLoading();
   const [user, setUser] = useState<User | null>(null);
   const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState<boolean>(true); 
 
+  // Get the users form local storage and also set the users in the variable accessigble everywhere
   useEffect(() => {
     const storedUsers = localStorage.getItem("users");
     if (!storedUsers) {
@@ -33,7 +35,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       setUser(JSON.parse(storedUser));
     }
 
-    setLoading(false); 
+    setLoading("userLoading", false);
   }, []);
 
   const login = (email: string, password: string): boolean => {
@@ -55,7 +57,15 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, users, loading, login, logout }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        users,
+        userLoading: loadingStates["userLoading"],
+        login,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

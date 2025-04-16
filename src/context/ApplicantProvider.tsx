@@ -2,6 +2,7 @@
 
 import { Applicant } from "@/types/ApplicantType";
 import { createContext, useContext, useEffect, useState } from "react";
+import { useLoading } from "./LoadingProvider";
 
 interface ApplicantContextProps {
   applicants: Applicant[];
@@ -20,6 +21,7 @@ const ApplicantContext = createContext<ApplicantContextProps | undefined>(
 
 export function ApplicantProvider({ children }: { children: React.ReactNode }) {
   const [applicants, setApplicants] = useState<Applicant[]>([]);
+  const { loadingStates, setLoading } = useLoading();
 
   //Load applicants from localStorage on initial render
   useEffect(() => {
@@ -33,6 +35,7 @@ export function ApplicantProvider({ children }: { children: React.ReactNode }) {
     }
 
     setApplicants(storedApplicants_);
+    setLoading("applicantsLoading", false);
   }, []);
 
   //Add new applicant from localstorage when the page loads
