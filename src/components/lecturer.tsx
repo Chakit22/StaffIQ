@@ -30,11 +30,13 @@ import { Checkbox } from "./ui/checkbox";
 import { RankingEditor } from "./RankingEditor";
 import ViewDetailsDialog from "./ViewDetailsDialog";
 import { useQueryState, parseAsInteger } from "nuqs";
+import LoaderComponent from "./Loading";
 
 export default function LecturerComponent() {
-  const { applicants, getApplicantsByCourse } = useApplicant();
+  const { applicants, getApplicantsByCourse, applicantsLoading } =
+    useApplicant();
   const router = useRouter();
-  const { user, loading } = useAuth();
+  const { user, userLoading } = useAuth();
   const [id, setId] = useQueryState("id", parseAsInteger.withDefault(-1));
 
   const [selectedCourse, setSelectedCourse] = useState<string>();
@@ -46,16 +48,13 @@ export default function LecturerComponent() {
   const [availabilityFilter, setAvailabilityFilter] = useState<string>("");
   const [sortBy, setSortBy] = useState<string>("");
 
-  <h1 className="text-2xl font-bold mb-4">Lecturer Dashboard</h1>;
-
   //redirect if not logged in
   useEffect(() => {
-    if (!loading && !user) {
-      router.replace("/signin");
-    } else if (!loading && user) {
-      setId(user!.id);
+    if (!userLoading) {
+      if (!user) router.replace("/signin");
+      else setId(user.id);
     }
-  }, [loading, user]);
+  }, [userLoading, user, router]);
 
   //update applicants when course changes
   useEffect(() => {
@@ -94,6 +93,10 @@ export default function LecturerComponent() {
 
     setFilteredApplicants(results);
   }, [searchTerm, availabilityFilter, sortBy, currentApplicants]);
+
+  if (userLoading || applicantsLoading) {
+    return <LoaderComponent />;
+  }
 
   //toggle applicant selection
   const handleSelectToggle = (applicant: Applicant) => {

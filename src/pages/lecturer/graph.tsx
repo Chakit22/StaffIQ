@@ -21,18 +21,23 @@ import {
   Line,
 } from "recharts";
 import Layout from "@/components/layout";
+import LoaderComponent from "@/components/Loading";
 
 //color palette for charts
 const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444"];
 
 export default function GraphPage() {
-  const { user, loading } = useAuth();
+  const { user, userLoading } = useAuth();
   const router = useRouter();
 
   //redirect to signin if not logged in
   useEffect(() => {
-    if (!loading && !user) router.replace("/signin");
-  }, [loading, user, router]);
+    if (!userLoading && !user) router.replace("/signin");
+  }, [userLoading, user, router]);
+
+  if (userLoading) {
+    return <LoaderComponent />;
+  }
 
   return (
     <div

@@ -46,8 +46,12 @@ import LoaderComponent from "./Loading";
 export default function TutorComponent() {
   const { user, userLoading } = useAuth();
   const router = useRouter();
-  const { addApplicant, applicants, getApplicationsOfCurrentUser } =
-    useApplicant();
+  const {
+    addApplicant,
+    applicants,
+    getApplicationsOfCurrentUser,
+    applicantsLoading,
+  } = useApplicant();
   const [skillInput, setSkillInput] = useState("");
   const [skills, setSkills] = useState<string[]>([]);
   const [id, setId] = useQueryState<number>(
@@ -77,7 +81,7 @@ export default function TutorComponent() {
     form.setValue("skills", skills.join(", "));
   }, [skills, form]);
 
-  if (userLoading) {
+  if (userLoading || applicantsLoading) {
     // User is still loading
     return <LoaderComponent />;
   }
