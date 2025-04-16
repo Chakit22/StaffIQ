@@ -1,21 +1,10 @@
 "use client";
 
-import React, { useEffect } from "react";
-import { useAuth } from "@/context/UserProvider";
-import { useRouter } from "next/navigation";
+import React from "react";
 import Layout from "@/components/layout";
 import TutorComponent from "@/components/tutor";
 
 export default function Tutor() {
-  const { user, loading: userLoading } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!userLoading && !user) {
-      router.replace("/");
-    }
-  }, [user, userLoading, router]);
-
   return (
     <div
       className="min-h-screen bg-cover bg-center bg-no-repeat"

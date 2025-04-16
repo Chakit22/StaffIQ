@@ -41,9 +41,10 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { X } from "lucide-react";
 import { useQueryState, parseAsInteger } from "nuqs";
+import LoaderComponent from "./Loading";
 
 export default function TutorComponent() {
-  const { user, loading } = useAuth();
+  const { user, userLoading } = useAuth();
   const router = useRouter();
   const { addApplicant, applicants, getApplicationsOfCurrentUser } =
     useApplicant();
@@ -65,17 +66,21 @@ export default function TutorComponent() {
   });
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.replace("/signin"); //redirect if not logged in
-    } else if (!loading && user) {
-      setId(user!.id);
+    if (!userLoading) {
+      if (!user) router.replace("/signin"); //redirect if not logged in
+      else setId(user.id);
     }
-  }, [loading, user, router]);
+  }, [userLoading, user, router]);
 
   useEffect(() => {
     // Update the form's skills value when skills array changes
     form.setValue("skills", skills.join(", "));
   }, [skills, form]);
+
+  if (userLoading) {
+    // User is still loading
+    return <LoaderComponent />;
+  }
 
   const previousRoles = useMemo(() => {
     if (!user) return [];
