@@ -35,7 +35,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       setUser(JSON.parse(storedUser));
     }
 
-    setLoading("userLoading", true);
+    setLoading("userLoading", false);
   }, []);
 
   const login = (email: string, password: string): boolean => {
