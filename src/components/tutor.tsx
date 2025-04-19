@@ -41,7 +41,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { X } from "lucide-react";
 import { useQueryState, parseAsInteger } from "nuqs";
-import LoaderComponent from "./Loading";
+import { LoadingOverlay } from "./ui/loading-overlay";
 
 export default function TutorComponent() {
   const { user, userLoading } = useAuth();
@@ -54,10 +54,7 @@ export default function TutorComponent() {
   } = useApplicant();
   const [skillInput, setSkillInput] = useState("");
   const [skills, setSkills] = useState<string[]>([]);
-  const [id, setId] = useQueryState<number>(
-    "id",
-    parseAsInteger.withDefault(-1)
-  );
+  const [, setId] = useQueryState<number>("id", parseAsInteger.withDefault(-1));
 
   const form = useForm<Tutorformtype>({
     defaultValues: {
@@ -74,17 +71,12 @@ export default function TutorComponent() {
       if (!user) router.replace("/signin"); //redirect if not logged in
       else setId(user.id);
     }
-  }, [userLoading, user, router]);
+  }, [userLoading, user, router, setId]);
 
   useEffect(() => {
     // Update the form's skills value when skills array changes
     form.setValue("skills", skills.join(", "));
   }, [skills, form]);
-
-  if (userLoading || applicantsLoading) {
-    // User is still loading
-    return <LoaderComponent />;
-  }
 
   const previousRoles = useMemo(() => {
     if (!user) return [];
@@ -137,7 +129,7 @@ export default function TutorComponent() {
   };
 
   // Show loading overlay while loading
-  if (isLoading) {
+  if (userLoading || applicantsLoading) {
     return (
       <div className="w-full h-screen relative">
         <LoadingOverlay fullScreen text="Loading..." />

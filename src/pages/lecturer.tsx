@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import Layout from "@/components/layout";
 import LecturerComponent from "@/components/lecturer";
 import { RankingProvider } from "@/context/RankingProvider";
-import { RankingProvider } from "@/context/RankingProvider";
 
 export default function LecturerPage() {
   const { user, loading: userLoading } = useAuth(); //Get current user
