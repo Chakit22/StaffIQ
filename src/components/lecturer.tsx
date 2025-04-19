@@ -3,6 +3,12 @@
 import { useApplicant } from "@/context/ApplicantProvider";
 import { courses } from "@/utils/courses";
 import { useEffect, useState } from "react";
+import Link from "next/link";
+
+// import ApplicantStats from "./ApplicantStats";
+import { useAuth } from "@/context/UserProvider";
+import { useRouter } from "next/navigation";
+import { Applicant } from "@/types/ApplicantType";
 import {
   Select,
   SelectContent,
@@ -11,9 +17,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
-import { useAuth } from "@/context/UserProvider";
-import { useRouter } from "next/navigation";
-import { Applicant } from "@/types/ApplicantType";
 import {
   Table,
   TableBody,
@@ -21,182 +24,234 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from "./ui/table";
+import { Input } from "./ui/input";
 import { Checkbox } from "./ui/checkbox";
 import { RankingEditor } from "./RankingEditor";
 import ViewDetailsDialog from "./ViewDetailsDialog";
-import { LoadingOverlay } from "@/components/ui/loading-overlay";
-import { Spinner } from "@/components/ui/spinner";
+import { useQueryState, parseAsInteger } from "nuqs";
+import LoaderComponent from "./Loading";
 
 export default function LecturerComponent() {
+  const { applicants, getApplicantsByCourse, applicantsLoading } =
+    useApplicant();
   const router = useRouter();
-  const {
-    applicants,
-    getApplicantsByCourse,
-    loading: applicantLoading,
-  } = useApplicant();
-  const { user, loading: authLoading } = useAuth();
-  const [selectedCourse, setSelectedCourse] = useState<string | undefined>(
-    undefined
-  );
-  const [currentApplicants, setCurrentApplicants] = useState<
-    Applicant[] | null
-  >([]);
+  const { user, userLoading } = useAuth();
+  const [id, setId] = useQueryState("id", parseAsInteger.withDefault(-1));
+
+  const [selectedCourse, setSelectedCourse] = useState<string>();
+  const [currentApplicants, setCurrentApplicants] = useState<Applicant[]>([]);
+  const [filteredApplicants, setFilteredApplicants] = useState<Applicant[]>([]);
   const [selectedApplicants, setSelectedApplicants] = useState<Applicant[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  // Combined loading state
-  const isPageLoading = authLoading || applicantLoading;
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [availabilityFilter, setAvailabilityFilter] = useState<string>("");
+  const [sortBy, setSortBy] = useState<string>("");
 
+  //redirect if not logged in
   useEffect(() => {
-    if (!authLoading && !user) {
-      router.replace("/");
+    if (!userLoading) {
+      if (!user) router.replace("/signin");
+      else setId(user.id);
     }
+  }, [userLoading, user, router]);
 
-    // Filter the applicants by the current selected course
+  //update applicants when course changes
+  useEffect(() => {
     if (selectedCourse) {
-      setIsLoading(true);
-      console.log(selectedCourse);
-      console.log(getApplicantsByCourse(selectedCourse!));
-      // Set the elected applicants only if you selected a course
-      setCurrentApplicants(getApplicantsByCourse(selectedCourse!));
-      // Simulate a small delay to show the loading state
-      setTimeout(() => {
-        setIsLoading(false);
-      }, 300);
+      const apps = getApplicantsByCourse(selectedCourse);
+      setCurrentApplicants(apps);
+      setSelectedApplicants([]);
     }
-  }, [applicants, selectedCourse, user, authLoading]);
+  }, [selectedCourse, applicants]);
 
-  const handleSelectedApplicantsChange = (applicant: Applicant) => {
+  //apply filters and sort
+  useEffect(() => {
+    let results = [...currentApplicants];
+
+    if (searchTerm) {
+      results = results.filter(
+        (a) =>
+          `${a.firstname} ${a.lastname}`
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          a.skills.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    if (availabilityFilter) {
+      results = results.filter(
+        (a) => a.availability.toLowerCase() === availabilityFilter.toLowerCase()
+      );
+    }
+
+    if (sortBy === "course") {
+      results.sort((a, b) =>
+        (a.course_code ?? "").localeCompare(b.course_code ?? "")
+      );
+    }
+
+    setFilteredApplicants(results);
+  }, [searchTerm, availabilityFilter, sortBy, currentApplicants]);
+
+  if (userLoading || applicantsLoading) {
+    return <LoaderComponent />;
+  }
+
+  //toggle applicant selection
+  const handleSelectToggle = (applicant: Applicant) => {
     setSelectedApplicants((prev) =>
-      !prev.includes(applicant)
-        ? [...prev, applicant]
-        : prev.filter((applicant_) => applicant_.id !== applicant.id)
+      prev.some((a) => a.id === applicant.id && a.role === applicant.role)
+        ? prev.filter(
+            (a) => !(a.id === applicant.id && a.role === applicant.role)
+          )
+        : [...prev, applicant]
     );
   };
 
-  // Show loading overlay for entire page
-  if (isPageLoading) {
-    return (
-      <div className="w-full h-screen relative">
-        <LoadingOverlay fullScreen text="Loading..." />
-      </div>
-    );
-  }
+  //remove duplicates
+  const uniqueSelectedApplicants = Object.values(
+    selectedApplicants.reduce((acc, applicant) => {
+      const key = `${applicant.id}-${applicant.role.toLowerCase()}`;
+      if (!acc[key]) {
+        acc[key] = applicant;
+      }
+      return acc;
+    }, {} as Record<string, Applicant>)
+  );
 
   return (
-    <div className="flex flex-col gap-10 relative">
-      {/* Loading overlay for course selection */}
-      {isLoading && <LoadingOverlay text="Loading applicants..." />}
+    <div className="flex flex-col gap-8 p-4">
+      {/* course selection dropdown */}
+      <div className="border rounded-xl shadow p-4 bg-white">
+        <h2 className="text-lg font-semibold mb-2">Select Course</h2>
+        <Select onValueChange={setSelectedCourse} value={selectedCourse}>
+          <SelectTrigger className="w-1/3">
+            <SelectValue placeholder="Select a course" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              {courses.map((c) => (
+                <SelectItem key={c.code} value={c.code}>
+                  {c.label}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+      </div>
 
-      <div className="flex flex-col gap-6 w-full border shadow-sm rounded-xl">
-        <div className="shadow-sm bg-blue-500 p-4 rounded-t-xl">
-          <div className="text-2xl font-bold text-primary-foreground">
-            Select Course
-          </div>
-          <div className="text-primary-foreground">Select Course</div>
-        </div>
-        <div className="p-4">
-          <Select onValueChange={setSelectedCourse} value={selectedCourse}>
-            <SelectTrigger className="w-1/3">
-              <SelectValue placeholder="Select course" />
+      {/* filters */}
+      {selectedCourse && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+          <Input
+            placeholder="Search by name or skills"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <Select
+            onValueChange={setAvailabilityFilter}
+            value={availabilityFilter}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Filter by Availability" />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                {courses.map((course, i) => (
-                  <SelectItem key={i} value={course.code}>
-                    {course.label}
-                  </SelectItem>
-                ))}
+                <SelectItem value="full time">Full Time</SelectItem>
+                <SelectItem value="part time">Part Time</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+          <Select onValueChange={setSortBy} value={sortBy}>
+            <SelectTrigger>
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectItem value="course">Course</SelectItem>
+                <SelectItem value="availability">Availability</SelectItem>
               </SelectGroup>
             </SelectContent>
           </Select>
         </div>
-      </div>
+      )}
+
+      {/* link to stats */}
+      <Link
+        href="/lecturer/graph"
+        className="text-blue-500 underline text-sm mt-2 self-start"
+      >
+        📊 View Applicant Stats Graph
+      </Link>
+
+      {/* applicant table */}
       {selectedCourse && (
-        <div className="flex flex-col gap-6 w-full border shadow-sm rounded-xl">
-          <div className="shadow-sm bg-blue-500 p-4 rounded-t-xl">
-            <div className="text-2xl font-bold text-primary-foreground">
-              Applicants
-            </div>
-            <div className="text-primary-foreground">
-              {selectedCourse} - {currentApplicants?.length}
-            </div>
-          </div>
-          <div className="p-4">
-            {currentApplicants ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Select</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Availability</TableHead>
-                    <TableHead>Actions</TableHead>
+        <div className="border rounded-xl shadow p-4 bg-white">
+          <h2 className="text-lg font-semibold mb-4">Applicants</h2>
+          {filteredApplicants.length ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Select</TableHead>
+                  <TableHead>ID</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Availability</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredApplicants.map((a) => (
+                  <TableRow key={`${a.id}-${a.role}`}>
+                    <TableCell>
+                      <Checkbox
+                        checked={selectedApplicants.some(
+                          (x) => x.id === a.id && x.role === a.role
+                        )}
+                        onCheckedChange={() => handleSelectToggle(a)}
+                      />
+                    </TableCell>
+                    <TableCell>{a.id}</TableCell>
+                    <TableCell>
+                      {a.firstname} {a.lastname}
+                    </TableCell>
+                    <TableCell>{a.role}</TableCell>
+                    <TableCell>{a.availability}</TableCell>
+                    <TableCell>
+                      <ViewDetailsDialog applicant={a} />
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {currentApplicants?.map((applicant) => (
-                    <TableRow key={applicant.id}>
-                      <TableCell>
-                        <Checkbox
-                          checked={selectedApplicants.some(
-                            (applicant_) => applicant_.id === applicant.id
-                          )}
-                          onCheckedChange={() => {
-                            handleSelectedApplicantsChange(applicant);
-                          }}
-                        />
-                      </TableCell>
-                      <TableCell>{`${applicant.firstname.toUpperCase()} ${applicant.lastname.toUpperCase()}`}</TableCell>
-                      <TableCell>{applicant.role.toUpperCase()}</TableCell>
-                      <TableCell>
-                        {applicant.availability.toUpperCase()}
-                      </TableCell>
-                      <TableCell>
-                        <ViewDetailsDialog applicant={applicant} />
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            ) : (
-              <div className="py-4 text-center">
-                {isLoading ? (
-                  <div className="flex items-center justify-center">
-                    <Spinner size="md" className="mr-2" />
-                    <span>Loading applicants...</span>
-                  </div>
-                ) : (
-                  "No applicants found"
-                )}
-              </div>
-            )}
-          </div>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <p>No applicants found.</p>
+          )}
         </div>
       )}
-      {currentApplicants &&
-        selectedCourse &&
-        selectedApplicants.length !== 0 && (
-          <div className="grid grid-cols-2 w-full p-8 justify-items-center gap-24">
-            <RankingEditor
-              course_code={selectedCourse}
-              role="tutor"
-              selectedApplicants={selectedApplicants.filter(
-                (applicant) => applicant.role.toLowerCase() === "tutor"
-              )}
-              applicants={currentApplicants?.map((applicant) => applicant.id)}
-            />
-            <RankingEditor
-              course_code={selectedCourse}
-              role="lab assistant"
-              selectedApplicants={selectedApplicants.filter(
-                (applicant) => applicant.role.toLowerCase() === "lab assistant"
-              )}
-              applicants={currentApplicants?.map((applicant) => applicant.id)}
-            />
-          </div>
-        )}
+
+      {/* ranking editor section */}
+      {uniqueSelectedApplicants.length > 0 && selectedCourse && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <RankingEditor
+            course_code={selectedCourse}
+            role="tutor"
+            selectedApplicants={uniqueSelectedApplicants.filter(
+              (a) => a.role.toLowerCase() === "tutor"
+            )}
+            applicants={uniqueSelectedApplicants.map((a) => a.id)}
+          />
+          <RankingEditor
+            course_code={selectedCourse}
+            role="lab assistant"
+            selectedApplicants={uniqueSelectedApplicants.filter(
+              (a) => a.role.toLowerCase() === "lab assistant"
+            )}
+            applicants={uniqueSelectedApplicants.map((a) => a.id)}
+          />
+        </div>
+      )}
     </div>
   );
 }

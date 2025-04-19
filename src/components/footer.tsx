@@ -1,6 +1,5 @@
 "use client";
 import Link from "next/link";
-import { Github, Mail, Twitter } from "lucide-react";
 
 export default function Footer() {
   return (
@@ -13,86 +12,6 @@ export default function Footer() {
               A comprehensive platform for managing tutor applications and
               selections efficiently.
             </p>
-          </div>
-
-          <div className="space-y-3">
-            <h3 className="text-lg font-semibold text-foreground">
-              Quick Links
-            </h3>
-            <ul className="space-y-2">
-              <li>
-                <Link
-                  href="/"
-                  className="text-foreground hover:text-blue-800 text-sm"
-                >
-                  Home
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/tutors"
-                  className="text-foreground hover:text-blue-800 text-sm"
-                >
-                  Tutor Portal
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/lecturers"
-                  className="text-foreground hover:text-blue-800 text-sm"
-                >
-                  Lecturer Portal
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          <div className="space-y-3">
-            <h3 className="text-lg font-semibold text-foreground">Resources</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link
-                  href="#"
-                  className="text-foreground hover:text-blue-800 text-sm"
-                >
-                  Documentation
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="#"
-                  className="text-foreground hover:text-blue-800 text-sm"
-                >
-                  FAQ
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="#"
-                  className="text-foreground hover:text-blue-800 text-sm"
-                >
-                  Support
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          <div className="space-y-3">
-            <h3 className="text-lg font-semibold text-foreground">Connect</h3>
-            <div className="flex space-x-4">
-              <Link href="#" className="text-foreground hover:text-blue-800">
-                <Github className="h-5 w-5" />
-                <span className="sr-only">GitHub</span>
-              </Link>
-              <Link href="#" className="text-foreground hover:text-blue-800">
-                <Twitter className="h-5 w-5" />
-                <span className="sr-only">Twitter</span>
-              </Link>
-              <Link href="#" className="text-foreground hover:text-blue-800">
-                <Mail className="h-5 w-5" />
-                <span className="sr-only">Email</span>
-              </Link>
-            </div>
           </div>
         </div>
 

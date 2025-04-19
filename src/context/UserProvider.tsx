@@ -1,11 +1,14 @@
 "use client";
+
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { User } from "../types/User";
 import { DEFAULT_USERS } from "@/utils/default-users";
+import { useLoading } from "./LoadingProvider";
 
 interface AuthContextType {
   user: User | null;
   users: User[];
+  userLoading: boolean;
   login: (email: string, password: string) => boolean;
   logout: () => void;
   loading: boolean;
@@ -13,11 +16,11 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export function UserProvider({ children }: { children: React.ReactNode }) {
+  const { loadingStates, setLoading } = useLoading();
   const [user, setUser] = useState<User | null>(null);
   const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-
+  // Get the users form local storage and also set the users in the variable accessigble everywhere
   useEffect(() => {
     // Initialize users from localStorage or use defaults
     console.log("Inside useEffect of UserProvider");
@@ -29,12 +32,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUsers(JSON.parse(storedUsers));
     }
 
-    // Check for existing login
     const storedUser = localStorage.getItem("currentUser");
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
-    setLoading(false);
+
+    setLoading("userLoading", false);
   }, []);
 
   const login = (email: string, password: string): boolean => {
@@ -55,8 +58,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem("currentUser");
   };
 
+  console.log("Inside User Provider!");
+
   return (
-    <AuthContext.Provider value={{ user, users, login, logout, loading }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        users,
+        userLoading: loadingStates["userLoading"],
+        login,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

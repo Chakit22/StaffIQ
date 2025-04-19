@@ -1,32 +1,45 @@
-import { useEffect, useState } from "react";
-import SignInForm from "./signin";
-import { useAuth } from "@/context/UserProvider";
-import { useRouter } from "next/navigation";
-import { LoadingOverlay } from "@/components/ui/loading-overlay";
+"use client"; //Make sure this page runs in the browser (client-side)
 
-export default function Home() {
-  const { user, loading: authLoading } = useAuth();
-  const router = useRouter();
-  const [isRedirecting, setIsRedirecting] = useState(false);
+import { useRouter } from "next/navigation"; //For navigation (redirecting)
+import { Button } from "@/components/ui/button"; //Reusable styled buttons
 
-  useEffect(() => {
-    // Only check redirection if auth has finished loading
-    if (!authLoading && user) {
-      setIsRedirecting(true);
-      // Redirect based on user role
-      if (user.role === "lecturer") {
-        router.replace("/lecturer");
-      } else if (user.role === "tutor" || user.role === "student") {
-        router.replace("/tutor");
-      }
-    }
-  }, [user, authLoading, router]);
+export default function HomePage() {
+  const router = useRouter(); //Hook for navigating programmatically
 
-  // Show loading overlay when auth is loading or while redirecting
-  if (authLoading || isRedirecting) {
-    return <LoadingOverlay fullScreen text="Loading..." />;
-  }
+  return (
+    //Main container that fills the screen with background image
+    <main
+      className="min-h-screen bg-cover bg-center flex flex-col items-center justify-center text-white px-4"
+      style={{
+        backgroundImage:
+          "url('https://images.unsplash.com/photo-1527689368864-3a821dbccc34?auto=format&fit=crop&w=1470&q=80')",
+      }}
+    >
+      {/* Card in the center with semi-transparent white background */}
+      <div className="bg-white/70 backdrop-blur-md p-10 rounded-xl shadow-xl text-black max-w-lg w-full text-center space-y-6">
+        {/* Main heading */}
+        <h1 className="text-4xl md:text-5xl font-bold">
+          Welcome to <span className="text-blue-500">TeachTeam</span>
+        </h1>
 
-  // If user is not logged in or authLoading is false, show SignInForm
-  return <SignInForm />;
+        {/* Subheading/description */}
+        <p className="text-lg md:text-xl text-gray-700">
+          Smart solutions for structured academic staffing
+        </p>
+
+        {/* Sign in and Sign up buttons */}
+        <div className="flex gap-4 justify-center mt-6 flex-wrap">
+          <Button onClick={() => router.push("/signin")}>Sign In</Button>
+          <Button variant="outline" onClick={() => router.push("/signup")}>
+            Sign Up
+          </Button>
+        </div>
+      </div>
+
+      {/* Footer with a soft transparent background */}
+      <footer className="mt-12 text-sm text-black/80 bg-white/60 px-4 py-2 rounded shadow-sm">
+        Built by Team TeachTeam
+      </footer>
+    </main>
+  );
 }

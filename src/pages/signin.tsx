@@ -30,6 +30,7 @@ export default function SignInForm() {
   const router = useRouter();
   const [isVerified, setIsVerified] = useState<boolean>(true);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [isVerified, setIsVerified] = useState<boolean>(false);
 
   // Initialize react-hook-form
   const {
@@ -59,7 +60,7 @@ export default function SignInForm() {
     console.log("first");
     // Navigate only when the user updates and auth is complete
     if (!authLoading && user?.role) {
-      toast.success("User Logged in Successfully!");
+      // toast.success("User Logged in Successfully!");
       // More robust role-based redirection
       switch (user.role) {
         case "lecturer":
@@ -74,7 +75,7 @@ export default function SignInForm() {
           router.replace("/");
       }
     }
-  }, [user, authLoading, router]);
+  }, [user, router, authLoading]);
 
   return (
     <div className="w-screen min-h-screen flex justify-center items-center relative">

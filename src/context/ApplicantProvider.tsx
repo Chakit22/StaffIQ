@@ -1,15 +1,8 @@
-/**
- * Top 4 things to create a Context
- * ContextProps (what all do we need to consume out of the context)
- * Creating a context
- * Creating a provider which provides the values which the consumer needs
- * Consuming a context
- */
-
 "use client";
 
 import { Applicant } from "@/types/ApplicantType";
 import { createContext, useContext, useEffect, useState } from "react";
+import { useLoading } from "./LoadingProvider";
 
 interface ApplicantContextProps {
   applicants: Applicant[];
@@ -20,7 +13,7 @@ interface ApplicantContextProps {
     role: string
   ) => Applicant[];
   getApplicationsOfCurrentUser: (user_id: number) => Applicant[];
-  loading: boolean;
+  applicantsLoading: boolean;
 }
 
 const ApplicantContext = createContext<ApplicantContextProps | undefined>(
@@ -29,17 +22,42 @@ const ApplicantContext = createContext<ApplicantContextProps | undefined>(
 
 export function ApplicantProvider({ children }: { children: React.ReactNode }) {
   const [applicants, setApplicants] = useState<Applicant[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const { loadingStates, setLoading } = useLoading();
 
-  // Add an applicant into the list of applicants
+  //Load applicants from localStorage on initial render
+  useEffect(() => {
+    const storedApplicants = localStorage.getItem("applicants");
+    const storedApplicants_: Applicant[] = storedApplicants
+      ? JSON.parse(storedApplicants)
+      : [];
+
+    if (!storedApplicants) {
+      localStorage.setItem("applicants", JSON.stringify([]));
+    }
+
+    setApplicants(storedApplicants_);
+    setLoading("applicantsLoading", false);
+  }, []);
+
+  //Add new applicant from localstorage when the page loads
   const addApplicant = (applicant: Applicant) => {
     const storedApplicants = localStorage.getItem("applicants");
     const storedApplicants_: Applicant[] = storedApplicants
       ? JSON.parse(storedApplicants)
       : [];
-    storedApplicants_.push(applicant);
-    localStorage.setItem("applicants", JSON.stringify(storedApplicants_));
-    setApplicants(storedApplicants_);
+
+    const alreadyExists = storedApplicants_.some(
+      (a) =>
+        a.id === applicant.id &&
+        a.course_code === applicant.course_code &&
+        a.role === applicant.role
+    );
+
+    if (!alreadyExists) {
+      storedApplicants_.push(applicant);
+      localStorage.setItem("applicants", JSON.stringify(storedApplicants_));
+      setApplicants(storedApplicants_);
+    }
   };
 
   // Get applications of the current user
@@ -54,30 +72,16 @@ export function ApplicantProvider({ children }: { children: React.ReactNode }) {
     );
   };
 
-  // Get an applicant of a particular course
+  //Get applicants for a course with a specific role
   const getApplicantsByCourseAndRole = (course_code: string, role: string) => {
     return applicants.filter(
       (applicant) =>
-        applicant.course_code === course_code && applicant.role === role
+        applicant.course_code === course_code &&
+        applicant.role.toLowerCase() === role.toLowerCase()
     );
   };
 
-  useEffect(() => {
-    setLoading(true);
-    const storedApplicants = localStorage.getItem("applicants");
-    const storedApplicants_: Applicant[] = storedApplicants
-      ? JSON.parse(storedApplicants)
-      : [];
-
-    if (!storedApplicants) {
-      localStorage.setItem("applicants", JSON.stringify([] as Applicant[]));
-    }
-
-    console.log(storedApplicants_);
-
-    setApplicants(storedApplicants_);
-    setLoading(false);
-  }, []);
+  console.log("Inside Applicants Provider!");
 
   return (
     <ApplicantContext.Provider
@@ -87,7 +91,7 @@ export function ApplicantProvider({ children }: { children: React.ReactNode }) {
         getApplicantsByCourse,
         getApplicantsByCourseAndRole,
         getApplicationsOfCurrentUser,
-        loading,
+        applicantsLoading: loadingStates["applicantsLoading"],
       }}
     >
       {children}
@@ -95,12 +99,11 @@ export function ApplicantProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
+//Custom hook to use applicant context
 export function useApplicant() {
   const context = useContext(ApplicantContext);
-
   if (context === undefined) {
-    throw new Error("useApplicant must be used within ApplicantProvider");
+    throw new Error("useApplicant must be used within an ApplicantProvider");
   }
-
   return context;
 }
