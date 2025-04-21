@@ -72,6 +72,8 @@ export function ApplicantProvider({ children }: { children: React.ReactNode }) {
     );
   };
 
+  // Get an applicant of a particular course and role
+
   //Get applicants for a course with a specific role
   const getApplicantsByCourseAndRole = (course_code: string, role: string) => {
     return applicants.filter(
