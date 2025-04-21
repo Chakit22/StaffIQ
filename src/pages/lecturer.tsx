@@ -1,22 +1,11 @@
 "use client"; //Runs on the client side
 
-import React, { useEffect } from "react";
-import { useAuth } from "@/context/UserProvider";
-import { useRouter } from "next/navigation";
+import React from "react";
 import Layout from "@/components/layout";
 import LecturerComponent from "@/components/lecturer";
 import { RankingProvider } from "@/context/RankingProvider";
 
 export default function LecturerPage() {
-  const { user, loading: userLoading } = useAuth(); //Get current user
-  const router = useRouter(); //For navigation
-
-  useEffect(() => {
-    if (!userLoading && !user) {
-      router.replace("/signin"); //Redirect if not signed in
-    }
-  }, [user, userLoading, router]);
-
   return (
     <div
       className="min-h-screen bg-cover bg-center bg-no-repeat"

@@ -22,9 +22,10 @@ import { useRouter } from "next/navigation";
 import Captcha from "@/components/captcha";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { Spinner } from "@/components/ui/spinner";
+import LoaderComponent from "@/components/Loading";
 
 export default function SignInForm() {
-  const { user, login, loading: authLoading } = useAuth();
+  const { user, login, userLoading } = useAuth();
   const [showPassword, setShowPassword] = useState<boolean>(true);
   const [isPasswordFocused, setIsPasswordFocused] = useState<boolean>(false);
   const router = useRouter();
@@ -56,30 +57,20 @@ export default function SignInForm() {
   };
 
   useEffect(() => {
-    console.log("first");
-    // Navigate only when the user updates and auth is complete
-    if (!authLoading && user?.role) {
-      // toast.success("User Logged in Successfully!");
-      // More robust role-based redirection
-      switch (user.role) {
-        case "lecturer":
-          router.replace("/lecturer");
-          break;
-        case "tutor":
-        case "student":
-          router.replace("/tutor");
-          break;
-        default:
-          // Default fallback route
-          router.replace("/");
-      }
+    if (!userLoading) {
+      if (!user) router.replace("/signin");
+      else router.replace(`/${user.role}`);
     }
-  }, [user, router, authLoading]);
+  }, [user, router, userLoading]);
+
+  if (userLoading) {
+    return <LoaderComponent />;
+  }
 
   return (
     <div className="w-screen min-h-screen flex justify-center items-center relative">
       {/* Show loading overlay when submitting */}
-      {isSubmitting && <LoadingOverlay fullScreen text="Logging in..." />}
+      {isSubmitting && <LoaderComponent />}
 
       <Card className="p-6 py-8 rounded-lg shadow-2xl w-2xs md:w-md">
         <CardHeader>

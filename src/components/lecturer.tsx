@@ -31,10 +31,12 @@ import { RankingEditor } from "./RankingEditor";
 import ViewDetailsDialog from "./ViewDetailsDialog";
 import { useQueryState, parseAsInteger } from "nuqs";
 import LoaderComponent from "./Loading";
+import { useCourse } from "@/context/CourseProvider";
 
 export default function LecturerComponent() {
   const { applicants, getApplicantsByCourse, applicantsLoading } =
     useApplicant();
+  const { courseLoading } = useCourse();
   const router = useRouter();
   const { user, userLoading } = useAuth();
   const [id, setId] = useQueryState("id", parseAsInteger.withDefault(-1));
@@ -94,10 +96,6 @@ export default function LecturerComponent() {
     setFilteredApplicants(results);
   }, [searchTerm, availabilityFilter, sortBy, currentApplicants]);
 
-  if (userLoading || applicantsLoading) {
-    return <LoaderComponent />;
-  }
-
   //toggle applicant selection
   const handleSelectToggle = (applicant: Applicant) => {
     setSelectedApplicants((prev) =>
@@ -119,6 +117,14 @@ export default function LecturerComponent() {
       return acc;
     }, {} as Record<string, Applicant>)
   );
+
+  console.log("userLoading", userLoading);
+  console.log("applicants Loading: ", applicantsLoading);
+
+  // Show loading overlay while loading
+  if (userLoading || applicantsLoading || courseLoading) {
+    return <LoaderComponent />;
+  }
 
   return (
     <div className="flex flex-col gap-8 p-4">

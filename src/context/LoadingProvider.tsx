@@ -1,5 +1,5 @@
 "use client";
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useState } from "react";
 
 type LoadingKeys =
   | "courseLoading"
@@ -31,7 +31,7 @@ export const LoadingProvider = ({
     rankingLoading: true,
   });
 
-  console.log("Inside Loading Provider!");
+  // console.log("Inside Loading Provider!");
 
   // A new way to define loading
   /**

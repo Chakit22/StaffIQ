@@ -30,8 +30,8 @@ export function RankingEditor({
   applicants,
 }: RankingEditorProps) {
   const [rankingData, setRankingData] = useState<ApplicantWithRanking[]>([]);
-  const { saveRanking, rankings } = useRanking();
-  const { user, loading: userLoading } = useAuth();
+  const { saveRanking } = useRanking();
+  const { user, userLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -81,7 +81,7 @@ export function RankingEditor({
 
   const handleSaveComment = (comment: string) => {
     //Save comment for the applicant
-    console.log(applicants, rankings, comment);
+    console.log(applicants, comment);
     toast.success("Comment added successfully!");
   };
 

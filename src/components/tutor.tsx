@@ -42,6 +42,8 @@ import { Input } from "@/components/ui/input";
 import { X } from "lucide-react";
 import { useQueryState, parseAsInteger } from "nuqs";
 import { LoadingOverlay } from "./ui/loading-overlay";
+import LoaderComponent from "./Loading";
+import { useCourse } from "@/context/CourseProvider";
 
 export default function TutorComponent() {
   const { user, userLoading } = useAuth();
@@ -52,6 +54,7 @@ export default function TutorComponent() {
     getApplicationsOfCurrentUser,
     applicantsLoading,
   } = useApplicant();
+  const { courseLoading } = useCourse();
   const [skillInput, setSkillInput] = useState("");
   const [skills, setSkills] = useState<string[]>([]);
   const [, setId] = useQueryState<number>("id", parseAsInteger.withDefault(-1));
@@ -71,7 +74,7 @@ export default function TutorComponent() {
       if (!user) router.replace("/signin"); //redirect if not logged in
       else setId(user.id);
     }
-  }, [userLoading, user, router, setId]);
+  }, [userLoading, user, router]);
 
   useEffect(() => {
     // Update the form's skills value when skills array changes
@@ -94,12 +97,12 @@ export default function TutorComponent() {
   };
 
   const handleRemoveSkill = (skillToRemove: string) => {
-    console.log(skillToRemove);
+    // console.log(skillToRemove);
     setSkills(skills.filter((skill) => skill !== skillToRemove));
   };
 
   const onSubmit = (formData: Tutorformtype) => {
-    console.log(formData.skills);
+    // console.log(formData.skills);
     if (!user) {
       toast.error("User not logged in.");
       return;
@@ -128,13 +131,12 @@ export default function TutorComponent() {
     });
   };
 
+  console.log("userLoading", userLoading);
+  console.log("applicants Loading: ", applicantsLoading);
+
   // Show loading overlay while loading
-  if (userLoading || applicantsLoading) {
-    return (
-      <div className="w-full h-screen relative">
-        <LoadingOverlay fullScreen text="Loading..." />
-      </div>
-    );
+  if (userLoading || applicantsLoading || courseLoading) {
+    return <LoaderComponent />;
   }
 
   // Rest of the component remains unchanged

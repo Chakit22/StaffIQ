@@ -15,7 +15,7 @@ export default function App({ Component, pageProps }: AppProps) {
           <CourseProvider>
             <NuqsAdapter>
               <Toaster position="top-right" /> {/*Toast notifications*/}
-              <Component {...pageProps} /> {/*Main component render*/}
+              <Component {...pageProps} /> Main component render
             </NuqsAdapter>
           </CourseProvider>
         </UserProvider>

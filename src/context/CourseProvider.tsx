@@ -17,8 +17,7 @@ export function CourseProvider({ children }: { children: React.ReactNode }) {
   const { loadingStates, setLoading } = useLoading();
 
   useEffect(() => {
-    console.log("Inside useEffect of CourseProvider");
-    setLoading(true);
+    // console.log("Inside useEffect of CourseProvider");
 
     const storedCourses = localStorage.getItem("currentcourses");
     if (!storedCourses) {
@@ -30,7 +29,7 @@ export function CourseProvider({ children }: { children: React.ReactNode }) {
     setLoading("courseLoading", false);
   }, []);
 
-  console.log("Inside Course Provider!");
+  // console.log("Inside Course Provider!");
 
   return (
     <CourseContext.Provider

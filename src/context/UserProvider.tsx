@@ -11,7 +11,6 @@ interface AuthContextType {
   userLoading: boolean;
   login: (email: string, password: string) => boolean;
   logout: () => void;
-  loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -20,6 +19,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const { loadingStates, setLoading } = useLoading();
   const [user, setUser] = useState<User | null>(null);
   const [users, setUsers] = useState<User[]>([]);
+
   // Get the users form local storage and also set the users in the variable accessigble everywhere
   useEffect(() => {
     // Initialize users from localStorage or use defaults
@@ -57,8 +57,6 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
     localStorage.removeItem("currentUser");
   };
-
-  console.log("Inside User Provider!");
 
   return (
     <AuthContext.Provider

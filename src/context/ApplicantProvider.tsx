@@ -81,7 +81,7 @@ export function ApplicantProvider({ children }: { children: React.ReactNode }) {
     );
   };
 
-  console.log("Inside Applicants Provider!");
+  // console.log("Inside Applicants Provider!");
 
   return (
     <ApplicantContext.Provider
