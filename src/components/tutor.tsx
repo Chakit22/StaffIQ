@@ -1,13 +1,7 @@
 "use client";
 
 import React from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -142,17 +136,15 @@ export default function TutorComponent() {
   // Rest of the component remains unchanged
   return (
     <div className="grid grid-cols-2 w-full p-8 justify-items-center">
-      <Card className="py-8 rounded-lg shadow-2xl w-2xs md:w-md bg-blue-50">
-        <CardHeader>
-          <CardTitle>Apply for Roles</CardTitle>
-          <CardDescription>
-            Apply for tutor and lab-assistant roles for the current semester
-          </CardDescription>
-        </CardHeader>
+      <Card className="py-8 shadow-2xl w-2xs md:w-md bg-blue-50">
+        <div className="text-2xl font-bold px-6">Apply for Roles</div>
+        <div className="text-sm text-muted-foreground px-6">
+          Apply for tutor and lab-assistant roles for the current semester
+        </div>
         <CardContent>
           <Form {...form}>
             <form
-              className="flex flex-col justify-center gap-4"
+              className="flex flex-col gap-4"
               onSubmit={form.handleSubmit(onSubmit)}
             >
               {/* Course */}
@@ -313,41 +305,35 @@ export default function TutorComponent() {
                 )}
               />
 
-              <Button type="submit" className="w-full">
-                Submit Application
-              </Button>
+              <Button type="submit">Submit Application</Button>
             </form>
           </Form>
         </CardContent>
       </Card>
 
       <Card className="py-8 rounded-lg shadow-2xl w-2xs md:w-md">
-        <CardHeader>
-          <CardTitle>Previous Roles</CardTitle>
-          <CardDescription>
-            List of previous roles you have applied for and general experience
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="h-full flex flex-col gap-4">
+        <div className="text-2xl font-bold px-6">Previous Roles</div>
+        <div className="text-sm text-muted-foreground px-6">
+          List of previous roles you have applied for and general experience
+        </div>
+        <CardContent className="flex flex-col gap-4">
           {previousRoles.length > 0 &&
             previousRoles.map((role: Applicant) => (
-              <Card key={role.id}>
-                <CardHeader>
-                  <CardTitle>{role.role.toUpperCase()}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p>
-                    <span className="font-bold">Skills:</span> {role.skills}
-                  </p>
-                  <p>
-                    <span className="font-bold">Academic Credentials:</span>{" "}
-                    {role.academic_creds}
-                  </p>
-                  <p>
-                    <span className="font-bold">Availability:</span>{" "}
-                    {role.availability}
-                  </p>
-                </CardContent>
+              <Card key={role.id} className="px-4 gap-2">
+                <div className="text-lg font-semibold">
+                  {role.role.toUpperCase()}
+                </div>
+                <p>
+                  <span className="font-bold">Skills:</span> {role.skills}
+                </p>
+                <p>
+                  <span className="font-bold">Academic Credentials:</span>{" "}
+                  {role.academic_creds}
+                </p>
+                <p>
+                  <span className="font-bold">Availability:</span>{" "}
+                  {role.availability}
+                </p>
               </Card>
             ))}
           {previousRoles.length === 0 && (

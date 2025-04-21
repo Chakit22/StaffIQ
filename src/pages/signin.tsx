@@ -66,12 +66,11 @@ export default function SignInForm() {
     <div className="min-h-screen flex justify-center items-center relative">
       <Card className="rounded-lg shadow-2xl w-2xs md:w-md px-6">
         <div className="text-center text-2xl font-bold">Login</div>
-        <form
-          className="flex flex-col justify-center gap-4"
-          onSubmit={handleSubmit(onSubmit)}
-        >
+        {/* If you specify here items:end then all the items will shift towards the end and occupy the same
+        width as of in the case of inline items do. */}
+        <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
           {/* Email */}
-          <div className="flex flex-col gap-2 justify-center">
+          <div>
             <Label htmlFor="email" className="text-bold text-md">
               Email
             </Label>
@@ -88,7 +87,7 @@ export default function SignInForm() {
           </div>
 
           {/* Password */}
-          <div className="flex flex-col gap-2 justify-center">
+          <div>
             <Label htmlFor="password" className="text-bold text-md">
               Password
             </Label>
@@ -130,6 +129,11 @@ export default function SignInForm() {
           {!isVerified && <Captcha setIsVerified={setIsVerified} />}
 
           {/* Login Button */}
+          {/* This button occupied the entire width because flex items occupy
+          the entire width of the parent container in the case flex-col but in the case of flex-row it 
+          occupies entire height of the parent container.
+          Because of the align-items property which is set to stretch by default
+          */}
           <Button type="submit" className="rounded-sm text-md">
             Login
           </Button>
