@@ -195,56 +195,50 @@ export default function LecturerComponent() {
 
       {/* applicant table */}
       {selectedCourse && filteredApplicants.length > 0 && (
-        <div className="grid grid-cols-3 gap-4 w-full">
+        <div className="grid grid-cols-3 gap-4">
           {filteredApplicants.map((applicant: Applicant) => {
             return (
-              <Card key={applicant.id} className="hover:shadow-xl">
-                <CardContent className="flex flex-col gap-4">
-                  <div className="flex justify-between items-center">
-                    <div className="text-md text-bold">{`${applicant.firstname.toUpperCase()} ${applicant.lastname.toUpperCase()}`}</div>
-                    <Badge className="bg-gray-200 text-black">
-                      {applicant.id}
-                    </Badge>
-                  </div>
-                  <div className="flex flex-col justify-center items-start gap-4">
-                    <div>
-                      {/* Role */}
-                      <div className="text-gray-400">Role</div>
-                      <div>{applicant.role.toUpperCase()}</div>
-                    </div>
-                    <div>
-                      {/* Availability */}
-                      <div className="text-gray-400">Availability</div>
-                      <div>{applicant.availability.toUpperCase()}</div>
-                    </div>
-                    <div>
-                      {/* Skills */}
-                      <div className="text-gray-400">Skills</div>
-                      {/* Seperate skills by badge */}
-                      <div className="flex justify-start items-center gap-2">
-                        {applicant.skills.split(",").map((skill: string, i) => (
-                          <Badge key={i}>{skill}</Badge>
-                        ))}
-                      </div>
-                    </div>
-                    <div>
-                      {/* Academic credentials */}
-                      <div className="text-gray-400">Academic Credentials</div>
-                      <div>{applicant.academic_creds.toUpperCase()}</div>
-                    </div>
-                  </div>
-                  <hr />
+              <Card key={applicant.id} className="hover:shadow-xl px-6">
+                <div className="flex justify-between items-center">
+                  <div className="text-md font-bold">{`${applicant.firstname.toUpperCase()} ${applicant.lastname.toUpperCase()}`}</div>
+                  <Badge>{applicant.id}</Badge>
+                </div>
+                {/* Role */}
+                <div>
+                  <div className="text-gray-400">Role</div>
+                  {applicant.role.toUpperCase()}
+                </div>
+                {/* Availability */}
+                <div>
+                  <div className="text-gray-400">Availability</div>
+                  {applicant.availability.toUpperCase()}
+                </div>
+                {/* Skills */}
+                <div>
+                  <div className="text-gray-400">Skills</div>
+                  {/* Seperate skills by badge */}
                   <div className="flex justify-start items-center gap-2">
-                    <Checkbox
-                      checked={selectedApplicants.some(
-                        (x) =>
-                          x.id === applicant.id && x.role === applicant.role
-                      )}
-                      onCheckedChange={() => handleSelectToggle(applicant)}
-                    />
-                    <p className="text-black">Select Candidate</p>
+                    {applicant.skills.split(",").map((skill: string, i) => (
+                      <Badge key={i}>{skill}</Badge>
+                    ))}
                   </div>
-                </CardContent>
+                </div>
+                {/* Academic credentials */}
+                <div>
+                  <div className="text-gray-400">Academic Credentials</div>
+                  {applicant.academic_creds.toUpperCase()}
+                </div>
+                <hr />
+                {/* Select candidate */}
+                <div className="flex justify-start items-center gap-2">
+                  <Checkbox
+                    checked={selectedApplicants.some(
+                      (x) => x.id === applicant.id && x.role === applicant.role
+                    )}
+                    onCheckedChange={() => handleSelectToggle(applicant)}
+                  />
+                  Select Candidate
+                </div>
               </Card>
             );
           })}
@@ -252,7 +246,7 @@ export default function LecturerComponent() {
       )}
 
       {selectedCourse && filteredApplicants.length == 0 && (
-        <div>No applicants found</div>
+        <div className="text-center">No applicants found</div>
       )}
 
       {/* ranking editor section */}
