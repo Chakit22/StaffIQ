@@ -32,6 +32,8 @@ import ViewDetailsDialog from "./ViewDetailsDialog";
 import { useQueryState, parseAsInteger } from "nuqs";
 import LoaderComponent from "./Loading";
 import { useCourse } from "@/context/CourseProvider";
+import { Card, CardContent, CardHeader } from "./ui/card";
+import { Badge } from "./ui/badge";
 
 export default function LecturerComponent() {
   const { applicants, getApplicantsByCourse, applicantsLoading } =
@@ -192,49 +194,65 @@ export default function LecturerComponent() {
       </Link>
 
       {/* applicant table */}
-      {selectedCourse && (
-        <div className="border rounded-xl shadow p-4 bg-white">
-          <h2 className="text-lg font-semibold mb-4">Applicants</h2>
-          {filteredApplicants.length ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Select</TableHead>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Availability</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredApplicants.map((a) => (
-                  <TableRow key={`${a.id}-${a.role}`}>
-                    <TableCell>
-                      <Checkbox
-                        checked={selectedApplicants.some(
-                          (x) => x.id === a.id && x.role === a.role
-                        )}
-                        onCheckedChange={() => handleSelectToggle(a)}
-                      />
-                    </TableCell>
-                    <TableCell>{a.id}</TableCell>
-                    <TableCell>
-                      {a.firstname} {a.lastname}
-                    </TableCell>
-                    <TableCell>{a.role}</TableCell>
-                    <TableCell>{a.availability}</TableCell>
-                    <TableCell>
-                      <ViewDetailsDialog applicant={a} />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : (
-            <p>No applicants found.</p>
-          )}
+      {selectedCourse && filteredApplicants.length > 0 && (
+        <div className="grid grid-cols-3 gap-4 w-full">
+          {filteredApplicants.map((applicant: Applicant) => {
+            return (
+              <Card key={applicant.id} className="hover:shadow-xl">
+                <CardContent className="flex flex-col gap-4">
+                  <div className="flex justify-between items-center">
+                    <div className="text-md text-bold">{`${applicant.firstname.toUpperCase()} ${applicant.lastname.toUpperCase()}`}</div>
+                    <Badge className="bg-gray-200 text-black">
+                      {applicant.id}
+                    </Badge>
+                  </div>
+                  <div className="flex flex-col justify-center items-start gap-4">
+                    <div>
+                      {/* Role */}
+                      <div className="text-gray-400">Role</div>
+                      <div>{applicant.role.toUpperCase()}</div>
+                    </div>
+                    <div>
+                      {/* Availability */}
+                      <div className="text-gray-400">Availability</div>
+                      <div>{applicant.availability.toUpperCase()}</div>
+                    </div>
+                    <div>
+                      {/* Skills */}
+                      <div className="text-gray-400">Skills</div>
+                      {/* Seperate skills by badge */}
+                      <div className="flex justify-start items-center gap-2">
+                        {applicant.skills.split(",").map((skill: string, i) => (
+                          <Badge key={i}>{skill}</Badge>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      {/* Academic credentials */}
+                      <div className="text-gray-400">Academic Credentials</div>
+                      <div>{applicant.academic_creds.toUpperCase()}</div>
+                    </div>
+                  </div>
+                  <hr />
+                  <div className="flex justify-start items-center gap-2">
+                    <Checkbox
+                      checked={selectedApplicants.some(
+                        (x) =>
+                          x.id === applicant.id && x.role === applicant.role
+                      )}
+                      onCheckedChange={() => handleSelectToggle(applicant)}
+                    />
+                    <p className="text-black">Select Candidate</p>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
+      )}
+
+      {selectedCourse && filteredApplicants.length == 0 && (
+        <div>No applicants found</div>
       )}
 
       {/* ranking editor section */}
