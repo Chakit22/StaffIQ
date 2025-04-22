@@ -3,13 +3,7 @@ import { useAuth } from "@/context/UserProvider";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { LoginFormType } from "@/types/LoginFormType";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FaEyeSlash, FaEye } from "react-icons/fa";
 import { Label } from "@/components/ui/label";
