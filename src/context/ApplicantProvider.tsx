@@ -2,7 +2,7 @@
 
 import { Applicant } from "@/types/ApplicantType";
 import { createContext, useContext, useEffect, useState } from "react";
-import { useLoading } from "./LoadingProvider";
+// import { useLoading } from "./LoadingProvider";
 
 interface ApplicantContextProps {
   applicants: Applicant[];
@@ -23,7 +23,7 @@ const ApplicantContext = createContext<ApplicantContextProps | undefined>(
 export function ApplicantProvider({ children }: { children: React.ReactNode }) {
   console.log("Application provider re-rendered!");
   const [applicants, setApplicants] = useState<Applicant[]>([]);
-  const { loadingStates, setLoading } = useLoading();
+  // const { loadingStates, setLoading } = useLoading();
 
   //Load applicants from localStorage on initial render
   useEffect(() => {

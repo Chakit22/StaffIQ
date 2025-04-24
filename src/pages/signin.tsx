@@ -17,6 +17,7 @@ import Captcha from "@/components/captcha";
 import LoaderComponent from "@/components/Loading";
 
 export default function SignInForm() {
+  console.log("signin page rendered");
   const { user, login, userLoading, setInitialState } = useUserStore();
   const [showPassword, setShowPassword] = useState<boolean>(true);
   const [isPasswordFocused, setIsPasswordFocused] = useState<boolean>(false);
@@ -24,8 +25,18 @@ export default function SignInForm() {
   const [isVerified, setIsVerified] = useState<boolean>(false);
 
   useEffect(() => {
+    console.log("signin page useEffect 1");
     setInitialState();
   }, []);
+
+  useEffect(() => {
+    console.log("signin page useEffect 2");
+    console.log("userLoading", userLoading);
+    console.log("user", user);
+    if (!userLoading) {
+      if (user) router.replace(`/${user.role}`);
+    }
+  }, [user, router, userLoading]);
 
   const {
     register,
@@ -47,13 +58,6 @@ export default function SignInForm() {
       toast.error("Invalid Username or Password!");
     }
   };
-
-  useEffect(() => {
-    if (!userLoading) {
-      if (!user) router.replace("/signin");
-      else router.replace(`/${user.role}`);
-    }
-  }, [user, router, userLoading]);
 
   if (userLoading) {
     return <LoaderComponent />;

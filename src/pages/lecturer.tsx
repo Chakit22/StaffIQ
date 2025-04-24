@@ -17,9 +17,7 @@ export default function LecturerPage() {
       {/* Overlay with blur and light background */}
       <div className="min-h-screen bg-white/80 backdrop-blur-sm">
         <Layout>
-          <RankingProvider>
-            <LecturerComponent /> {/*Main lecturer dashboard content*/}
-          </RankingProvider>
+          <LecturerComponent /> {/*Main lecturer dashboard content*/}
         </Layout>
       </div>
     </div>

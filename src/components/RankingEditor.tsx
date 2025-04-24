@@ -6,10 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Applicant } from "@/types/ApplicantType";
 import { toast } from "sonner";
-import { useRanking } from "@/context/RankingProvider";
 import { useRouter } from "next/navigation";
 import CommentDialog from "./CommentDialog";
 import { useUserStore } from "@/stores/user-store";
+import { useRankingStore } from "@/stores/ranking-store";
 
 interface RankingEditorProps {
   course_code: string;
@@ -29,7 +29,7 @@ export function RankingEditor({
   selectedApplicants,
 }: RankingEditorProps) {
   const [rankingData, setRankingData] = useState<ApplicantWithRanking[]>([]);
-  const { saveRanking } = useRanking();
+  const { saveRanking } = useRankingStore();
   const { user, userLoading } = useUserStore();
   const router = useRouter();
 
@@ -80,7 +80,7 @@ export function RankingEditor({
 
   const handleSaveComment = (comment: string) => {
     //Save comment for the applicant
-    // console.log(applicants, comment);
+    console.log(rankingData, comment);
     toast.success("Comment added successfully!");
   };
 

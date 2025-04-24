@@ -1,8 +1,5 @@
 "use client";
 
-import { useApplicant } from "@/context/ApplicantProvider";
-import { useAuth } from "@/context/UserProvider";
-import { useRanking, RankingProvider } from "@/context/RankingProvider";
 import { courses } from "@/utils/courses";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -23,6 +20,8 @@ import {
 import Layout from "@/components/layout";
 import LoaderComponent from "@/components/Loading";
 import { useUserStore } from "@/stores/user-store";
+import { useApplicantStore } from "@/stores/applicant-store";
+import { useRankingStore } from "@/stores/ranking-store";
 //color palette for charts
 const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444"];
 
@@ -53,9 +52,7 @@ export default function GraphPage() {
     >
       <div className="min-h-screen bg-white/80 backdrop-blur-sm">
         <Layout>
-          <RankingProvider>
-            <GraphContent />
-          </RankingProvider>
+          <GraphContent />
         </Layout>
       </div>
     </div>
@@ -63,8 +60,8 @@ export default function GraphPage() {
 }
 
 function GraphContent() {
-  const { applicants } = useApplicant();
-  const { rankings } = useRanking();
+  const { applicants } = useApplicantStore();
+  const { rankings } = useRankingStore();
   const router = useRouter();
 
   const [selectedCourse, setSelectedCourse] = useState<string>("");

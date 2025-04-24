@@ -72,5 +72,7 @@ export const useUserStore = create<UserStore>((set, get) => ({
 
     // Set the loading to false
     set((state) => ({ ...state, userLoading: false }));
+
+    console.log("end of setInitialState");
   },
 }));

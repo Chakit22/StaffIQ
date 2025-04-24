@@ -40,7 +40,7 @@ export default function LecturerComponent() {
     user,
     userLoading,
     setInitialState: setUserInitialState,
-  } = useUserStore();
+  } = useUserStore((state) => state);
   const [, setId] = useQueryState("id", parseAsInteger.withDefault(-1));
 
   const [selectedCourse, setSelectedCourse] = useState<string>();
@@ -57,6 +57,8 @@ export default function LecturerComponent() {
     setCourseInitialState();
     setUserInitialState();
   }, []);
+
+  console.log("lecturer component rendered");
 
   //redirect if not logged in
   useEffect(() => {
@@ -126,8 +128,8 @@ export default function LecturerComponent() {
     }, {} as Record<string, Applicant>)
   );
 
-  // console.log("userLoading", userLoading);
-  // console.log("applicants Loading: ", applicantsLoading);
+  console.log("userLoading", userLoading);
+  console.log("applicants Loading: ", applicantsLoading);
 
   // Show loading overlay while loading
   if (userLoading || applicantsLoading || courseLoading) {
