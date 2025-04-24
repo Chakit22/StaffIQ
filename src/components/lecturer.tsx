@@ -111,8 +111,8 @@ export default function LecturerComponent() {
     }, {} as Record<string, Applicant>)
   );
 
-  console.log("userLoading", userLoading);
-  console.log("applicants Loading: ", applicantsLoading);
+  // console.log("userLoading", userLoading);
+  // console.log("applicants Loading: ", applicantsLoading);
 
   // Show loading overlay while loading
   if (userLoading || applicantsLoading || courseLoading) {

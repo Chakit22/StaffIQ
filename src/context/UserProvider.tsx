@@ -16,6 +16,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
+  // console.log("user provider re-rendered!");
   const { loadingStates, setLoading } = useLoading();
   const [user, setUser] = useState<User | null>(null);
   const [users, setUsers] = useState<User[]>([]);
@@ -37,6 +38,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       setUser(JSON.parse(storedUser));
     }
 
+    console.log("Just before userLoading set to false");
     setLoading("userLoading", false);
   }, []);
 

@@ -81,7 +81,7 @@ export function RankingEditor({
 
   const handleSaveComment = (comment: string) => {
     //Save comment for the applicant
-    console.log(applicants, comment);
+    // console.log(applicants, comment);
     toast.success("Comment added successfully!");
   };
 

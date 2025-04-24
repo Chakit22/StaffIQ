@@ -21,6 +21,7 @@ const ApplicantContext = createContext<ApplicantContextProps | undefined>(
 );
 
 export function ApplicantProvider({ children }: { children: React.ReactNode }) {
+  console.log("Application provider re-rendered!");
   const [applicants, setApplicants] = useState<Applicant[]>([]);
   const { loadingStates, setLoading } = useLoading();
 

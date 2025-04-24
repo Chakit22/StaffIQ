@@ -8,7 +8,7 @@ import { NuqsAdapter } from "nuqs/adapters/next/pages";
 import { LoadingProvider } from "@/context/LoadingProvider";
 
 export default function App({ Component, pageProps }: AppProps) {
-  console.log("pageProps", pageProps);
+  // console.log("pageProps", pageProps);
   return (
     <LoadingProvider>
       <ApplicantProvider>
