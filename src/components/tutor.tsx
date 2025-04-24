@@ -37,9 +37,10 @@ import { X } from "lucide-react";
 import { useQueryState, parseAsInteger } from "nuqs";
 import LoaderComponent from "./Loading";
 import { useCourse } from "@/context/CourseProvider";
+import { useUserStore } from "@/stores/user-store";
 
 export default function TutorComponent() {
-  const { user, userLoading } = useAuth();
+  const { user, userLoading, setInitialState } = useUserStore();
   const router = useRouter();
   const {
     addApplicant,
@@ -61,6 +62,10 @@ export default function TutorComponent() {
       academic_creds: "",
     },
   });
+
+  useEffect(() => {
+    setInitialState();
+  }, []);
 
   useEffect(() => {
     if (!userLoading) {

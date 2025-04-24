@@ -1,13 +1,12 @@
 "use client"; //Runs on the client side
 
-import { useAuth } from "@/context/UserProvider";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import SignInForm from "./signin";
 import LoaderComponent from "@/components/Loading";
-
+import { useUserStore } from "@/stores/user-store";
 export default function Home() {
-  const { user, userLoading } = useAuth(); //Get user and loading state
+  const { user, userLoading } = useUserStore(); //Get user and loading state
   const router = useRouter(); //For page navigation
 
   useEffect(() => {

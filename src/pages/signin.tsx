@@ -1,5 +1,5 @@
 "use client";
-import { useAuth } from "@/context/UserProvider";
+import { useUserStore } from "@/stores/user-store";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { LoginFormType } from "@/types/LoginFormType";
@@ -17,13 +17,16 @@ import Captcha from "@/components/captcha";
 import LoaderComponent from "@/components/Loading";
 
 export default function SignInForm() {
-  const { user, login, userLoading } = useAuth();
+  const { user, login, userLoading, setInitialState } = useUserStore();
   const [showPassword, setShowPassword] = useState<boolean>(true);
   const [isPasswordFocused, setIsPasswordFocused] = useState<boolean>(false);
   const router = useRouter();
   const [isVerified, setIsVerified] = useState<boolean>(false);
 
-  // Initialize react-hook-form
+  useEffect(() => {
+    setInitialState();
+  }, []);
+
   const {
     register,
     handleSubmit,
@@ -60,10 +63,7 @@ export default function SignInForm() {
     <div className="min-h-screen flex justify-center items-center relative">
       <Card className="rounded-lg shadow-2xl w-2xs md:w-md px-6">
         <div className="text-center text-2xl font-bold">Login</div>
-        {/* If you specify here items:end then all the items will shift towards the end and occupy the same
-        width as of in the case of inline items do. */}
         <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
-          {/* Email */}
           <div>
             <Label htmlFor="email" className="text-bold text-md">
               Email
@@ -80,7 +80,6 @@ export default function SignInForm() {
             )}
           </div>
 
-          {/* Password */}
           <div>
             <Label htmlFor="password" className="text-bold text-md">
               Password
@@ -109,7 +108,6 @@ export default function SignInForm() {
               </div>
             </div>
 
-            {/* Password Rules */}
             {(isPasswordFocused || watch("password")) && (
               <PasswordRules password={watch("password")} />
             )}
@@ -119,15 +117,8 @@ export default function SignInForm() {
             )}
           </div>
 
-          {/* Captcha Verification */}
           {!isVerified && <Captcha setIsVerified={setIsVerified} />}
 
-          {/* Login Button */}
-          {/* This button occupied the entire width because flex items occupy
-          the entire width of the parent container in the case flex-col but in the case of flex-row it 
-          occupies entire height of the parent container.
-          Because of the align-items property which is set to stretch by default
-          */}
           <Button type="submit" className="rounded-sm text-md">
             Login
           </Button>
