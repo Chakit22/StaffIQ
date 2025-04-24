@@ -17,22 +17,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "./ui/table";
 import { Input } from "./ui/input";
 import { Checkbox } from "./ui/checkbox";
 import { RankingEditor } from "./RankingEditor";
-import ViewDetailsDialog from "./ViewDetailsDialog";
 import { useQueryState, parseAsInteger } from "nuqs";
 import LoaderComponent from "./Loading";
 import { useCourse } from "@/context/CourseProvider";
-import { Card, CardContent, CardHeader } from "./ui/card";
+import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
 
 export default function LecturerComponent() {
@@ -41,7 +32,7 @@ export default function LecturerComponent() {
   const { courseLoading } = useCourse();
   const router = useRouter();
   const { user, userLoading } = useAuth();
-  const [id, setId] = useQueryState("id", parseAsInteger.withDefault(-1));
+  const [, setId] = useQueryState("id", parseAsInteger.withDefault(-1));
 
   const [selectedCourse, setSelectedCourse] = useState<string>();
   const [currentApplicants, setCurrentApplicants] = useState<Applicant[]>([]);

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -35,7 +35,6 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { X } from "lucide-react";
 import { useQueryState, parseAsInteger } from "nuqs";
-import { LoadingOverlay } from "./ui/loading-overlay";
 import LoaderComponent from "./Loading";
 import { useCourse } from "@/context/CourseProvider";
 
