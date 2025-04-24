@@ -1,12 +1,10 @@
 "use client";
 
-import { useApplicant } from "@/context/ApplicantProvider";
 import { courses } from "@/utils/courses";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
 // import ApplicantStats from "./ApplicantStats";
-import { useAuth } from "@/context/UserProvider";
 import { useRouter } from "next/navigation";
 import { Applicant } from "@/types/ApplicantType";
 import {
@@ -22,16 +20,27 @@ import { Checkbox } from "./ui/checkbox";
 import { RankingEditor } from "./RankingEditor";
 import { useQueryState, parseAsInteger } from "nuqs";
 import LoaderComponent from "./Loading";
-import { useCourse } from "@/context/CourseProvider";
 import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
+import { useUserStore } from "@/stores/user-store";
+import { useApplicantStore } from "@/stores/applicant-store";
+import { useCourseStore } from "@/stores/course-store";
 
 export default function LecturerComponent() {
-  const { applicants, getApplicantsByCourse, applicantsLoading } =
-    useApplicant();
-  const { courseLoading } = useCourse();
+  const {
+    applicants,
+    getApplicantsByCourse,
+    loading: applicantsLoading,
+    setInitialState: setApplicantInitialState,
+  } = useApplicantStore();
+  const { loading: courseLoading, setInitialState: setCourseInitialState } =
+    useCourseStore();
   const router = useRouter();
-  const { user, userLoading } = useAuth();
+  const {
+    user,
+    userLoading,
+    setInitialState: setUserInitialState,
+  } = useUserStore();
   const [, setId] = useQueryState("id", parseAsInteger.withDefault(-1));
 
   const [selectedCourse, setSelectedCourse] = useState<string>();
@@ -42,6 +51,12 @@ export default function LecturerComponent() {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [availabilityFilter, setAvailabilityFilter] = useState<string>("");
   const [sortBy, setSortBy] = useState<string>("");
+
+  useEffect(() => {
+    setApplicantInitialState();
+    setCourseInitialState();
+    setUserInitialState();
+  }, []);
 
   //redirect if not logged in
   useEffect(() => {

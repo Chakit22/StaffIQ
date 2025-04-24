@@ -19,7 +19,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Tutorformtype } from "@/types/Tutorformtype";
-import { useAuth } from "@/context/UserProvider";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -29,15 +28,15 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { roles } from "@/utils/roles";
 import { availability } from "@/utils/availbility";
-import { useApplicant } from "@/context/ApplicantProvider";
+import { useApplicantStore } from "@/stores/applicant-store";
 import { Applicant } from "@/types/ApplicantType";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { X } from "lucide-react";
 import { useQueryState, parseAsInteger } from "nuqs";
 import LoaderComponent from "./Loading";
-import { useCourse } from "@/context/CourseProvider";
 import { useUserStore } from "@/stores/user-store";
+import { useCourseStore } from "@/stores/course-store";
 
 export default function TutorComponent() {
   const { user, userLoading, setInitialState } = useUserStore();
@@ -46,9 +45,9 @@ export default function TutorComponent() {
     addApplicant,
     applicants,
     getApplicationsOfCurrentUser,
-    applicantsLoading,
-  } = useApplicant();
-  const { courseLoading } = useCourse();
+    loading: applicantsLoading,
+  } = useApplicantStore();
+  const { loading: courseLoading } = useCourseStore();
   const [skillInput, setSkillInput] = useState("");
   const [skills, setSkills] = useState<string[]>([]);
   const [, setId] = useQueryState<number>("id", parseAsInteger.withDefault(-1));
@@ -82,7 +81,7 @@ export default function TutorComponent() {
   const previousRoles = useMemo(() => {
     if (!user) return [];
     return getApplicationsOfCurrentUser(user.id);
-  }, [applicants, user, getApplicationsOfCurrentUser]);
+  }, [applicants, user]);
 
   const handleAddSkill = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && skillInput.trim()) {

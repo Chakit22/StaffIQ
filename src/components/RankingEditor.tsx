@@ -7,9 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Applicant } from "@/types/ApplicantType";
 import { toast } from "sonner";
 import { useRanking } from "@/context/RankingProvider";
-import { useAuth } from "@/context/UserProvider";
 import { useRouter } from "next/navigation";
 import CommentDialog from "./CommentDialog";
+import { useUserStore } from "@/stores/user-store";
 
 interface RankingEditorProps {
   course_code: string;
@@ -27,11 +27,10 @@ export function RankingEditor({
   course_code,
   role,
   selectedApplicants,
-  applicants,
 }: RankingEditorProps) {
   const [rankingData, setRankingData] = useState<ApplicantWithRanking[]>([]);
   const { saveRanking } = useRanking();
-  const { user, userLoading } = useAuth();
+  const { user, userLoading } = useUserStore();
   const router = useRouter();
 
   useEffect(() => {

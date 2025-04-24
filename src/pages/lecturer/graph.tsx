@@ -22,13 +22,17 @@ import {
 } from "recharts";
 import Layout from "@/components/layout";
 import LoaderComponent from "@/components/Loading";
-
+import { useUserStore } from "@/stores/user-store";
 //color palette for charts
 const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444"];
 
 export default function GraphPage() {
-  const { user, userLoading } = useAuth();
+  const { user, userLoading, setInitialState } = useUserStore();
   const router = useRouter();
+
+  useEffect(() => {
+    setInitialState();
+  }, []);
 
   //redirect to signin if not logged in
   useEffect(() => {

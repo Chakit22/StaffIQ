@@ -3,11 +3,11 @@
 import { LogOut, Home } from "lucide-react";
 import { Button } from "./ui/button";
 import Link from "next/link";
-import { useAuth } from "@/context/UserProvider";
+import { useUserStore } from "@/stores/user-store";
 import { useRouter } from "next/navigation";
 
 export default function Navbar() {
-  const { user, logout } = useAuth();
+  const { user, logout } = useUserStore();
   const router = useRouter();
 
   const handleLogout = () => {
