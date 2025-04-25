@@ -40,7 +40,7 @@ export default function LecturerComponent() {
     user,
     userLoading,
     setInitialState: setUserInitialState,
-  } = useUserStore((state) => state);
+  } = useUserStore();
   const [, setId] = useQueryState("id", parseAsInteger.withDefault(-1));
 
   const [selectedCourse, setSelectedCourse] = useState<string>();

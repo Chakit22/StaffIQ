@@ -55,18 +55,21 @@ export const useUserStore = create<UserStore>((set, get) => ({
     set({ user: null });
   },
   setInitialState: () => {
+    console.log("userLoading in setInitialState", get().userLoading);
     // Get the stored users in local storage
     const storedUsers = localStorage.getItem("users");
     if (!storedUsers) {
       localStorage.setItem("users", JSON.stringify(DEFAULT_USERS));
       set((state) => ({ ...state, users: DEFAULT_USERS }));
     } else {
+      console.log("storedUsers", storedUsers);
       set((state) => ({ ...state, users: JSON.parse(storedUsers) }));
     }
 
     // Get the current users
     const storedUser = localStorage.getItem("currentUser");
     if (storedUser) {
+      console.log("storedUser", storedUser);
       set((state) => ({ ...state, user: JSON.parse(storedUser) }));
     }
 
