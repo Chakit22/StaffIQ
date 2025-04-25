@@ -3,7 +3,6 @@
 import React from "react";
 import Layout from "@/components/layout";
 import LecturerComponent from "@/components/lecturer";
-import { RankingProvider } from "@/context/RankingProvider";
 
 export default function LecturerPage() {
   return (
