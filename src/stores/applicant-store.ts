@@ -1,3 +1,4 @@
+"use client";
 import { Applicant } from "@/types/ApplicantType";
 import { create } from "zustand";
 

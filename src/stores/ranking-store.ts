@@ -1,3 +1,4 @@
+"use client";
 import { Rankings } from "@/types/Ranking";
 import { create } from "zustand";
 

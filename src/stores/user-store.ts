@@ -1,3 +1,4 @@
+"use client";
 import { User } from "@/types/User";
 import { DEFAULT_USERS } from "@/utils/default-users";
 import { create } from "zustand";
