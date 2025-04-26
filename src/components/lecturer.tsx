@@ -177,12 +177,12 @@ export default function LecturerComponent() {
       )}
 
       {/* link to stats */}
-      {/* <Link
+      <Link
         href="/lecturer/graph"
         className="text-blue-500 underline text-sm mt-2 self-start"
       >
         📊 View Applicant Stats Graph
-      </Link> */}
+      </Link>
 
       {/* applicants */}
       {selectedCourse && filteredApplicants.length > 0 && (

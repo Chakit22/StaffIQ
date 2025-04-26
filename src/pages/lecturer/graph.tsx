@@ -22,6 +22,23 @@ import {
 } from "recharts";
 import Layout from "@/components/layout";
 import LoaderComponent from "@/components/Loading";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 //color palette for charts
 const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444"];
@@ -40,21 +57,11 @@ export default function GraphPage() {
   }
 
   return (
-    <div
-      className="min-h-screen bg-cover bg-center bg-no-repeat"
-      style={{
-        backgroundImage:
-          "url('https://plus.unsplash.com/premium_photo-1679547202671-f9dbbf466db4?q=80&w=1932&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')",
-      }}
-    >
-      <div className="min-h-screen bg-white/80 backdrop-blur-sm">
-        <Layout>
-          <RankingProvider>
-            <GraphContent />
-          </RankingProvider>
-        </Layout>
-      </div>
-    </div>
+    <Layout>
+      <RankingProvider>
+        <GraphContent />
+      </RankingProvider>
+    </Layout>
   );
 }
 
@@ -163,13 +170,11 @@ function GraphContent() {
   }, [rankings, filteredApplicants]);
 
   return (
-    <div className="min-h-screen bg-gray-50 text-blue-900">
-      <div className="py-4 mb-8">
-        <h1 className="text-2xl font-bold text-center">
-          📊 Applicant Analytics
-        </h1>
+    <div className="bg-gray-50 text-blue-900 flex flex-col gap-4">
+      <div className="flex flex-col gap-2 items-center">
+        <h1 className="text-2xl font-bold">📊 Applicant Analytics</h1>
         <div
-          className="text-sm mt-2 text-center underline cursor-pointer"
+          className="text-sm underline cursor-pointer"
           onClick={() => router.push("/lecturer")}
         >
           ← Back to Lecturer Dashboard
@@ -178,35 +183,39 @@ function GraphContent() {
 
       {/*dropdown filters*/}
       <div className="flex flex-wrap justify-center gap-4 p-4">
-        <select
-          className="p-2 border rounded"
+        <Select
           value={selectedCourse}
-          onChange={(e) => setSelectedCourse(e.target.value)}
+          onValueChange={(value) => setSelectedCourse(value)}
         >
-          <option value="">All Courses</option>
-          {courses.map((c) => (
-            <option key={c.code} value={c.code}>
-              {c.code} - {c.label}
-            </option>
-          ))}
-        </select>
-        <select
-          className="p-2 border rounded"
+          <SelectTrigger className="max-w-full">
+            <SelectValue placeholder="Select Course" />
+          </SelectTrigger>
+          <SelectContent>
+            {courses.map((c) => (
+              <SelectItem key={c.code} value={c.code}>
+                {c.code} - {c.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select
           value={selectedRole}
-          onChange={(e) => setSelectedRole(e.target.value)}
+          onValueChange={(value) => setSelectedRole(value)}
         >
-          <option value="">All Roles</option>
-          <option value="tutor">Tutor</option>
-          <option value="lab assistant">Lab Assistant</option>
-        </select>
+          <SelectTrigger className="max-w-full">
+            <SelectValue placeholder="Select Role" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="tutor">Tutor</SelectItem>
+            <SelectItem value="lab assistant">Lab Assistant</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/*summary stats boxes*/}
-      <section className="bg-white shadow rounded-lg p-6 w-full max-w-5xl mx-auto mb-10">
-        <h2 className="text-lg font-semibold mb-4 text-center">
-          Summary Stats
-        </h2>
-        <div className="grid grid-cols-3 gap-4 text-center">
+      <Card className="p-6">
+        <CardTitle className="text-center">Summary Stats</CardTitle>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
           <div className="bg-blue-100 p-4 rounded">
             Total: {filteredApplicants.length}
           </div>
@@ -217,41 +226,58 @@ function GraphContent() {
             Lab Assistants: {summaryStats["lab assistant"]}
           </div>
         </div>
-      </section>
+      </Card>
 
       {/*line chart of applicant selections*/}
-      <section className="bg-white p-6 rounded-lg shadow max-w-5xl mx-auto mb-10">
-        <h2 className="text-lg font-semibold mb-4 text-center">
+      <Card className="p-6">
+        <CardTitle className="text-center">
           Applicant Popularity Insights
-        </h2>
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={applicantSelectionStats}>
-            <XAxis dataKey="name" angle={-20} interval={0} textAnchor="end" />
-            <YAxis allowDecimals={false} />
-            <Tooltip
-              formatter={(value) => [`${value} selections`, "Selections"]}
-              labelFormatter={(label, payload) => {
-                const item = payload[0]?.payload;
-                return `Applicant: ${item?.name}\n${item?.role} (${item?.course})`;
-              }}
-            />
-            <Legend />
-            <Line
-              type="monotone"
-              dataKey="count"
-              stroke="#3b82f6"
-              activeDot={{ r: 8 }}
-              name="Selections"
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      </section>
+        </CardTitle>
+        <div className="w-full overflow-x-auto">
+          <div style={{ minWidth: "500px" }}>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={applicantSelectionStats} margin={{ bottom: 40 }}>
+                <XAxis
+                  dataKey="name"
+                  angle={-20}
+                  interval={0}
+                  textAnchor="end"
+                  tick={{ fontSize: 12 }}
+                  tickFormatter={(value) => {
+                    // On smaller screens, truncate long names
+                    return value.length > 15
+                      ? `${value.substring(0, 15)}...`
+                      : value;
+                  }}
+                  height={60}
+                />
+                <YAxis allowDecimals={false} />
+                <Tooltip
+                  formatter={(value) => [`${value} selections`, "Selections"]}
+                  labelFormatter={(label, payload) => {
+                    const item = payload[0]?.payload;
+                    return `Applicant: ${item?.name}\n${item?.role} (${item?.course})`;
+                  }}
+                />
+                <Legend />
+                <Line
+                  type="monotone"
+                  dataKey="count"
+                  stroke="#3b82f6"
+                  activeDot={{ r: 8 }}
+                  name="Selections"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </Card>
 
       {/*table showing course-wise applicant stats*/}
-      <section className="bg-white p-6 rounded-lg shadow max-w-5xl mx-auto mb-20">
-        <h2 className="text-lg font-semibold mb-6 text-center">
+      <Card className="p-6">
+        <CardTitle className="text-center">
           📋 Course-wise Applicant Summary
-        </h2>
+        </CardTitle>
         {courses.map((course) => {
           const applicantsForCourse = applicantSelectionStats.filter(
             (a) => a.course === course.code
@@ -267,21 +293,21 @@ function GraphContent() {
           );
 
           return (
-            <div key={course.code} className="mb-8">
-              <h3 className="text-md font-semibold mb-2 text-blue-700">
+            <div key={course.code} className="flex flex-col gap-2 mb-6">
+              <h3 className="text-md font-semibold text-blue-700">
                 {course.code} - {course.label}
               </h3>
-              <div className="overflow-x-auto border rounded">
-                <table className="min-w-full text-sm text-left border-collapse">
-                  <thead className="bg-gray-100 text-gray-700 border-b">
-                    <tr>
-                      <th className="px-4 py-2">Name</th>
-                      <th className="px-4 py-2">Role</th>
-                      <th className="px-4 py-2">Selections</th>
-                      <th className="px-4 py-2">Category</th>
-                    </tr>
-                  </thead>
-                  <tbody>
+              <div className="border rounded overflow-x-auto">
+                <Table>
+                  <TableHeader className="bg-gray-100 text-gray-700 border-b">
+                    <TableRow>
+                      <TableHead className="px-4 py-2">Name</TableHead>
+                      <TableHead className="px-4 py-2">Role</TableHead>
+                      <TableHead className="px-4 py-2">Selections</TableHead>
+                      <TableHead className="px-4 py-2">Category</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
                     {applicantsForCourse.map((a) => {
                       let category = "Unchosen";
                       if (a.count === max && a.count > 0)
@@ -290,14 +316,18 @@ function GraphContent() {
                         category = "Least Chosen";
 
                       return (
-                        <tr
+                        <TableRow
                           key={`${course.code}-${a.id}-${a.role}`}
                           className="border-b last:border-none"
                         >
-                          <td className="px-4 py-2 capitalize">{a.name}</td>
-                          <td className="px-4 py-2 capitalize">{a.role}</td>
-                          <td className="px-4 py-2">{a.count}</td>
-                          <td className="px-4 py-2 text-sm">
+                          <TableCell className="px-4 py-2 capitalize">
+                            {a.name}
+                          </TableCell>
+                          <TableCell className="px-4 py-2 capitalize">
+                            {a.role}
+                          </TableCell>
+                          <TableCell className="px-4 py-2">{a.count}</TableCell>
+                          <TableCell className="px-4 py-2 text-sm">
                             <span
                               className={`px-2 py-1 rounded font-medium ${
                                 category === "Most Chosen"
@@ -309,65 +339,82 @@ function GraphContent() {
                             >
                               {category}
                             </span>
-                          </td>
-                        </tr>
+                          </TableCell>
+                        </TableRow>
                       );
                     })}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </div>
             </div>
           );
         })}
-      </section>
+      </Card>
 
       {/*side-by-side pie and bar charts*/}
-      <section className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto mb-20">
-        {/*availability pie chart*/}
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-lg font-semibold mb-4 text-center">
-            Availability Distribution
-          </h2>
-          <ResponsiveContainer width="100%" height={250}>
-            <PieChart>
-              <Pie
-                data={availabilityData}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                outerRadius={80}
-                label
-              >
-                {availabilityData.map((_, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={COLORS[index % COLORS.length]}
-                  />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
+      <Card className="p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/*availability pie chart*/}
+          <div className="bg-white p-6 rounded-lg shadow overflow-hidden">
+            <h2 className="text-lg font-semibold mb-4 text-center">
+              Availability Distribution
+            </h2>
+            <div style={{ minHeight: "250px" }}>
+              <ResponsiveContainer width="100%" height={250}>
+                <PieChart>
+                  <Pie
+                    data={availabilityData}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    label
+                  >
+                    {availabilityData.map((_, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
 
-        {/*course-role bar chart*/}
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-lg font-semibold mb-4 text-center">
-            Course-wise Role Distribution
-          </h2>
-          <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={courseWiseData} layout="vertical">
-              <XAxis type="number" allowDecimals={false} />
-              <YAxis dataKey="course" type="category" width={200} />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="tutor" stackId="a" fill="#3b82f6" />
-              <Bar dataKey="lab assistant" stackId="a" fill="#10b981" />
-            </BarChart>
-          </ResponsiveContainer>
+          {/*course-role bar chart*/}
+          <div className="bg-white p-6 rounded-lg shadow overflow-x-auto">
+            <h2 className="text-lg font-semibold mb-4 text-center">
+              Course-wise Role Distribution
+            </h2>
+            <div>
+              <div style={{ minWidth: "350px", minHeight: "250px" }}>
+                <ResponsiveContainer width="100%" height={250}>
+                  <BarChart
+                    data={courseWiseData}
+                    layout="vertical"
+                    margin={{ left: 20 }}
+                  >
+                    <XAxis type="number" allowDecimals={false} />
+                    <YAxis
+                      dataKey="course"
+                      type="category"
+                      width={180}
+                      tick={{ fontSize: 12 }}
+                    />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="tutor" stackId="a" fill="#3b82f6" />
+                    <Bar dataKey="lab assistant" stackId="a" fill="#10b981" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
         </div>
-      </section>
+      </Card>
     </div>
   );
 }

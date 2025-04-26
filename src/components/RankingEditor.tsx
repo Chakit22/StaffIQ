@@ -96,7 +96,7 @@ export function RankingEditor({
           {rankingData.map((applicant, index) => (
             <div
               key={applicant.id}
-              className="flex flex-wrap items-center justify-between p-3 border border-blue-200 rounded-md bg-white gap-4"
+              className="flex sm:flex-row flex-col p-3 border border-blue-200 rounded-md bg-white gap-4"
             >
               <div className="flex items-center gap-3">
                 <div className="flex flex-col">
@@ -130,8 +130,8 @@ export function RankingEditor({
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <Badge className="bg-blue-500">{`Rank: ${applicant.rank}`}</Badge>
+              <div className="flex justify-center items-center gap-3">
+                <Badge className="bg-blue-500 p-2">{`Rank: ${applicant.rank}`}</Badge>
                 <CommentDialog handleSaveComment={handleSaveComment} />
               </div>
             </div>
