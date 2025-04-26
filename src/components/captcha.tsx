@@ -1,13 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import {
-  Dialog,
-  DialogContent,
-  DialogTrigger,
-  DialogDescription,
-  DialogTitle,
-} from "./ui/dialog";
+import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "./ui/dialog";
 import { Checkbox } from "./ui/checkbox";
 import { CaptchaImage } from "@/types/CaptchaImage";
 import { useState } from "react";
