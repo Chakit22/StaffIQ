@@ -27,7 +27,6 @@ export function RankingEditor({
   course_code,
   role,
   selectedApplicants,
-  applicants,
 }: RankingEditorProps) {
   const [rankingData, setRankingData] = useState<ApplicantWithRanking[]>([]);
   const { saveRanking } = useRanking();
@@ -86,9 +85,9 @@ export function RankingEditor({
   };
 
   return (
-    <div className="w-full flex flex-col items-center border rounded-xl shadow-sm">
-      <div className="w-full bg-blue-500 p-4 rounded-t-xl">
-        <div className="text-2xl font-bold text-primary-foreground">
+    <div className="border rounded-xl shadow-sm">
+      <div className="bg-blue-500 p-4 rounded-t-xl">
+        <div className="text-2xl font-bold text-center text-primary-foreground">
           {role.toUpperCase()}
         </div>
       </div>
@@ -97,7 +96,7 @@ export function RankingEditor({
           {rankingData.map((applicant, index) => (
             <div
               key={applicant.id}
-              className="flex items-center justify-between p-3 border border-blue-200 rounded-md bg-white"
+              className="flex flex-wrap items-center justify-between p-3 border border-blue-200 rounded-md bg-white gap-4"
             >
               <div className="flex items-center gap-3">
                 <div className="flex flex-col">
@@ -131,7 +130,7 @@ export function RankingEditor({
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <Badge className="bg-blue-500">{`Rank: ${applicant.rank}`}</Badge>
                 <CommentDialog handleSaveComment={handleSaveComment} />
               </div>
@@ -141,7 +140,7 @@ export function RankingEditor({
         </div>
       )}
       {rankingData.length === 0 && (
-        <div className="flex justify-center items-center h-full">
+        <div className="flex justify-center items-center p-4">
           No Candidates Selected
         </div>
       )}

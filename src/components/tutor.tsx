@@ -134,8 +134,8 @@ export default function TutorComponent() {
 
   // Rest of the component remains unchanged
   return (
-    <div className="grid grid-cols-2 w-full p-8 justify-items-center">
-      <Card className="py-8 shadow-2xl w-2xs md:w-md bg-blue-50">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 justify-items-center">
+      <Card className="py-8 shadow-2xl bg-blue-50">
         <div className="text-2xl font-bold px-6">Apply for Roles</div>
         <div className="text-sm text-muted-foreground px-6">
           Apply for tutor and lab-assistant roles for the current semester
@@ -310,7 +310,7 @@ export default function TutorComponent() {
         </CardContent>
       </Card>
 
-      <Card className="py-8 rounded-lg shadow-2xl w-2xs md:w-md">
+      <Card className="py-8 rounded-lg shadow-2xl bg-blue-50">
         <div className="text-2xl font-bold px-6">Previous Roles</div>
         <div className="text-sm text-muted-foreground px-6">
           List of previous roles you have applied for and general experience

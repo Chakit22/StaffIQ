@@ -120,12 +120,12 @@ export default function LecturerComponent() {
   }
 
   return (
-    <div className="flex flex-col gap-8 p-4">
+    <div className="flex flex-col gap-8">
       {/* course selection dropdown */}
-      <div className="border rounded-xl shadow p-4 bg-white">
-        <h2 className="text-lg font-semibold mb-2">Select Course</h2>
+      <div className="border rounded-xl shadow p-4 bg-blue-50">
+        <h2 className="text-lg font-semibold pb-2">Select Course</h2>
         <Select onValueChange={setSelectedCourse} value={selectedCourse}>
-          <SelectTrigger className="w-1/3">
+          <SelectTrigger className="min-w-1/3">
             <SelectValue placeholder="Select a course" />
           </SelectTrigger>
           <SelectContent>
@@ -142,7 +142,7 @@ export default function LecturerComponent() {
 
       {/* filters */}
       {selectedCourse && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+        <div className="flex flex-col md:flex-row justify-between md:items-center gap-2">
           <Input
             placeholder="Search by name or skills"
             value={searchTerm}
@@ -177,19 +177,19 @@ export default function LecturerComponent() {
       )}
 
       {/* link to stats */}
-      <Link
+      {/* <Link
         href="/lecturer/graph"
         className="text-blue-500 underline text-sm mt-2 self-start"
       >
         📊 View Applicant Stats Graph
-      </Link>
+      </Link> */}
 
-      {/* applicant table */}
+      {/* applicants */}
       {selectedCourse && filteredApplicants.length > 0 && (
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {filteredApplicants.map((applicant: Applicant) => {
             return (
-              <Card key={applicant.id} className="hover:shadow-xl px-6">
+              <Card key={applicant.id} className="hover:shadow-xl p-6">
                 <div className="flex justify-between items-center">
                   <div className="text-md font-bold">{`${applicant.firstname.toUpperCase()} ${applicant.lastname.toUpperCase()}`}</div>
                   <Badge>{applicant.id}</Badge>
@@ -208,7 +208,7 @@ export default function LecturerComponent() {
                 <div>
                   <div className="text-gray-400">Skills</div>
                   {/* Seperate skills by badge */}
-                  <div className="flex justify-start items-center gap-2">
+                  <div className="flex flex-wrap justify-start items-center gap-2">
                     {applicant.skills.split(",").map((skill: string, i) => (
                       <Badge key={i}>{skill}</Badge>
                     ))}

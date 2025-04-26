@@ -58,7 +58,7 @@ export default function SignInForm() {
 
   return (
     <div className="min-h-screen flex justify-center items-center relative">
-      <Card className="rounded-lg shadow-2xl w-2xs md:w-md px-6">
+      <Card className="rounded-lg shadow-2xl min-w-2xs md:min-w-md px-6">
         <div className="text-center text-2xl font-bold">Login</div>
         {/* If you specify here items:end then all the items will shift towards the end and occupy the same
         width as of in the case of inline items do. */}

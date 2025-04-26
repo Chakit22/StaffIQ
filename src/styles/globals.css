@@ -1,10 +1,14 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+/* 
+  ---break---
+*/
+@custom-variant dark (&:is(.dark *));
 
 /* 
   * This is the root colours for the web app in light mode.
   1. To apply any styles we can just add text-<style_name>-foreground and bg-<style_name> for background.
-  
+
   By default for buttons it is : bg-primary and text-primary-foreground
   Refer this : https://medium.com/@enayetflweb/theming-in-shadcn-ui-customizing-your-design-with-css-variables-bb6927d2d66b
 */
@@ -98,4 +102,19 @@ body {
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* 
+  ---break---
+*/
+
+.dark {
+  --sidebar: hsl(240 5.9% 10%);
+  --sidebar-foreground: hsl(240 4.8% 95.9%);
+  --sidebar-primary: hsl(224.3 76.3% 48%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(240 3.7% 15.9%);
+  --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
+  --sidebar-border: hsl(240 3.7% 15.9%);
+  --sidebar-ring: hsl(217.2 91.2% 59.8%);
 }

@@ -13,7 +13,7 @@ export default function Tutor() {
           "url('https://plus.unsplash.com/premium_photo-1733306464128-d6b80ed2f2e2?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')",
       }}
     >
-      <div className="bg-white/80 backdrop-blur-md min-h-screen">
+      <div className="bg-white/80 backdrop-blur-md">
         <Layout>
           <TutorComponent />
         </Layout>

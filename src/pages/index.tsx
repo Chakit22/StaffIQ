@@ -8,15 +8,15 @@ export default function HomePage() {
 
   return (
     //Main container that fills the screen with background image
-    <main
-      className="min-h-screen bg-cover bg-center flex flex-col items-center justify-center text-white px-4"
+    <div
+      className="min-h-screen bg-cover bg-center flex flex-col items-center justify-center text-white p-4"
       style={{
         backgroundImage:
           "url('https://images.unsplash.com/photo-1527689368864-3a821dbccc34?auto=format&fit=crop&w=1470&q=80')",
       }}
     >
       {/* Card in the center with semi-transparent white background */}
-      <div className="bg-white/70 backdrop-blur-md p-10 rounded-xl shadow-xl text-black max-w-lg w-full text-center space-y-6">
+      <div className="bg-white/70 backdrop-blur-md p-10 rounded-xl shadow-xl text-black max-w-lg text-center space-y-6">
         {/* Main heading */}
         <h1 className="text-4xl md:text-5xl font-bold">
           Welcome to <span className="text-blue-500">TeachTeam</span>
@@ -40,6 +40,6 @@ export default function HomePage() {
       <footer className="mt-12 text-sm text-black/80 bg-white/60 px-4 py-2 rounded shadow-sm">
         Built by Team TeachTeam
       </footer>
-    </main>
+    </div>
   );
 }

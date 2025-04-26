@@ -6,6 +6,7 @@ import { CourseProvider } from "@/context/CourseProvider";
 import { ApplicantProvider } from "@/context/ApplicantProvider";
 import { NuqsAdapter } from "nuqs/adapters/next/pages";
 import { LoadingProvider } from "@/context/LoadingProvider";
+import { SidebarProvider } from "@/components/ui/sidebar";
 
 export default function App({ Component, pageProps }: AppProps) {
   // console.log("pageProps", pageProps);
@@ -16,7 +17,9 @@ export default function App({ Component, pageProps }: AppProps) {
           <CourseProvider>
             <NuqsAdapter>
               <Toaster position="top-right" /> {/*Toast notifications*/}
-              <Component {...pageProps} />
+              <SidebarProvider>
+                <Component {...pageProps} />
+              </SidebarProvider>
             </NuqsAdapter>
           </CourseProvider>
         </UserProvider>
