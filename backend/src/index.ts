@@ -1,12 +1,27 @@
+import 'reflect-metadata';
 import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import { AppDataSource } from './data-source';
+
+dotenv.config();
 
 const app = express();
-const PORT = 5000;
+app.use(cors());
+app.use(express.json());
 
-app.get('/', (_, res) => {
-  res.send('Backend is running');
+// Temporary route for testing
+app.get('/', (req, res) => {
+  res.send('TeachTeam backend is running!');
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+// Connect to MySQL and start server
+AppDataSource.initialize()
+  .then(() => {
+    console.log(' Connected to MySQL');
+    app.listen(5000, () => {
+      console.log('Server running on http://localhost:5000');
+    });
+  })
+  .catch((error: unknown) => console.error('❌ DB connection failed:', error));
+
