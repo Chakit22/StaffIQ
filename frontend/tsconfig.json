@@ -19,7 +19,7 @@
     "incremental": true,
     "paths": {
       "@/*": [
-        "client/src/*"
+        "./src/*"
       ]
     },
     "types": [

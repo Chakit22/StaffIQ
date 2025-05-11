@@ -1,19 +1,24 @@
 "use client";
 
-import { Course } from "../types/Course";
+import { Course } from "@/types/Course";
 import { createContext, useContext, useEffect, useState } from "react";
-import { courses } from "../utils/courses";
+import { courses } from "@/utils/courses";
+import { useLoading } from "./LoadingProvider";
 
 interface CourseContextProps {
   currentcourses: Course[] | null;
+  courseLoading: boolean;
 }
 
 const CourseContext = createContext<CourseContextProps | undefined>(undefined);
 
 export function CourseProvider({ children }: { children: React.ReactNode }) {
   const [currentcourses, setCurrentCourses] = useState<Course[] | null>(null);
+  const { loadingStates, setLoading } = useLoading();
 
   useEffect(() => {
+    // console.log("Inside useEffect of CourseProvider");
+
     const storedCourses = localStorage.getItem("currentcourses");
     if (!storedCourses) {
       localStorage.setItem("currentcourses", JSON.stringify(courses));
@@ -21,10 +26,15 @@ export function CourseProvider({ children }: { children: React.ReactNode }) {
     } else {
       setCurrentCourses(JSON.parse(storedCourses));
     }
+    setLoading("courseLoading", false);
   }, []);
 
+  // console.log("Inside Course Provider!");
+
   return (
-    <CourseContext.Provider value={{ currentcourses }}>
+    <CourseContext.Provider
+      value={{ currentcourses, courseLoading: loadingStates["courseLoading"] }}
+    >
       {children}
     </CourseContext.Provider>
   );

@@ -1,17 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import {
-  Dialog,
-  DialogContent,
-  DialogTrigger,
-  DialogDescription,
-  DialogTitle,
-} from "./ui/dialog";
+import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "./ui/dialog";
 import { Checkbox } from "./ui/checkbox";
-import { CaptchaImage } from "../types/CaptchaImage";
+import { CaptchaImage } from "@/types/CaptchaImage";
 import { useState } from "react";
-import { shuffleArray } from "../utils/shuffleArray";
+import { shuffleArray } from "@/utils/shuffleArray";
 import { images } from "../utils/captcha";
 import { Button } from "./ui/button";
 import { captchaCategories } from "../utils/captcha";
@@ -77,44 +71,42 @@ export default function CAPTCHA({
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button className="flex justify-center items-center gap-2 w-2/5">
+        <Button className="flex justify-center items-center gap-2">
           <Shield className="h-5 w-5" />
           Verify Captcha
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="min-w-2xs md:min-w-md max-h-screen overflow-auto">
         <DialogTitle className="text-black">CAPTCHA Verification</DialogTitle>
-        <DialogDescription asChild>
-          <div className="grid grid-cols-3 gap-8 justify-items-center">
-            {currentCaptchaImages.map((image, i) => (
-              <div
-                key={i}
-                className="flex flex-col justify-center items-center gap-2 w-full"
-              >
-                <div className="relative aspect-square w-full h-full">
-                  <Image
-                    key={i}
-                    src={image.path}
-                    alt=""
-                    fill
-                    sizes="
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-8 justify-items-center">
+          {currentCaptchaImages.map((image, i) => (
+            <div
+              key={i}
+              className="flex flex-col justify-center items-center gap-2 w-full"
+            >
+              <div className="relative aspect-square w-full h-full">
+                <Image
+                  key={i}
+                  src={image.path}
+                  alt=""
+                  fill
+                  sizes="
                     (max-width: 640px) 100vw,
                     (max-width: 768px) 50vw,
                     (max-width: 1024px) 33vw,
                     25vw
                     "
-                  />
-                </div>
-                <Checkbox
-                  checked={selectedImages.includes(image)}
-                  onCheckedChange={() => {
-                    handleImageToggleChange(image);
-                  }}
                 />
               </div>
-            ))}
-          </div>
-        </DialogDescription>
+              <Checkbox
+                checked={selectedImages.includes(image)}
+                onCheckedChange={() => {
+                  handleImageToggleChange(image);
+                }}
+              />
+            </div>
+          ))}
+        </div>
         <div className="text-sm text-black flex justify-center">
           Please select all the images that are{" "}
           {captchaCategories[currentCategoryIdx]}

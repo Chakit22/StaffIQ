@@ -1,4 +1,4 @@
-import { CaptchaImage } from "../types/CaptchaImage";
+import { CaptchaImage } from "@/types/CaptchaImage";
 
 export function shuffleArray(arr: CaptchaImage[]) {
   for (let i = arr.length - 1; i > 0; i--) {

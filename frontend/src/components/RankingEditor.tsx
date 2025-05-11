@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { ArrowUp, ArrowDown } from "lucide-react";
-import { Button } from "./ui/button";
-import { Badge } from "./ui/badge";
-import { Applicant } from "../types/ApplicantType";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Applicant } from "@/types/ApplicantType";
 import { toast } from "sonner";
-import { useRanking } from "../context/RankingProvider";
-import { useAuth } from "../context/UserProvider";
+import { useRanking } from "@/context/RankingProvider";
+import { useAuth } from "@/context/UserProvider";
 import { useRouter } from "next/navigation";
 import CommentDialog from "./CommentDialog";
 
@@ -27,11 +27,10 @@ export function RankingEditor({
   course_code,
   role,
   selectedApplicants,
-  applicants,
 }: RankingEditorProps) {
   const [rankingData, setRankingData] = useState<ApplicantWithRanking[]>([]);
-  const { saveRanking, rankings } = useRanking();
-  const { user, loading: userLoading } = useAuth();
+  const { saveRanking } = useRanking();
+  const { user, userLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -81,14 +80,14 @@ export function RankingEditor({
 
   const handleSaveComment = (comment: string) => {
     //Save comment for the applicant
-    console.log(applicants, rankings, comment);
+    console.log("comment", comment);
     toast.success("Comment added successfully!");
   };
 
   return (
-    <div className="w-full flex flex-col items-center border rounded-xl shadow-sm">
-      <div className="w-full bg-blue-500 p-4 rounded-t-xl">
-        <div className="text-2xl font-bold text-primary-foreground">
+    <div className="border rounded-xl shadow-sm">
+      <div className="bg-blue-500 p-4 rounded-t-xl">
+        <div className="text-2xl font-bold text-center text-primary-foreground">
           {role.toUpperCase()}
         </div>
       </div>
@@ -97,7 +96,7 @@ export function RankingEditor({
           {rankingData.map((applicant, index) => (
             <div
               key={applicant.id}
-              className="flex items-center justify-between p-3 border border-blue-200 rounded-md bg-white"
+              className="flex sm:flex-row flex-col p-3 border border-blue-200 rounded-md bg-white gap-4"
             >
               <div className="flex items-center gap-3">
                 <div className="flex flex-col">
@@ -131,8 +130,8 @@ export function RankingEditor({
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Badge className="bg-blue-500">{`Rank: ${applicant.rank}`}</Badge>
+              <div className="flex justify-center items-center gap-3">
+                <Badge className="bg-blue-500 p-2">{`Rank: ${applicant.rank}`}</Badge>
                 <CommentDialog handleSaveComment={handleSaveComment} />
               </div>
             </div>
@@ -141,7 +140,7 @@ export function RankingEditor({
         </div>
       )}
       {rankingData.length === 0 && (
-        <div className="flex justify-center items-center h-full">
+        <div className="flex justify-center items-center p-4">
           No Candidates Selected
         </div>
       )}

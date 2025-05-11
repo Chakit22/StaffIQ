@@ -1,4 +1,4 @@
-import { Course } from "../types/Course";
+import { Course } from "@/types/Course";
 
 // Sample courses data
 export const courses: Course[] = [

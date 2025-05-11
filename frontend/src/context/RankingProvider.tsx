@@ -1,7 +1,8 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
-import { Rankings } from "../types/Ranking";
+import { Rankings } from "@/types/Ranking";
+import { useLoading } from "./LoadingProvider";
 
 interface RankingContextType {
   rankings: Rankings;
@@ -21,6 +22,7 @@ interface RankingContextType {
     leastChosenApplicant: number | undefined;
     unChosenApplicants: number[] | undefined;
   };
+  rankingLoading: boolean;
 }
 
 const RankingContext = createContext<RankingContextType | undefined>(undefined);
@@ -31,12 +33,14 @@ export const RankingProvider = ({
   children: React.ReactNode;
 }) => {
   const [rankings, setRankings] = useState<Rankings>([]);
+  const { loadingStates, setLoading } = useLoading();
 
   useEffect(() => {
     const storedRankings = localStorage.getItem("rankings");
     if (storedRankings) {
       setRankings(JSON.parse(storedRankings));
     }
+    setLoading("rankingLoading", false);
   }, []);
 
   const saveRanking = (
@@ -51,8 +55,8 @@ export const RankingProvider = ({
       (c) => c[courseCode] != undefined
     );
 
-    console.log("updated Rankings :");
-    console.log(updatedRankings);
+    // console.log("updated Rankings :");
+    // console.log(updatedRankings);
     if (courseIndex === -1) {
       updatedRankings.push({
         [courseCode]: {
@@ -145,7 +149,12 @@ export const RankingProvider = ({
 
   return (
     <RankingContext.Provider
-      value={{ rankings, saveRanking, getMostLeastAndUnchosen }}
+      value={{
+        rankings,
+        saveRanking,
+        getMostLeastAndUnchosen,
+        rankingLoading: loadingStates["rankingLoading"],
+      }}
     >
       {children}
     </RankingContext.Provider>

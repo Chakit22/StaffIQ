@@ -7,8 +7,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "./ui/dialog";
-import { Applicant } from "../types/ApplicantType";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { Applicant } from "@/types/ApplicantType";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "./ui/textarea";
 import { Button } from "./ui/button";
 

@@ -1,4 +1,4 @@
-import { User } from "../types/User";
+import { User } from "@/types/User";
 
 // A lecturer teaches all the courses, considering that
 export const DEFAULT_USERS: User[] = [

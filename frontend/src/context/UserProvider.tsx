@@ -2,12 +2,13 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { User } from "../types/User";
-import { DEFAULT_USERS } from "../utils/default-users";
+import { DEFAULT_USERS } from "@/utils/default-users";
+import { useLoading } from "./LoadingProvider";
 
 interface AuthContextType {
   user: User | null;
   users: User[];
-  loading: boolean;
+  userLoading: boolean;
   login: (email: string, password: string) => boolean;
   logout: () => void;
 }
@@ -15,11 +16,15 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
+  // console.log("user provider re-rendered!");
+  const { loadingStates, setLoading } = useLoading();
   const [user, setUser] = useState<User | null>(null);
   const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState<boolean>(true); 
 
+  // Get the users form local storage and also set the users in the variable accessigble everywhere
   useEffect(() => {
+    // Initialize users from localStorage or use defaults
+    console.log("Inside useEffect of UserProvider");
     const storedUsers = localStorage.getItem("users");
     if (!storedUsers) {
       localStorage.setItem("users", JSON.stringify(DEFAULT_USERS));
@@ -33,7 +38,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       setUser(JSON.parse(storedUser));
     }
 
-    setLoading(false); 
+    console.log("Just before userLoading set to false");
+    setLoading("userLoading", false);
   }, []);
 
   const login = (email: string, password: string): boolean => {
@@ -55,7 +61,15 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, users, loading, login, logout }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        users,
+        userLoading: loadingStates["userLoading"],
+        login,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

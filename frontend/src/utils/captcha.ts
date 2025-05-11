@@ -1,4 +1,4 @@
-import { CaptchaImage } from "../types/CaptchaImage";
+import { CaptchaImage } from "@/types/CaptchaImage";
 
 export const images: CaptchaImage[] = [
   { category: "dogs", path: "/images/dog1.jpg" },

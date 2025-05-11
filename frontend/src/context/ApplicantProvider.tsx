@@ -1,7 +1,8 @@
 "use client";
 
-import { Applicant } from "../types/ApplicantType";
+import { Applicant } from "@/types/ApplicantType";
 import { createContext, useContext, useEffect, useState } from "react";
+import { useLoading } from "./LoadingProvider";
 
 interface ApplicantContextProps {
   applicants: Applicant[];
@@ -12,6 +13,7 @@ interface ApplicantContextProps {
     role: string
   ) => Applicant[];
   getApplicationsOfCurrentUser: (user_id: number) => Applicant[];
+  applicantsLoading: boolean;
 }
 
 const ApplicantContext = createContext<ApplicantContextProps | undefined>(
@@ -19,7 +21,9 @@ const ApplicantContext = createContext<ApplicantContextProps | undefined>(
 );
 
 export function ApplicantProvider({ children }: { children: React.ReactNode }) {
+  console.log("Application provider re-rendered!");
   const [applicants, setApplicants] = useState<Applicant[]>([]);
+  const { loadingStates, setLoading } = useLoading();
 
   //Load applicants from localStorage on initial render
   useEffect(() => {
@@ -33,6 +37,7 @@ export function ApplicantProvider({ children }: { children: React.ReactNode }) {
     }
 
     setApplicants(storedApplicants_);
+    setLoading("applicantsLoading", false);
   }, []);
 
   //Add new applicant from localstorage when the page loads
@@ -68,6 +73,8 @@ export function ApplicantProvider({ children }: { children: React.ReactNode }) {
     );
   };
 
+  // Get an applicant of a particular course and role
+
   //Get applicants for a course with a specific role
   const getApplicantsByCourseAndRole = (course_code: string, role: string) => {
     return applicants.filter(
@@ -77,6 +84,8 @@ export function ApplicantProvider({ children }: { children: React.ReactNode }) {
     );
   };
 
+  // console.log("Inside Applicants Provider!");
+
   return (
     <ApplicantContext.Provider
       value={{
@@ -85,6 +94,7 @@ export function ApplicantProvider({ children }: { children: React.ReactNode }) {
         getApplicantsByCourse,
         getApplicantsByCourseAndRole,
         getApplicationsOfCurrentUser,
+        applicantsLoading: loadingStates["applicantsLoading"],
       }}
     >
       {children}

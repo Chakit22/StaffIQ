@@ -1,14 +1,14 @@
 "use client";
 
-import { useApplicant } from "../context/ApplicantProvider";
-import { courses } from "../utils/courses";
+import { useApplicant } from "@/context/ApplicantProvider";
+import { courses } from "@/utils/courses";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
 // import ApplicantStats from "./ApplicantStats";
-import { useAuth } from "../context/UserProvider";
+import { useAuth } from "@/context/UserProvider";
 import { useRouter } from "next/navigation";
-import { Applicant } from "../types/ApplicantType";
+import { Applicant } from "@/types/ApplicantType";
 import {
   Select,
   SelectContent,
@@ -17,23 +17,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "./ui/table";
 import { Input } from "./ui/input";
 import { Checkbox } from "./ui/checkbox";
 import { RankingEditor } from "./RankingEditor";
-import ViewDetailsDialog from "./ViewDetailsDialog";
+import { useQueryState, parseAsInteger } from "nuqs";
+import LoaderComponent from "./Loading";
+import { useCourse } from "@/context/CourseProvider";
+import { Card } from "./ui/card";
+import { Badge } from "./ui/badge";
 
 export default function LecturerComponent() {
-  const { applicants, getApplicantsByCourse } = useApplicant();
+  const { applicants, getApplicantsByCourse, applicantsLoading } =
+    useApplicant();
+  const { courseLoading } = useCourse();
   const router = useRouter();
-  const { user, loading } = useAuth();
+  const { user, userLoading } = useAuth();
+  const [, setId] = useQueryState("id", parseAsInteger.withDefault(-1));
 
   const [selectedCourse, setSelectedCourse] = useState<string>();
   const [currentApplicants, setCurrentApplicants] = useState<Applicant[]>([]);
@@ -43,14 +42,14 @@ export default function LecturerComponent() {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [availabilityFilter, setAvailabilityFilter] = useState<string>("");
   const [sortBy, setSortBy] = useState<string>("");
-  <h1 className="text-2xl font-bold mb-4">Lecturer Dashboard</h1>;
 
   //redirect if not logged in
   useEffect(() => {
-    if (!loading && !user) {
-      router.replace("/signin");
+    if (!userLoading) {
+      if (!user) router.replace("/signin");
+      else setId(user.id);
     }
-  }, [loading, user]);
+  }, [userLoading, user, router]);
 
   //update applicants when course changes
   useEffect(() => {
@@ -112,13 +111,21 @@ export default function LecturerComponent() {
     }, {} as Record<string, Applicant>)
   );
 
+  // console.log("userLoading", userLoading);
+  // console.log("applicants Loading: ", applicantsLoading);
+
+  // Show loading overlay while loading
+  if (userLoading || applicantsLoading || courseLoading) {
+    return <LoaderComponent />;
+  }
+
   return (
-    <div className="flex flex-col gap-8 p-4">
+    <div className="flex flex-col gap-8">
       {/* course selection dropdown */}
-      <div className="border rounded-xl shadow p-4 bg-white">
-        <h2 className="text-lg font-semibold mb-2">Select Course</h2>
+      <div className="border rounded-xl shadow p-4 bg-blue-50">
+        <h2 className="text-lg font-semibold pb-2">Select Course</h2>
         <Select onValueChange={setSelectedCourse} value={selectedCourse}>
-          <SelectTrigger className="w-1/3">
+          <SelectTrigger className="min-w-1/3">
             <SelectValue placeholder="Select a course" />
           </SelectTrigger>
           <SelectContent>
@@ -135,7 +142,7 @@ export default function LecturerComponent() {
 
       {/* filters */}
       {selectedCourse && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+        <div className="flex flex-col md:flex-row justify-between md:items-center gap-2">
           <Input
             placeholder="Search by name or skills"
             value={searchTerm}
@@ -177,50 +184,60 @@ export default function LecturerComponent() {
         📊 View Applicant Stats Graph
       </Link>
 
-      {/* applicant table */}
-      {selectedCourse && (
-        <div className="border rounded-xl shadow p-4 bg-white">
-          <h2 className="text-lg font-semibold mb-4">Applicants</h2>
-          {filteredApplicants.length ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Select</TableHead>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Availability</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredApplicants.map((a) => (
-                  <TableRow key={`${a.id}-${a.role}`}>
-                    <TableCell>
-                      <Checkbox
-                        checked={selectedApplicants.some(
-                          (x) => x.id === a.id && x.role === a.role
-                        )}
-                        onCheckedChange={() => handleSelectToggle(a)}
-                      />
-                    </TableCell>
-                    <TableCell>{a.id}</TableCell>
-                    <TableCell>
-                      {a.firstname} {a.lastname}
-                    </TableCell>
-                    <TableCell>{a.role}</TableCell>
-                    <TableCell>{a.availability}</TableCell>
-                    <TableCell>
-                      <ViewDetailsDialog applicant={a} />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : (
-            <p>No applicants found.</p>
-          )}
+      {/* applicants */}
+      {selectedCourse && filteredApplicants.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {filteredApplicants.map((applicant: Applicant) => {
+            return (
+              <Card key={applicant.id} className="hover:shadow-xl p-6">
+                <div className="flex justify-between items-center">
+                  <div className="text-md font-bold">{`${applicant.firstname.toUpperCase()} ${applicant.lastname.toUpperCase()}`}</div>
+                  <Badge>{applicant.id}</Badge>
+                </div>
+                {/* Role */}
+                <div>
+                  <div className="text-gray-400">Role</div>
+                  {applicant.role.toUpperCase()}
+                </div>
+                {/* Availability */}
+                <div>
+                  <div className="text-gray-400">Availability</div>
+                  {applicant.availability.toUpperCase()}
+                </div>
+                {/* Skills */}
+                <div>
+                  <div className="text-gray-400">Skills</div>
+                  {/* Seperate skills by badge */}
+                  <div className="flex flex-wrap justify-start items-center gap-2">
+                    {applicant.skills.split(",").map((skill: string, i) => (
+                      <Badge key={i}>{skill}</Badge>
+                    ))}
+                  </div>
+                </div>
+                {/* Academic credentials */}
+                <div>
+                  <div className="text-gray-400">Academic Credentials</div>
+                  {applicant.academic_creds.toUpperCase()}
+                </div>
+                <hr />
+                {/* Select candidate */}
+                <div className="flex justify-start items-center gap-2">
+                  <Checkbox
+                    checked={selectedApplicants.some(
+                      (x) => x.id === applicant.id && x.role === applicant.role
+                    )}
+                    onCheckedChange={() => handleSelectToggle(applicant)}
+                  />
+                  Select Candidate
+                </div>
+              </Card>
+            );
+          })}
         </div>
+      )}
+
+      {selectedCourse && filteredApplicants.length == 0 && (
+        <div className="text-center">No applicants found</div>
       )}
 
       {/* ranking editor section */}
