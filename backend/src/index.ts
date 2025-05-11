@@ -18,14 +18,11 @@ app.get('/', (req, res) => {
 // Connect to MySQL and start server
 AppDataSource.initialize()
   .then(() => {
-    console.log('✅ Connected to MySQL');
+    console.log(' Connected to MySQL');
+    app.listen(5000, () => {
+      console.log(' Server running on http://localhost:5000');
+    });
   })
   .catch((error: unknown) => {
-    console.error('DB connection failed:', error);
-  })
-  .finally(() => {
-    app.listen(5000, () => {
-      console.log('Server running on http://localhost:5000');
-    });
+    console.error('DB connection failed. Server not started.', error);
   });
-
