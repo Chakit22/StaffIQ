@@ -67,7 +67,7 @@ function SidebarProvider({
   const isMobile = useIsMobile();
   const [openMobile, setOpenMobile] = React.useState(false);
 
-  console.log("defaultOpen", defaultOpen);
+  // console.log("defaultOpen", defaultOpen);
 
   // We use openProp and setOpenProp for control from outside the component.
   const [_open, _setOpen] = React.useState(false);

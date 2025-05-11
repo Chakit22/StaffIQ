@@ -1,14 +1,11 @@
 "use client";
 
-import { useApplicant } from "@/context/ApplicantProvider";
 import { useAuth } from "@/context/UserProvider";
-import { useRanking, RankingProvider } from "@/context/RankingProvider";
+import { RankingProvider } from "@/context/RankingProvider";
 import { courses } from "@/utils/courses";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
-  BarChart,
-  Bar,
   XAxis,
   YAxis,
   Tooltip,
@@ -39,6 +36,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import useGraphStats from "@/hooks/useGraphStats";
 
 //color palette for charts
 const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444"];
@@ -66,108 +64,21 @@ export default function GraphPage() {
 }
 
 function GraphContent() {
-  const { applicants } = useApplicant();
-  const { rankings } = useRanking();
   const router = useRouter();
-
   const [selectedCourse, setSelectedCourse] = useState<string>("");
   const [selectedRole, setSelectedRole] = useState<string>("");
 
-  //remove duplicates based on id, role, and course
-  const uniqueApplicants = useMemo(() => {
-    const seen = new Set();
-    return applicants.filter((a) => {
-      const key = `${a.id}-${a.role}-${a.course_code}`;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
-  }, [applicants]);
-
-  //filter applicants by selected course and role
-  const filteredApplicants = useMemo(() => {
-    return uniqueApplicants.filter((a) => {
-      const matchCourse = selectedCourse
-        ? a.course_code === selectedCourse
-        : true;
-      const matchRole = selectedRole
-        ? a.role.toLowerCase() === selectedRole.toLowerCase()
-        : true;
-      return matchCourse && matchRole;
-    });
-  }, [uniqueApplicants, selectedCourse, selectedRole]);
-
-  //count roles in filtered applicants
-  const summaryStats = useMemo(() => {
-    return filteredApplicants.reduce(
-      (acc, curr) => {
-        const role = curr.role.toLowerCase();
-        if (role === "tutor" || role === "lab assistant") acc[role]++;
-        return acc;
-      },
-      { tutor: 0, "lab assistant": 0 }
-    );
-  }, [filteredApplicants]);
-
-  //create pie chart data from availability values
-  const availabilityData = useMemo(() => {
-    const map: Record<string, number> = {};
-    filteredApplicants.forEach((a) => {
-      map[a.availability] = (map[a.availability] || 0) + 1;
-    });
-    return Object.entries(map).map(([name, value]) => ({ name, value }));
-  }, [filteredApplicants]);
-
-  //create bar chart data grouped by course and role
-  const courseWiseData = useMemo(() => {
-    const map: Record<
-      string,
-      { course: string; tutor: number; "lab assistant": number }
-    > = {};
-    filteredApplicants.forEach((a) => {
-      const courseMeta = courses.find((c) => c.code === a.course_code);
-      const courseLabel = courseMeta
-        ? `${courseMeta.code} - ${courseMeta.label}`
-        : a.course_code;
-
-      if (!map[courseLabel]) {
-        map[courseLabel] = {
-          course: courseLabel,
-          tutor: 0,
-          "lab assistant": 0,
-        };
-      }
-      const role = a.role.toLowerCase() as "tutor" | "lab assistant";
-      map[courseLabel][role]++;
-    });
-    return Object.values(map);
-  }, [filteredApplicants]);
-
-  //count how many times each applicant was selected
-  const applicantSelectionStats = useMemo(() => {
-    const map = new Map<number, number>();
-
-    for (const courseRanking of rankings) {
-      const courseCode = Object.keys(courseRanking)[0];
-      const courseRoles = courseRanking[courseCode];
-      for (const role in courseRoles) {
-        for (const lecturerId in courseRoles[role]) {
-          const rankedIds = courseRoles[role][lecturerId];
-          rankedIds.forEach((id) => {
-            map.set(id, (map.get(id) || 0) + 1);
-          });
-        }
-      }
-    }
-
-    return filteredApplicants.map((a) => ({
-      id: a.id,
-      name: `${a.firstname} ${a.lastname}`,
-      role: a.role,
-      course: a.course_code,
-      count: map.get(a.id) || 0,
-    }));
-  }, [rankings, filteredApplicants]);
+  // Custom hook to get filtered applicants, summary stats, availability data, and applicant selection stats
+  const {
+    filteredApplicants,
+    summaryStats,
+    availabilityData,
+    applicantSelectionStats,
+    countMaxMinUnchosen,
+  } = useGraphStats({
+    selectedCourse,
+    selectedRole,
+  });
 
   return (
     <div className="bg-gray-50 text-blue-900 flex flex-col gap-4">
@@ -220,7 +131,7 @@ function GraphContent() {
             Total: {filteredApplicants.length}
           </div>
           <div className="bg-green-100 p-4 rounded">
-            Tutors: {summaryStats.tutor}
+            Tutors: {summaryStats["tutor"]}
           </div>
           <div className="bg-yellow-100 p-4 rounded">
             Lab Assistants: {summaryStats["lab assistant"]}
@@ -279,18 +190,10 @@ function GraphContent() {
           📋 Course-wise Applicant Summary
         </CardTitle>
         {courses.map((course) => {
-          const applicantsForCourse = applicantSelectionStats.filter(
-            (a) => a.course === course.code
-          );
+          const result = countMaxMinUnchosen(course.code);
 
-          if (!applicantsForCourse.length) return null;
-
-          const max = Math.max(...applicantsForCourse.map((a) => a.count));
-          const min = Math.min(
-            ...applicantsForCourse
-              .filter((a) => a.count > 0)
-              .map((a) => a.count)
-          );
+          if (!result) return null;
+          const { applicantsForCourse, max, min } = result;
 
           return (
             <div key={course.code} className="flex flex-col gap-2 mb-6">
@@ -351,7 +254,7 @@ function GraphContent() {
         })}
       </Card>
 
-      {/*side-by-side pie and bar charts*/}
+      {/*side-by-side pie charts*/}
       <Card className="p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/*availability pie chart*/}
@@ -381,36 +284,6 @@ function GraphContent() {
                   <Tooltip />
                 </PieChart>
               </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/*course-role bar chart*/}
-          <div className="bg-white p-6 rounded-lg shadow overflow-x-auto">
-            <h2 className="text-lg font-semibold mb-4 text-center">
-              Course-wise Role Distribution
-            </h2>
-            <div>
-              <div style={{ minWidth: "350px", minHeight: "250px" }}>
-                <ResponsiveContainer width="100%" height={250}>
-                  <BarChart
-                    data={courseWiseData}
-                    layout="vertical"
-                    margin={{ left: 20 }}
-                  >
-                    <XAxis type="number" allowDecimals={false} />
-                    <YAxis
-                      dataKey="course"
-                      type="category"
-                      width={180}
-                      tick={{ fontSize: 12 }}
-                    />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="tutor" stackId="a" fill="#3b82f6" />
-                    <Bar dataKey="lab assistant" stackId="a" fill="#10b981" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
             </div>
           </div>
         </div>
