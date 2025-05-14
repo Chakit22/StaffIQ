@@ -1,5 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToMany,
+} from 'typeorm';
 import { Application } from './Application';
+
+export type UserRole = 'candidate' | 'lecturer' | 'admin';
 
 @Entity()
 export class User {
@@ -15,8 +22,12 @@ export class User {
   @Column()
   password!: string;
 
-  @Column()
-  role!: 'candidate' | 'lecturer' | 'admin';
+ @Column({
+  type: 'enum',
+  enum: ['candidate', 'lecturer', 'admin'], // ✅ these are valid values
+})
+role!: 'candidate' | 'lecturer' | 'admin';
+
 
   @Column()
   dateOfJoining!: Date;

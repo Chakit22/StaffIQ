@@ -2,57 +2,51 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { User } from "../types/User";
-import { DEFAULT_USERS } from "@/utils/default-users";
 import { useLoading } from "./LoadingProvider";
+import { login as loginApi } from "@/services/auth"; // Axios-based login
 
 interface AuthContextType {
   user: User | null;
-  users: User[];
   userLoading: boolean;
-  login: (email: string, password: string) => boolean;
+  login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
-  // console.log("user provider re-rendered!");
   const { loadingStates, setLoading } = useLoading();
   const [user, setUser] = useState<User | null>(null);
-  const [users, setUsers] = useState<User[]>([]);
 
-  // Get the users form local storage and also set the users in the variable accessigble everywhere
   useEffect(() => {
-    // Initialize users from localStorage or use defaults
-    console.log("Inside useEffect of UserProvider");
-    const storedUsers = localStorage.getItem("users");
-    if (!storedUsers) {
-      localStorage.setItem("users", JSON.stringify(DEFAULT_USERS));
-      setUsers(DEFAULT_USERS);
-    } else {
-      setUsers(JSON.parse(storedUsers));
+  const storedUser = localStorage.getItem("currentUser");
+
+  if (storedUser) {
+    try {
+      const parsed = JSON.parse(storedUser);
+      if (["candidate", "lecturer"].includes(parsed.role)) {
+        setUser(parsed);
+      } else {
+        localStorage.removeItem("currentUser");
+      }
+    } catch {
+      localStorage.removeItem("currentUser");
     }
+  }
 
-    const storedUser = localStorage.getItem("currentUser");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
+  setLoading("userLoading", false);
+}, []);
 
-    console.log("Just before userLoading set to false");
-    setLoading("userLoading", false);
-  }, []);
 
-  const login = (email: string, password: string): boolean => {
-    const foundUser = users.find(
-      (u) => u.email === email && u.password === password
-    );
-
-    if (foundUser) {
-      setUser(foundUser);
-      localStorage.setItem("currentUser", JSON.stringify(foundUser));
+  const login = async (email: string, password: string): Promise<boolean> => {
+    const res = await loginApi(email, password); // call backend API
+    if (res.success) {
+      setUser(res.user);
+      localStorage.setItem("currentUser", JSON.stringify(res.user)); // store for persistence
       return true;
+    } else {
+      return false;
     }
-    return false;
   };
 
   const logout = () => {
@@ -64,7 +58,6 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     <AuthContext.Provider
       value={{
         user,
-        users,
         userLoading: loadingStates["userLoading"],
         login,
         logout,
