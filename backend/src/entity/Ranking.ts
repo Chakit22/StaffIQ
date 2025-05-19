@@ -1,4 +1,4 @@
-import { Entity, Column, ManyToOne, PrimaryColumn } from "typeorm";
+import { Entity, Column, ManyToOne, PrimaryColumn, JoinColumn } from "typeorm";
 import { User } from "./User";
 import { Application } from "./Application";
 import { Course } from "./Course";
@@ -22,12 +22,15 @@ export default class Ranking {
   // Define relations
   // If a course is deleted all the rankings for that course will be deleted
   @ManyToOne(() => Course, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "courseId" })
   course: Course;
 
   // A lecturer can see all the rankings he has made for a particular course
   @ManyToOne(() => User, (user) => user.rankings)
+  @JoinColumn({ name: "userId" })
   user: User;
 
   @ManyToOne(() => Application)
+  @JoinColumn({ name: "applicationId" })
   application: Application;
 }

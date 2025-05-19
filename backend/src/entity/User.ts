@@ -5,6 +5,7 @@ import {
   OneToMany,
   ManyToMany,
   JoinTable,
+  CreateDateColumn,
 } from "typeorm";
 import { Application } from "./Application";
 import { Experience } from "./Experience";
@@ -32,9 +33,11 @@ export class User {
   @Column()
   role: "candidate" | "lecturer" | "admin";
 
-  @Column({ nullable: true })
-  dateOfJoining?: Date;
+  // This is the date of joining this platform
+  @CreateDateColumn()
+  dateOfJoining: Date;
 
+  // This is the access level of the user. True means the user has access to the platform. False means the user does not have access/blocked from the platform.
   @Column({ default: true })
   access?: boolean;
 
@@ -54,7 +57,7 @@ export class User {
   // Owning side of the relation so JoinTable is added.
   @ManyToMany(() => Course, (course) => course.users, { onDelete: "CASCADE" })
   @JoinTable({ name: "LecturerCourse" })
-  courses?: Course[];
+  courses: Course[];
 
   // A lecturer can have many rankings
   @OneToMany(() => Ranking, (ranking) => ranking.user)

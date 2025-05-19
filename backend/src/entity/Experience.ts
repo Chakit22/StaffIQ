@@ -12,10 +12,6 @@ export class Experience {
   @PrimaryGeneratedColumn()
   id: number;
 
-  // An experience belongs to one user
-  @ManyToOne(() => User, (user) => user.experiences)
-  user: User;
-
   @Column()
   role: string;
 
@@ -28,6 +24,12 @@ export class Experience {
   @Column()
   start_date: Date;
 
-  @Column()
-  end_date: Date;
+  // End date is optional as it is not required for all experiences. The applicant can be in the current role.
+  @Column({ nullable: true })
+  end_date?: Date;
+
+  // An experience belongs to one user (owning side of the relation)
+  @ManyToOne(() => User, (user) => user.experiences)
+  @JoinColumn({ name: "userId" })
+  user: User;
 }
