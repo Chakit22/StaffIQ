@@ -1,6 +1,15 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from "typeorm";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToMany,
+  ManyToMany,
+  JoinTable,
+} from "typeorm";
 import { Application } from "./Application";
 import { Experience } from "./Experience";
+import { Course } from "./Course";
+import Ranking from "./Ranking";
 
 @Entity()
 export class User {
@@ -26,15 +35,28 @@ export class User {
   @Column({ nullable: true })
   dateOfJoining?: Date;
 
-  @Column({ default: false })
-  is_blocked?: boolean;
+  @Column({ default: true })
+  access?: boolean;
 
   @Column({ nullable: true })
   avatarUrl?: string;
 
+  // A user can have many applications
   @OneToMany(() => Application, (application) => application.user)
   applications: Application[];
 
+  // A user can have many experiences
   @OneToMany(() => Experience, (experience) => experience.user)
   experiences: Experience[];
+
+  // A lecturer can be assigned to many courses. Making it optional as a user can be of three types lecturer, admin or candidate
+  // If a course is deleted all the lecturers assigned to it will be deleted as well
+  // Owning side of the relation so JoinTable is added.
+  @ManyToMany(() => Course, (course) => course.users, { onDelete: "CASCADE" })
+  @JoinTable({ name: "LecturerCourse" })
+  courses?: Course[];
+
+  // A lecturer can have many rankings
+  @OneToMany(() => Ranking, (ranking) => ranking.user)
+  rankings: Ranking[];
 }

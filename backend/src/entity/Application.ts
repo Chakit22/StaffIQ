@@ -4,30 +4,33 @@ import {
   Column,
   JoinColumn,
   ManyToOne,
+  JoinTable,
+  ManyToMany,
 } from "typeorm";
 import { User } from "./User";
 import { Role } from "./Role";
 import { Course } from "./Course";
+import { Skills } from "./Skills";
 
 @Entity()
 export class Application {
   @PrimaryGeneratedColumn()
   id: number;
 
+  // A application belongs to one user
   @ManyToOne(() => User, (user) => user.applications)
-  @JoinColumn({ name: "user_id" })
   user: User;
 
-  @ManyToOne(() => Course, (course) => course.applications)
-  @JoinColumn({ name: "course_id" })
+  // A application belongs to a particular course
+  // If a course is deleted, all applications for that course will be deleted
+  @ManyToOne(() => Course, (course) => course.applications, {
+    onDelete: "CASCADE",
+  })
   course: Course;
 
+  // A application belongs to a particular role
   @ManyToOne(() => Role, (role) => role.applications)
-  @JoinColumn({ name: "role_id" })
   role: Role;
-
-  @Column()
-  skills: string;
 
   @Column()
   academic_creds: string;
@@ -40,4 +43,10 @@ export class Application {
 
   @Column({ default: false })
   is_chosen: boolean;
+
+  // Owning side of the many-to-many relationship, so JoinTable is added.(JoinTable is mandatory to be added)
+  // A application can have many skills
+  @ManyToMany(() => Skills)
+  @JoinTable({ name: "ApplicationSkills" })
+  skills: Skills[];
 }

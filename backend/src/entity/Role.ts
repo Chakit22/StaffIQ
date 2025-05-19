@@ -10,6 +10,7 @@ export class Role {
   @Column()
   name: string;
 
+  // A role can have many applications
   @OneToMany(() => Application, (application) => application.role)
   applications: Application[];
 }

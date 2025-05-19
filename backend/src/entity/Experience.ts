@@ -12,15 +12,15 @@ export class Experience {
   @PrimaryGeneratedColumn()
   id: number;
 
+  // An experience belongs to one user
   @ManyToOne(() => User, (user) => user.experiences)
-  @JoinColumn({ name: "user_id" })
   user: User;
 
   @Column()
   role: string;
 
   @Column()
-  company: string;
+  company_name: string;
 
   @Column()
   description: string;
