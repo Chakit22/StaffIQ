@@ -8,6 +8,7 @@
 import { NextFunction, Request, Response } from "express";
 import { AppDataSource } from "../../data-source";
 import { User } from "../../entity/User";
+import { ApiError } from "../../middleware/error-handler";
 
 export class UserController {
   // Repository for user
@@ -20,7 +21,11 @@ export class UserController {
    * @param res express response object
    * @returns all experiences/previous roles of a candidate
    */
-  async getAllExperiences(req: Request, res: Response, next: NextFunction) {
+  getAllExperiences = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
       const userId = req.params.userId;
       const user = await this.userRepository.findOne({
@@ -29,7 +34,9 @@ export class UserController {
 
       // The above condition returns null if the user does not exist
       if (!user) {
-        throw new Error("User does not exist!");
+        const error = new Error("User does not exist!") as ApiError;
+        error.statusCode = 404;
+        throw error;
       }
 
       res.status(200).json({
@@ -40,7 +47,7 @@ export class UserController {
       next(error);
       return;
     }
-  }
+  };
 
   // Get details of a user
   /**
@@ -49,7 +56,7 @@ export class UserController {
    * @param res express response object
    * @returns details of a user
    */
-  async getUserDetails(req: Request, res: Response, next: NextFunction) {
+  getUserDetails = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const userId = req.params.userId;
       const user = await this.userRepository.findOne({
@@ -57,7 +64,9 @@ export class UserController {
       });
 
       if (!user) {
-        throw new Error("User does not exist!");
+        const error = new Error("User does not exist!") as ApiError;
+        error.statusCode = 404;
+        throw error;
       }
 
       res.status(200).json({
@@ -68,7 +77,7 @@ export class UserController {
       next(error);
       return;
     }
-  }
+  };
 
   // // Update the Avatar of a user
   // /**
@@ -105,7 +114,11 @@ export class UserController {
    * @param res express response object
    * @returns all applications of a candidate
    */
-  async getAllApplications(req: Request, res: Response, next: NextFunction) {
+  getAllApplications = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
       const userId = req.params.userId;
       const user = await this.userRepository.findOne({
@@ -113,7 +126,9 @@ export class UserController {
       });
 
       if (!user) {
-        throw new Error("User does not exist!");
+        const error = new Error("User does not exist!") as ApiError;
+        error.statusCode = 404;
+        throw error;
       }
 
       res.status(200).json({
@@ -124,5 +139,5 @@ export class UserController {
       next(error);
       return;
     }
-  }
+  };
 }

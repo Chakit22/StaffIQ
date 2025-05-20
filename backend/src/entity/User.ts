@@ -41,7 +41,7 @@ export class User {
   @Column({ default: true })
   access?: boolean;
 
-  @Column({ nullable: true })
+  @Column({ default: "defaultUrl" })
   avatarUrl?: string;
 
   // A user can have many applications

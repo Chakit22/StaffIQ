@@ -7,24 +7,14 @@ export function validateDTO(dtoClass: any) {
     // plainToInstance() to convert req.body into a CreatePetDTO class instance
     const dtoObj = plainToInstance(dtoClass, req.body);
     console.log("dtoObj", dtoObj);
-    /**
-     * When whitelist: true is set, any property in the object that does NOT have a validation decorator will be automatically removed during validation.
-     * {
-        "username": "johndoe",
-        "isAdmin": true,
-        "token": "malicious_payload"
-        }
-        If isAdmin and token do not have any validation decorators, they will be removed during validation.
-        and the request payload would be
-        {
-            "username": "johndoe"
-        }
-     * 
-    */
     const errors = await validate(dtoObj, { whitelist: true });
+    console.log("errors", errors);
 
     if (errors.length > 0) {
       res.status(400).json({
+        success: false,
+        body: null,
+        message: "Invalid request body",
         errors: errors.map((e) => ({
           property: e.property,
           constraints: e.constraints,

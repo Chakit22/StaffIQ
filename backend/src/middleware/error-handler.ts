@@ -1,7 +1,12 @@
 import { Request, Response, NextFunction } from "express";
 
+// Custom error so that I can pass status code to the error handler
+export interface ApiError extends Error {
+  statusCode?: number;
+}
+
 const errorHandler = (
-  err: any,
+  err: ApiError,
   req: Request,
   res: Response,
   next: NextFunction

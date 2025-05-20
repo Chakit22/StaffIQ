@@ -20,7 +20,11 @@ export class ApplicationController {
    * @param res express response object
    * @returns the created application
    */
-  async createApplication(req: Request, res: Response, next: NextFunction) {
+  createApplication = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
       const application = this.applicationRepository.create(req.body);
       await this.applicationRepository.save(application);
@@ -32,5 +36,5 @@ export class ApplicationController {
       next(error);
       return;
     }
-  }
+  };
 }
