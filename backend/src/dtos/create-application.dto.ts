@@ -5,7 +5,10 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  ValidateNested,
 } from "class-validator";
+import { Skill } from "../entity/Skill";
+import { Type } from "class-transformer";
 
 /**
  * DTO for creating a application
@@ -28,18 +31,20 @@ export class CreateApplicationDto {
   is_chosen: boolean;
 
   @IsNotEmpty()
-  @IsNumber()
-  userId: number;
+  @IsString()
+  userId: string;
 
   @IsNotEmpty()
-  @IsNumber()
-  courseId: number;
+  @IsString()
+  courseId: string;
 
   @IsNotEmpty()
-  @IsNumber()
-  roleId: number;
+  @IsString()
+  roleId: string;
 
   @IsNotEmpty()
   @IsArray()
-  skills: string[];
+  // @ValidateNested({ each: true }) // Validate each object in the array
+  // @Type(() => Skill)
+  skills: Skill[];
 }

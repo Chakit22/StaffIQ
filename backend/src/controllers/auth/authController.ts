@@ -14,6 +14,7 @@ export class AuthController {
       const user = this.userRepository.create(req.body as User);
       const existingUser = await this.userRepository.findOne({
         where: { email: user.email },
+        relations: ["experiences"],
       });
 
       if (existingUser) {
@@ -43,7 +44,10 @@ export class AuthController {
     console.log("Incoming login request:", { email, password });
 
     try {
-      const user = await this.userRepository.findOne({ where: { email } });
+      const user = await this.userRepository.findOne({
+        where: { email },
+        relations: ["experiences"],
+      });
 
       console.log("User from DB:", user);
 

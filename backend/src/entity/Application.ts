@@ -10,7 +10,7 @@ import {
 import { User } from "./User";
 import { Role } from "./Role";
 import { Course } from "./Course";
-import { Skills } from "./Skills";
+import { Skill } from "./Skill";
 
 @Entity()
 export class Application {
@@ -55,7 +55,7 @@ export class Application {
 
   // Owning side of the many-to-many relationship, so JoinTable is added.(JoinTable is mandatory to be added)
   // A application can have many skills
-  @ManyToMany(() => Skills)
+  @ManyToMany(() => Skill)
   @JoinTable({ name: "ApplicationSkills" })
-  skills: Skills[];
+  skills: Skill[];
 }

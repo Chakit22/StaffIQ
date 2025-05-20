@@ -7,7 +7,7 @@ import { Application } from "./entity/Application";
 import Ranking from "./entity/Ranking";
 import { Experience } from "./entity/Experience";
 import { Role } from "./entity/Role";
-import { Skills } from "./entity/Skills";
+import { Skill } from "./entity/Skill";
 
 export const AppDataSource = new DataSource({
   type: "mysql",
@@ -19,5 +19,5 @@ export const AppDataSource = new DataSource({
   // Indicates if database schema should be auto created on every application launch. Should be false in production.
   synchronize: true,
   logging: true,
-  entities: [User, Course, Application, Experience, Ranking, Role, Skills],
+  entities: [User, Course, Application, Experience, Ranking, Role, Skill],
 });

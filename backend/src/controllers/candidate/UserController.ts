@@ -30,6 +30,7 @@ export class UserController {
       const userId = req.params.userId;
       const user = await this.userRepository.findOne({
         where: { id: userId },
+        relations: ["experiences"],
       });
 
       // The above condition returns null if the user does not exist
@@ -123,6 +124,7 @@ export class UserController {
       const userId = req.params.userId;
       const user = await this.userRepository.findOne({
         where: { id: userId },
+        relations: ["applications"],
       });
 
       if (!user) {

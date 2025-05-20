@@ -1,9 +1,7 @@
 import { Column, Entity, ManyToMany, PrimaryGeneratedColumn } from "typeorm";
-import { Application } from "./Application";
-import { application } from "express";
 
 @Entity()
-export class Skills {
+export class Skill {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
