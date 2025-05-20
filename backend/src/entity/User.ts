@@ -15,8 +15,8 @@ import Ranking from "./Ranking";
 @Entity()
 export class User {
   // auto-generated (this is known as auto-increment / sequence / serial / generated identity column). Primary Key Column
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn("uuid")
+  id: string;
 
   @Column()
   name: string;

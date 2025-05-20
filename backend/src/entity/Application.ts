@@ -14,8 +14,8 @@ import { Skills } from "./Skills";
 
 @Entity()
 export class Application {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn("uuid")
+  id: string;
 
   @Column()
   academic_creds: string;
@@ -23,14 +23,19 @@ export class Application {
   @Column()
   availability: string;
 
-  @Column()
-  comments: string;
+  // By default it is Varchar(255), but comments can be longer than 255 characters.
+  @Column("text", { nullable: true })
+  comments?: string;
 
   @Column({ default: false })
   is_chosen: boolean;
 
   // Define relations
   // A application belongs to one user (owning side of the relation)
+  /**
+   * Note: userId would not be defined as a seperate column in the case of TypeORM but instead it will just define
+   * the relationship with the primary key 'id'. If you want to add a seperate column then you need to write @Column() userId: number;
+   */
   @ManyToOne(() => User, (user) => user.applications)
   @JoinColumn({ name: "userId" })
   user: User;

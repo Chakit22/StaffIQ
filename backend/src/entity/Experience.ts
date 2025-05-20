@@ -9,8 +9,8 @@ import { User } from "./User";
 
 @Entity()
 export class Experience {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn("uuid")
+  id: string;
 
   @Column()
   role: string;

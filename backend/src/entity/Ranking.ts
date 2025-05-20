@@ -7,14 +7,14 @@ import { Course } from "./Course";
 export default class Ranking {
   // A lecturer will assign a rank to a application for a particular course
   // PK is a composite key of courseId, userId and applicationId
-  @PrimaryColumn()
-  courseId: number;
+  @PrimaryColumn("uuid")
+  courseId: string;
 
-  @PrimaryColumn()
-  userId: number;
+  @PrimaryColumn("uuid")
+  userId: string;
 
-  @PrimaryColumn()
-  applicationId: number;
+  @PrimaryColumn("uuid")
+  applicationId: string;
 
   @Column()
   rank: number;

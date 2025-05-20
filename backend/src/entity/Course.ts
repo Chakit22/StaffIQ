@@ -5,8 +5,8 @@ import { User } from "./User";
 
 @Entity()
 export class Course {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn("uuid")
+  id: string;
 
   @Column()
   name: string;
