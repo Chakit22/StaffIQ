@@ -89,4 +89,39 @@ export class ApplicationController {
       return;
     }
   };
+
+  // Get all applications of a candidate
+  /**
+   *
+   * @param req express request object
+   * @param res express response object
+   * @returns all applications of a candidate
+   */
+  getAllApplications = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const userId = req.params.userId;
+      const user = await this.userRepository.findOne({
+        where: { id: userId },
+        relations: ["applications"],
+      });
+
+      if (!user) {
+        const error = new Error("User does not exist!") as ApiError;
+        error.statusCode = 404;
+        throw error;
+      }
+
+      res.status(200).json({
+        success: true,
+        body: user.applications,
+      });
+    } catch (error) {
+      next(error);
+      return;
+    }
+  };
 }
