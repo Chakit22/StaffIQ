@@ -6,6 +6,7 @@ import { AppDataSource } from "./data-source";
 import candidateRoutes from "./routes/candidate.routes";
 import errorHandler from "./middleware/error-handler";
 import authRoutes from "./routes/auth.routes";
+import lecturerRoutes from "./routes/lecturer.routes";
 
 dotenv.config();
 
@@ -27,6 +28,9 @@ app.use("/api/auth", authRoutes);
 
 // Candidate routes
 app.use("/api/candidate", candidateRoutes);
+
+// Lecturer routes
+app.use("/api/lecturer", lecturerRoutes);
 
 // Error handling middleware
 app.use(errorHandler);
