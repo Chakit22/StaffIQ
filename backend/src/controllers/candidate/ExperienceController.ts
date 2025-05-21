@@ -6,6 +6,7 @@ import { ApiError } from "../../middleware/error-handler";
 export class ExperienceController {
   // Repository for user
   private userRepository = AppDataSource.getRepository(User);
+
   // Get all experiences/previous roles of a candidate
   /**
    *

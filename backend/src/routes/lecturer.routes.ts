@@ -1,5 +1,8 @@
 import { Router } from "express";
 import { CourseController } from "../controllers/lecturer/CourseController";
+import { validateDTO } from "../middleware/validate";
+import { UpdateRankingDto } from "../dtos/update-ranking.dto";
+import { UpdateAppStatusDto } from "../dtos/update-application-status";
 
 const router = Router();
 
@@ -11,18 +14,29 @@ const courseController = new CourseController();
 router.get("/applications/:courseId", courseController.getAllApplications);
 
 // Get all assigned courses assigned to a lecturer
-router.get("/courses/:userId", courseController.getAllCourses);
+router.get("/courses/:userId", courseController.getAllAssignedCourses);
 
 // Choose a candidate for a course
-router.post("/applications", courseController.chooseCandidate);
+router.patch(
+  "/applications",
+  validateDTO(UpdateAppStatusDto),
+  courseController.updateApplicationStatus
+);
 
 // Update the ranking of a candidate for a course
-router.patch("/ranking", courseController.updateRanking);
+router.put(
+  "/ranking",
+  validateDTO(UpdateRankingDto),
+  courseController.updateRanking
+);
 
 // Get all rankings for a course set by a lecturer
-router.get("/rankings/:userId/:courseId", courseController.getAllRankings);
+router.get("/rankings/:userId/:courseId", courseController.getPreferences);
 
 // Get the statistics of a course
-router.get("/statistics/:courseId", courseController.getCourseStatistics);
+router.get("/stats/:courseId", courseController.getStats);
+
+// Update the comment on an application
+router.patch("/comments/:applicationId", courseController.updateAppComment);
 
 export default router;

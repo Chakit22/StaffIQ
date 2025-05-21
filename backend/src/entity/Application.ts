@@ -30,6 +30,16 @@ export class Application {
   @Column({ default: false })
   is_chosen: boolean;
 
+  // Define foreign keys as a seperate columns for easy query access
+  @Column()
+  userId: string;
+
+  @Column()
+  courseId: string;
+
+  @Column()
+  roleId: string;
+
   // Define relations
   // A application belongs to one user (owning side of the relation)
   /**
