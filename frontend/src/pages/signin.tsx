@@ -23,7 +23,6 @@ export default function SignInForm() {
   const router = useRouter();
   const [isVerified, setIsVerified] = useState<boolean>(false);
 
-  // Initialize react-hook-form
   const {
     register,
     handleSubmit,
@@ -31,26 +30,26 @@ export default function SignInForm() {
     formState: { errors },
   } = useForm<LoginFormType>();
 
-  const onSubmit = (data: LoginFormType) => {
+  //Async login with backend API
+  const onSubmit = async (data: LoginFormType) => {
     if (!isVerified) {
-      toast.error(
-        "User is not verified as a human. Please verify and then try again!"
-      );
+      toast.error("Please complete CAPTCHA before logging in.");
       return;
     }
 
-    const isValidUser = login(data.email, data.password);
+    const isValidUser = await login(data.email, data.password);
     if (!isValidUser) {
-      toast.error("Invalid Username or Password!");
+      toast.error("Invalid email or password!");
+    } else {
+      toast.success("Login successful!");
     }
   };
 
   useEffect(() => {
-    if (!userLoading) {
-      if (!user) router.replace("/signin");
-      else router.replace(`/${user.role}`);
-    }
-  }, [user, router, userLoading]);
+  if (!userLoading && user) {
+    router.replace(`/${user.role}`);
+  }
+}, [user, router, userLoading]);
 
   if (userLoading) {
     return <LoaderComponent />;
@@ -60,14 +59,10 @@ export default function SignInForm() {
     <div className="min-h-screen flex justify-center items-center relative">
       <Card className="rounded-lg shadow-2xl min-w-2xs md:min-w-md px-6">
         <div className="text-center text-2xl font-bold">Login</div>
-        {/* If you specify here items:end then all the items will shift towards the end and occupy the same
-        width as of in the case of inline items do. */}
         <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
           {/* Email */}
           <div>
-            <Label htmlFor="email" className="text-bold text-md">
-              Email
-            </Label>
+            <Label htmlFor="email" className="text-bold text-md">Email</Label>
             <Input
               id="email"
               type="email"
@@ -75,16 +70,12 @@ export default function SignInForm() {
               className="placeholder:text-md"
               {...register("email", { required: "Email is required" })}
             />
-            {errors.email && (
-              <span className="text-red-500">{errors.email.message}</span>
-            )}
+            {errors.email && <span className="text-red-500">{errors.email.message}</span>}
           </div>
 
           {/* Password */}
           <div>
-            <Label htmlFor="password" className="text-bold text-md">
-              Password
-            </Label>
+            <Label htmlFor="password" className="text-bold text-md">Password</Label>
             <div className="relative">
               <Input
                 id="password"
@@ -109,7 +100,6 @@ export default function SignInForm() {
               </div>
             </div>
 
-            {/* Password Rules */}
             {(isPasswordFocused || watch("password")) && (
               <PasswordRules password={watch("password")} />
             )}
@@ -119,26 +109,16 @@ export default function SignInForm() {
             )}
           </div>
 
-          {/* Captcha Verification */}
+          {/* Captcha */}
           {!isVerified && <Captcha setIsVerified={setIsVerified} />}
 
-          {/* Login Button */}
-          {/* This button occupied the entire width because flex items occupy
-          the entire width of the parent container in the case flex-col but in the case of flex-row it 
-          occupies entire height of the parent container.
-          Because of the align-items property which is set to stretch by default
-          */}
-          <Button type="submit" className="rounded-sm text-md">
-            Login
-          </Button>
+          {/* Submit */}
+          <Button type="submit" className="rounded-sm text-md">Login</Button>
         </form>
-        <div className="flex justify-center items-center gap-2">
+
+        <div className="flex justify-center items-center gap-2 mt-4">
           New User?{" "}
-          <span>
-            <Link href={"/signup"} className="text-blue-400">
-              Register
-            </Link>
-          </span>
+          <Link href={"/signup"} className="text-blue-400">Register</Link>
         </div>
       </Card>
     </div>

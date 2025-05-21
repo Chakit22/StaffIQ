@@ -18,9 +18,10 @@ export function AppSidebar() {
   const { logout } = useAuth();
 
   const handleLogout = () => {
-    logout();
-    router.replace("/");
-  };
+  logout(); // Clears user and localStorage
+  router.replace("/signin");
+};
+
 
   return (
     <Sidebar>
