@@ -126,6 +126,64 @@ export class CourseController {
       const { courseId, userId, applicationId, rank } =
         this.rankingRepository.create(req.body as Ranking);
 
+      const user = await this.userRepository.findOne({
+        where: { id: userId },
+      });
+
+      if (!user) {
+        const error = new Error("Invalid user!") as ApiError;
+        error.statusCode = 404;
+        throw error;
+      }
+
+      // CourseId must be valid
+      const course = await this.courseRepository.findOne({
+        where: { id: courseId },
+      });
+
+      if (!course) {
+        const error = new Error("Invalid course!") as ApiError;
+        error.statusCode = 404;
+        throw error;
+      }
+
+      // RoleId must be valid
+      const application = await this.applicationRepository.findOne({
+        where: { id: applicationId },
+      });
+
+      if (!application) {
+        const error = new Error("Invalid Application!") as ApiError;
+        error.statusCode = 404;
+        throw error;
+      }
+
+      const rankingRecord = await this.rankingRepository.findOne({
+        where: {
+          courseId,
+          userId,
+          applicationId,
+        },
+      });
+
+      if (!rankingRecord) {
+        // Add a new record and return
+        // Create a application
+        const newRankingRecord = this.rankingRepository.create(
+          req.body as Ranking
+        );
+
+        // Save the application
+        await this.rankingRepository.save(newRankingRecord);
+
+        res.status(200).json({
+          success: true,
+          body: newRankingRecord,
+          message: "Successfully updated the ranking",
+        });
+        return;
+      }
+
       // Update the ranking
       await AppDataSource.createQueryBuilder()
         .update(Ranking)
@@ -158,6 +216,28 @@ export class CourseController {
   getPreferences = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { courseId, userId } = req.params;
+
+      const user = await this.userRepository.findOne({
+        where: { id: userId },
+      });
+
+      if (!user) {
+        const error = new Error("Invalid user!") as ApiError;
+        error.statusCode = 404;
+        throw error;
+      }
+
+      // CourseId must be valid
+      const course = await this.courseRepository.findOne({
+        where: { id: courseId },
+      });
+
+      if (!course) {
+        const error = new Error("Invalid course!") as ApiError;
+        error.statusCode = 404;
+        throw error;
+      }
+
       const rankings = await this.rankingRepository.find({
         where: { courseId, userId },
       });

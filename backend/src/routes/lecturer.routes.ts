@@ -18,7 +18,7 @@ router.get("/courses/:userId", courseController.getAllAssignedCourses);
 
 // Choose a candidate for a course
 router.patch(
-  "/applications",
+  "/applications/:applicationId",
   validateDTO(UpdateAppStatusDto),
   courseController.updateApplicationStatus
 );
