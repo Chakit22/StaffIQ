@@ -1,39 +1,29 @@
+
 import { Request, Response } from "express";
 import { AppDataSource } from "../data-source";
 import { User } from "../entities/User";
 import bcrypt from "bcrypt";
 
-// LOGIN
+//LOGIN
 export const loginUser = async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
-  console.log("Incoming login request:", { email, password });
-
   if (!email || !password) {
-    return res
-      .status(400)
-      .json({ success: false, message: "Email and password are required" });
+    return res.status(400).json({ success: false, message: "Email and password are required" });
   }
 
   try {
     const userRepo = AppDataSource.getRepository(User);
     const user = await userRepo.findOne({ where: { email } });
 
-    console.log("User from DB:", user);
-
     if (!user) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Invalid email or password" });
+      return res.status(401).json({ success: false, message: "Invalid email or password" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
-    console.log("Password match:", isMatch);
 
     if (!isMatch) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Invalid email or password" });
+      return res.status(401).json({ success: false, message: "Invalid email or password" });
     }
 
     return res.status(200).json({
@@ -44,44 +34,34 @@ export const loginUser = async (req: Request, res: Response) => {
         name: user.name,
         email: user.email,
         role: user.role,
-        dateJoined: user.dateOfJoining,
+        dateOfJoining: user.dateOfJoining,
         avatarUrl: user.avatarUrl || null,
       },
     });
   } catch (error) {
     console.error("Login error:", error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal server error" });
+    return res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
-// REGISTER
+//REGISTER
 export const registerUser = async (req: Request, res: Response) => {
-  console.log("Received body:", req.body);
-  const { name, email, password, role } = req.body;
+  const { name, email, password, role, avatarUrl } = req.body;
 
   if (!name || !email || !password || !role) {
-    return res
-      .status(400)
-      .json({ success: false, message: "All fields are required" });
+    return res.status(400).json({ success: false, message: "All fields are required" });
   }
 
   if (!["candidate", "lecturer"].includes(role)) {
-    return res.status(400).json({
-      success: false,
-      message: "Invalid role. Only 'candidate' or 'lecturer' allowed",
-    });
+    return res.status(400).json({ success: false, message: "Invalid role. Only 'candidate' or 'lecturer' allowed" });
   }
 
   try {
     const userRepo = AppDataSource.getRepository(User);
-
     const existingUser = await userRepo.findOne({ where: { email } });
+
     if (existingUser) {
-      return res
-        .status(409)
-        .json({ success: false, message: "User already exists" });
+      return res.status(409).json({ success: false, message: "User already exists" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -91,6 +71,7 @@ export const registerUser = async (req: Request, res: Response) => {
       email,
       password: hashedPassword,
       role,
+      avatarUrl: avatarUrl || null,
       dateOfJoining: new Date(),
     });
 
@@ -104,14 +85,51 @@ export const registerUser = async (req: Request, res: Response) => {
         name: newUser.name,
         email: newUser.email,
         role: newUser.role,
-        dateJoined: newUser.dateOfJoining,
+        dateOfJoining: newUser.dateOfJoining,
         avatarUrl: newUser.avatarUrl || null,
       },
     });
   } catch (error) {
     console.error("Registration error:", error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal server error" });
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+//UPDATE PROFILE (email + avatar)
+export const updateUserProfile = async (req: Request, res: Response) => {
+  const { id, email, avatarUrl } = req.body;
+
+  if (!id || !email) {
+    return res.status(400).json({ success: false, message: "ID and email are required" });
+  }
+
+  try {
+    const userRepo = AppDataSource.getRepository(User);
+    const user = await userRepo.findOneBy({ id });
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    user.email = email;
+    user.avatarUrl = avatarUrl;
+
+    const updatedUser = await userRepo.save(user);
+
+    return res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      user: {
+        id: updatedUser.id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        role: updatedUser.role,
+        dateOfJoining: updatedUser.dateOfJoining,
+        avatarUrl: updatedUser.avatarUrl || null,
+      },
+    });
+  } catch (error) {
+    console.error("Update error:", error);
+    return res.status(500).json({ success: false, message: "Internal server error" });
   }
 };

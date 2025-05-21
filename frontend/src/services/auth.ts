@@ -1,7 +1,9 @@
 import axios from "axios";
 
+const API_BASE = "http://localhost:5000/api";
+
 const api = axios.create({
-  baseURL: "http://localhost:5000/api",
+  baseURL: API_BASE,
   headers: {
     "Content-Type": "application/json",
   },
@@ -31,6 +33,23 @@ export const register = async (data: {
     return {
       success: false,
       message: err.response?.data?.message || "Registration failed",
+    };
+  }
+};
+
+export const updateProfile = async (data: {
+  id: number;
+  email: string;
+  avatarUrl: string;
+}) => {
+  try {
+    const response = await api.put("/update-profile", data);
+    return response.data;
+  } catch (err: any) {
+    console.error("Update profile error:", err.response?.data || err.message);
+    return {
+      success: false,
+      message: err.response?.data?.message || "Update failed",
     };
   }
 };
