@@ -27,9 +27,6 @@ export class Application {
   @Column("text", { nullable: true })
   comments?: string;
 
-  @Column({ default: false })
-  is_chosen: boolean;
-
   // Define foreign keys as a seperate columns for easy query access
   @Column()
   userId: string;

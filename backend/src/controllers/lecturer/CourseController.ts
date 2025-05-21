@@ -79,15 +79,15 @@ export class CourseController {
     }
   };
 
-  // Choose a application (PATCH request)
+  // Choose / Unchoose a application (POST Request)
   updateApplicationStatus = async (
     req: Request,
     res: Response,
     next: NextFunction
   ) => {
     try {
-      const applicationId = req.params.applicationId;
-      const body: { is_chosen: boolean } = req.body;
+      const { applicationId, lecturerId } = req.body;
+
       const application = await this.applicationRepository.findOne({
         where: { id: applicationId },
       });
@@ -98,21 +98,38 @@ export class CourseController {
         throw error;
       }
 
-      // Choose the application
-      await AppDataSource.createQueryBuilder()
-        .update(Application)
-        .set(body)
-        .where("id = :id", { id: applicationId })
-        .execute();
-
-      const updatedApplication = await this.applicationRepository.findOne({
-        where: { id: applicationId },
+      const lecturer = await this.userRepository.findOne({
+        where: { id: lecturerId },
+        relations: ["applications_chosen"],
       });
+
+      if (!lecturer) {
+        const error = new Error("Invalid User!") as ApiError;
+        error.statusCode = 404;
+        throw error;
+      }
+
+      // Check if the application has already been choosen by the lecturer
+      const index = lecturer.applications_chosen.findIndex(
+        (application) => application.id == applicationId
+      );
+
+      if (index == -1) {
+        // Choose the applicant
+        lecturer.applications_chosen.push(application);
+      } else {
+        // If it is already chosen, then remove that element
+        lecturer.applications_chosen.splice(index, 1);
+      }
+
+      // Saves the entity, if it exists then it updates it
+      // This adds/deletes a row into the LecturerApplication Table
+      await this.userRepository.save(lecturer);
 
       res.status(200).json({
         success: true,
-        body: updatedApplication,
-        message: "Successfully chosen the application",
+        body: lecturer.applications_chosen,
+        message: "Successfully updated the application status",
       });
     } catch (error) {
       next(error);
@@ -263,46 +280,6 @@ export class CourseController {
   getStats = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { courseId } = req.params;
-
-      // Query to count the number of times candidates chosen
-      const q1 = await AppDataSource.getRepository(Application)
-        .createQueryBuilder("app")
-        .select([
-          "app.id AS application_id",
-          "app.userId AS userId",
-          "app.courseId AS courseId",
-          "COUNT(*) AS times_chosen",
-        ])
-        .where("courseId = :courseId", { courseId })
-        .andWhere("app.is_chosen = true")
-        .groupBy("app.userId")
-        .addGroupBy("app.courseId")
-        .getRawMany();
-
-      // Query to find the most chosen candidates
-      // Find maximum value out of the raw results
-      const maxTimesChosen = q1.reduce(
-        (maxVal, currentValue) => Math.max(maxVal, currentValue),
-        -Infinity
-      );
-
-      const mostChosenCandidates = q1.filter(
-        (obj) => obj.times_chosen == maxTimesChosen
-      );
-
-      // Query to find the least chosen candidates
-      // Find minimum value out of the raw results
-      const minTimesChosen = q1.reduce(
-        (maxVal, currentValue) => Math.min(maxVal, currentValue),
-        Infinity
-      );
-
-      const leastChosenCandidates = q1.filter(
-        (obj) => obj.times_chosen == minTimesChosen
-      );
-
-      // Query to find the unchosen candidates
-      const unchosenCandidates = q1.filter((obj) => obj.times_chosen == 0);
 
       res.status(200).json({
         success: true,

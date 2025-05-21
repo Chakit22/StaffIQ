@@ -1,7 +1,11 @@
-import { IsNotEmpty, IsBoolean } from "class-validator";
+import { IsNotEmpty, IsString } from "class-validator";
 
 export class UpdateAppStatusDto {
   @IsNotEmpty()
-  @IsBoolean()
-  is_chosen: boolean;
+  @IsString()
+  applicationId: string;
+
+  @IsNotEmpty()
+  @IsString()
+  lecturerId: string;
 }

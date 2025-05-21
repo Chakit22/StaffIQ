@@ -62,4 +62,9 @@ export class User {
   // A lecturer can have many rankings
   @OneToMany(() => Ranking, (ranking) => ranking.user)
   rankings: Ranking[];
+
+  // A lecturer can choose many applications
+  @ManyToMany(() => User)
+  @JoinTable({ name: "LecturerApplication" })
+  applications_chosen: Application[];
 }

@@ -26,10 +26,6 @@ export class CreateApplicationDto {
   @IsString()
   comments: string;
 
-  @IsOptional()
-  @IsBoolean()
-  is_chosen: boolean;
-
   @IsNotEmpty()
   @IsString()
   userId: string;
