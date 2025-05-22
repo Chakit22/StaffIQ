@@ -56,21 +56,21 @@ export class CourseController {
     next: NextFunction
   ) => {
     try {
-      const userId = req.params.userId;
-      const user = await this.userRepository.findOne({
-        where: { id: userId },
+      const lecturerId = req.params.lecturerId;
+      const lecturer = await this.userRepository.findOne({
+        where: { id: lecturerId },
         relations: ["courses"],
       });
 
-      if (!user) {
-        const error = new Error("User does not exist!") as ApiError;
+      if (!lecturer) {
+        const error = new Error("Lecturer does not exist!") as ApiError;
         error.statusCode = 404;
         throw error;
       }
 
       res.status(200).json({
         success: true,
-        body: user.courses,
+        body: lecturer.courses,
         message: "Assigned courses fetched succesfully!",
       });
     } catch (error) {
@@ -136,6 +136,7 @@ export class CourseController {
         error.statusCode = 404;
         throw error;
       }
+
       // Here we have two tables: Ranking and Application with a common column being: applicationId.
       // To get all the preferences for a particular course set by a lecturer, we need to join these two tables on the applicationId column.
       const preferences = await this.rankingRepository
@@ -192,31 +193,52 @@ export class CourseController {
         .orderBy("timesChosen", "DESC")
         .getRawMany();
 
-      console.log("counts : ", counts);
+      console.log("counts", counts);
+
+      // Get the maximum value of timesChosen
+      const maxTimesChosen = counts.reduce((max, count) => {
+        return Math.max(max, count.timesChosen);
+      }, 0);
+
+      // Get the minimum value of timesChosen
+      const minTimesChosen = counts.reduce((min, count) => {
+        return Math.min(min, count.timesChosen);
+      }, Infinity);
+
+      console.log("maxTimesChosen", maxTimesChosen);
+      console.log("minTimesChosen", minTimesChosen);
+
+      let mostChosenCandidates: any[] = [];
+      let leastChosenCandidates: any[] = [];
+      let unchosenCandidates: any[] = [];
+
+      // If both max and min are the same then all are most chosen candidates
+      if (maxTimesChosen === minTimesChosen) {
+        mostChosenCandidates = counts;
+        res.status(200).json({
+          success: true,
+          body: {
+            mostChosenCandidates,
+            leastChosenCandidates,
+            unchosenCandidates,
+          },
+        });
+        return;
+      }
 
       // Get the most chosen candidates. Get the highest value of timesChosen and get all the applications with that value.
-      let mostChosenCandidates = [];
-      if (counts.length > 0) {
-        mostChosenCandidates = counts.filter(
-          (count) => count.timesChosen === counts[0].timesChosen
-        );
-      } else {
-        mostChosenCandidates = [];
-      }
+      mostChosenCandidates = counts.filter(
+        (count) => count.timesChosen == maxTimesChosen
+      );
 
       // Get the least chosen candidates
-      let leastChosenCandidates = [];
-      if (counts.length > 0) {
-        leastChosenCandidates = counts.filter(
-          (count) => count.timesChosen === counts[counts.length - 1].timesChosen
-        );
-      } else {
-        leastChosenCandidates = [];
-      }
+      leastChosenCandidates = counts.filter(
+        (count) => count.timesChosen == minTimesChosen
+      );
 
       // Get the unchosen candidates. These are the ones which are not ranked by the lecturer.
       // Left join from application table onto Ranking table and filter out where applicationId is NULL
-      const unchosenCandidates = await this.applicationRepository
+      unchosenCandidates = await this.applicationRepository
         .createQueryBuilder("application")
         .select("id AS applicationId")
         .leftJoin(Ranking, "ranking", "id = applicationId")

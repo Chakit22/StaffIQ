@@ -15,7 +15,7 @@ const courseController = new CourseController();
 router.get("/applications/:courseId", courseController.getAllApplications);
 
 // Get all assigned courses assigned to a lecturer
-router.get("/courses/:userId", courseController.getAllAssignedCourses);
+router.get("/courses/:lecturerId", courseController.getAllAssignedCourses);
 
 // Update the ranking of a candidate for a course
 router.patch(
@@ -24,8 +24,11 @@ router.patch(
   courseController.updateApplicationStatusRanking
 );
 
-// Get all rankings for a course set by a lecturer
-router.get("/rankings/:lecturerId/:courseId", courseController.getPreferences);
+// Get all preferences for a course set by a lecturer
+router.get(
+  "/preferences/:lecturerId/:courseId",
+  courseController.getPreferences
+);
 
 // Get the statistics of a course
 router.get("/stats/:courseId", courseController.getStats);
