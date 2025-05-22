@@ -79,196 +79,32 @@ export class CourseController {
     }
   };
 
-  // Choose / Unchoose a application (POST Request)
-  updateApplicationStatus = async (
+  // Update the application status / ranking. if a lecturer ranks an applicant then he has chosen the applicant.
+  /**
+   * This accepts an array of updated rankings so that it can be used to update multiple rankings at once.
+   */
+  updateApplicationStatusRanking = async (
     req: Request,
     res: Response,
     next: NextFunction
   ) => {
     try {
-      const { applicationId, lecturerId } = req.body;
+      const { rankings } = req.body;
 
-      const application = await this.applicationRepository.findOne({
-        where: { id: applicationId },
-      });
+      // Create a new ranking record for each ranking
+      const newRankings = this.rankingRepository.create(rankings);
 
-      if (!application) {
-        const error = new Error("Invalid Application!") as ApiError;
-        error.statusCode = 404;
-        throw error;
-      }
-
-      const lecturer = await this.userRepository.findOne({
-        where: { id: lecturerId },
-        relations: ["applications_chosen"],
-      });
-
-      if (!lecturer) {
-        const error = new Error("Invalid User!") as ApiError;
-        error.statusCode = 404;
-        throw error;
-      }
-
-      // Check if the application has already been choosen by the lecturer
-      const index = lecturer.applications_chosen.findIndex(
-        (application) => application.id == applicationId
-      );
-
-      if (index == -1) {
-        // Choose the applicant
-        lecturer.applications_chosen.push(application);
-      } else {
-        // If it is already chosen, then remove that element
-        lecturer.applications_chosen.splice(index, 1);
-      }
-
-      // Saves the entity, if it exists then it updates it
-      // This adds/deletes a row into the LecturerApplication Table
-      await this.userRepository.save(lecturer);
+      // Save the new rankings
+      /**
+       * This creates a new ranking record for each ranking in the array.
+       * If a ranking already exists, it will be updated.
+       */
+      await this.rankingRepository.save(newRankings);
 
       res.status(200).json({
         success: true,
-        body: lecturer.applications_chosen,
-        message: "Successfully updated the application status",
-      });
-    } catch (error) {
-      next(error);
-      return;
-    }
-  };
-
-  // Update the ranking of a candidate
-  updateRanking = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { courseId, userId, applicationId, rank } =
-        this.rankingRepository.create(req.body as Ranking);
-
-      const user = await this.userRepository.findOne({
-        where: { id: userId },
-      });
-
-      if (!user) {
-        const error = new Error("Invalid user!") as ApiError;
-        error.statusCode = 404;
-        throw error;
-      }
-
-      // CourseId must be valid
-      const course = await this.courseRepository.findOne({
-        where: { id: courseId },
-      });
-
-      if (!course) {
-        const error = new Error("Invalid course!") as ApiError;
-        error.statusCode = 404;
-        throw error;
-      }
-
-      // RoleId must be valid
-      const application = await this.applicationRepository.findOne({
-        where: { id: applicationId },
-      });
-
-      if (!application) {
-        const error = new Error("Invalid Application!") as ApiError;
-        error.statusCode = 404;
-        throw error;
-      }
-
-      const rankingRecord = await this.rankingRepository.findOne({
-        where: {
-          courseId,
-          userId,
-          applicationId,
-        },
-      });
-
-      if (!rankingRecord) {
-        // Add a new record and return
-        // Create a application
-        const newRankingRecord = this.rankingRepository.create(
-          req.body as Ranking
-        );
-
-        // Save the application
-        await this.rankingRepository.save(newRankingRecord);
-
-        res.status(200).json({
-          success: true,
-          body: newRankingRecord,
-          message: "Successfully updated the ranking",
-        });
-        return;
-      }
-
-      // Update the ranking
-      await AppDataSource.createQueryBuilder()
-        .update(Ranking)
-        .set({ rank: rank })
-        .where("courseId = :courseId", { courseId })
-        .andWhere("userId = :userId", { userId })
-        .andWhere("applicationId = :applicationId", { applicationId })
-        .execute();
-
-      const updatedRecord = await this.rankingRepository.findOne({
-        where: {
-          courseId,
-          userId,
-          applicationId,
-        },
-      });
-
-      res.status(200).json({
-        success: true,
-        body: updatedRecord,
-        message: "Successfully updated the ranking",
-      });
-    } catch (error) {
-      next(error);
-      return;
-    }
-  };
-
-  // Get the preferences/ ranking set by a lecturer for a particular course
-  getPreferences = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { courseId, userId } = req.params;
-
-      const user = await this.userRepository.findOne({
-        where: { id: userId },
-      });
-
-      if (!user) {
-        const error = new Error("Invalid user!") as ApiError;
-        error.statusCode = 404;
-        throw error;
-      }
-
-      // CourseId must be valid
-      const course = await this.courseRepository.findOne({
-        where: { id: courseId },
-      });
-
-      if (!course) {
-        const error = new Error("Invalid course!") as ApiError;
-        error.statusCode = 404;
-        throw error;
-      }
-
-      const rankings = await this.rankingRepository.find({
-        where: { courseId, userId },
-      });
-
-      if (!rankings) {
-        const error = new Error("Invalid course or user!") as ApiError;
-        error.statusCode = 404;
-        throw error;
-      }
-
-      res.status(200).json({
-        success: true,
-        body: rankings,
-        message: "Preferences fetched successfully",
+        body: newRankings,
+        message: "Rankings updated successfully",
       });
     } catch (error) {
       next(error);
@@ -290,6 +126,16 @@ export class CourseController {
         },
         message: "Stats fetched succesfully!",
       });
+    } catch (error) {
+      next(error);
+      return;
+    }
+  };
+
+  // Get the preferences/ ranking set by a lecturer for a particular course
+  getPreferences = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      // JOIN the table Ranking with Application to get the preferences.
     } catch (error) {
       next(error);
       return;
