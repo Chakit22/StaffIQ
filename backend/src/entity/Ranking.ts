@@ -6,12 +6,9 @@ import { Course } from "./Course";
 @Entity()
 export default class Ranking {
   // A lecturer will assign a rank to a application for a particular course
-  // PK is a composite key of courseId, userId and applicationId
+  // PK is a composite key of userId and applicationId
   @PrimaryColumn("uuid")
-  courseId: string;
-
-  @PrimaryColumn("uuid")
-  userId: string;
+  lecturerId: string;
 
   @PrimaryColumn("uuid")
   applicationId: string;
@@ -20,17 +17,16 @@ export default class Ranking {
   rank: number;
 
   // Define relations
-  // If a course is deleted all the rankings for that course will be deleted
-  @ManyToOne(() => Course, { onDelete: "CASCADE" })
-  @JoinColumn({ name: "courseId" })
-  course: Course;
 
   // A lecturer can see all the rankings he has made for a particular course
-  @ManyToOne(() => User, (user) => user.rankings)
-  @JoinColumn({ name: "userId" })
-  user: User;
+  @ManyToOne(() => User)
+  @JoinColumn({ name: "lecturerId" })
+  lecturer: User;
 
-  @ManyToOne(() => Application)
+  // if an application is deleted (because a course is deleted) then all the records in the Ranking table for that application will be deleted.
+  @ManyToOne(() => Application, {
+    onDelete: "CASCADE",
+  })
   @JoinColumn({ name: "applicationId" })
   application: Application;
 }

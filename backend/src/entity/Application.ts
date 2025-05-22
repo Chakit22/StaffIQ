@@ -11,6 +11,7 @@ import { User } from "./User";
 import { Role } from "./Role";
 import { Course } from "./Course";
 import { Skill } from "./Skill";
+import Ranking from "./Ranking";
 
 @Entity()
 export class Application {
@@ -27,8 +28,15 @@ export class Application {
   @Column("text", { nullable: true })
   comments?: string;
 
-  @Column({ default: false })
-  is_chosen: boolean;
+  // Define foreign keys as a seperate columns for easy query access
+  @Column()
+  userId: string;
+
+  @Column()
+  courseId: string;
+
+  @Column()
+  roleId: string;
 
   // Define relations
   // A application belongs to one user (owning side of the relation)
@@ -56,6 +64,6 @@ export class Application {
   // Owning side of the many-to-many relationship, so JoinTable is added.(JoinTable is mandatory to be added)
   // A application can have many skills
   @ManyToMany(() => Skill)
-  @JoinTable({ name: "ApplicationSkills" })
+  @JoinTable({ name: "ApplicationSkill" })
   skills: Skill[];
 }

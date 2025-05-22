@@ -53,13 +53,9 @@ export class User {
   experiences: Experience[];
 
   // A lecturer can be assigned to many courses. Making it optional as a user can be of three types lecturer, admin or candidate
-  // If a course is deleted all the lecturers assigned to it will be deleted as well
+  // If a course is deleted all the lecturers assigned to it will be deleted as well in the LecturerCourse table
   // Owning side of the relation so JoinTable is added.
   @ManyToMany(() => Course, (course) => course.users, { onDelete: "CASCADE" })
   @JoinTable({ name: "LecturerCourse" })
   courses: Course[];
-
-  // A lecturer can have many rankings
-  @OneToMany(() => Ranking, (ranking) => ranking.user)
-  rankings: Ranking[];
 }
