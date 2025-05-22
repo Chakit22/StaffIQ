@@ -1,8 +1,6 @@
 import { Router } from "express";
 import { CourseController } from "../controllers/lecturer/CourseController";
 import { validateDTO } from "../middleware/validate";
-import { UpdateRankingDto } from "../dtos/update-ranking.dto";
-import { UpdateAppStatusDto } from "../dtos/update-application-status";
 import { UpdateApplicationRankingDto } from "../dtos/update-application-ranking";
 
 const router = Router();
