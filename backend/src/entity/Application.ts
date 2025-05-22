@@ -11,6 +11,7 @@ import { User } from "./User";
 import { Role } from "./Role";
 import { Course } from "./Course";
 import { Skill } from "./Skill";
+import Ranking from "./Ranking";
 
 @Entity()
 export class Application {

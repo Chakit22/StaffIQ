@@ -144,17 +144,26 @@ export class CourseController {
       const { courseId } = req.params;
 
       // Get the number of times each candidate has been chosen
+      /** 
+       * Real SQL Query
+       * SELECT applicationId, courseId, COUNT(*) AS timesChosen
+        FROM Ranking
+        INNER JOIN Application ON Ranking.applicationId = Application.id
+        GROUP BY applicationId, courseId
+        ORDER BY timesChosen DESC;
+       */
       const counts = await this.rankingRepository
         .createQueryBuilder("ranking")
-        .select("ranking.applicationId", "applicationId")
-        .addSelect("ranking.application.courseId", "courseId")
+        .select("applicationId")
         .addSelect("COUNT(*)", "timesChosen")
         .innerJoin("ranking.application", "RankingApplication")
-        .where("RankingApplication.courseId = :courseId", { courseId })
-        .groupBy("RankingApplication.applicationId")
-        .addGroupBy("RankingApplication.courseId")
+        .where("courseId = :courseId", { courseId })
+        .groupBy("applicationId")
+        .addGroupBy("courseId")
         .orderBy("timesChosen", "DESC")
         .getRawMany();
+
+      console.log("counts : ", counts);
 
       // Get the most chosen candidates. Get the highest value of timesChosen and get all the applications with that value.
       let mostChosenCandidates = [];
@@ -176,13 +185,15 @@ export class CourseController {
         leastChosenCandidates = [];
       }
 
-      // Get the unchosen candidates
-      let unchosenCandidates = [];
-      if (counts.length > 0) {
-        unchosenCandidates = counts.filter((count) => count.timesChosen === 0);
-      } else {
-        unchosenCandidates = [];
-      }
+      // Get the unchosen candidates. These are the ones which are not ranked by the lecturer.
+      // Left join from application table onto Ranking table and filter out where applicationId is NULL
+      const unchosenCandidates = await this.applicationRepository
+        .createQueryBuilder("application")
+        .select("id AS applicationId")
+        .leftJoin(Ranking, "ranking", "id = applicationId")
+        .where("applicationId IS NULL")
+        .andWhere("courseId = :courseId", { courseId })
+        .getRawMany();
 
       res.status(200).json({
         success: true,
