@@ -1,13 +1,10 @@
 import {
   IsArray,
-  IsBoolean,
   IsNotEmpty,
-  IsNumber,
   IsOptional,
   IsString,
   ValidateNested,
 } from "class-validator";
-import { Skill } from "../entity/Skill";
 import { Type } from "class-transformer";
 
 /**
@@ -40,7 +37,17 @@ export class CreateApplicationDto {
 
   @IsNotEmpty()
   @IsArray()
-  // @ValidateNested({ each: true }) // Validate each object in the array
-  // @Type(() => Skill)
-  skills: Skill[];
+  @ValidateNested({ each: true }) // Validate each object in the array
+  @Type(() => SkillInput)
+  skills: SkillInput[];
+}
+
+class SkillInput {
+  @IsNotEmpty()
+  @IsString()
+  id: string;
+
+  @IsNotEmpty()
+  @IsString()
+  name: string;
 }

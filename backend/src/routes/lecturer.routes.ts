@@ -20,7 +20,7 @@ router.get("/courses/:userId", courseController.getAllAssignedCourses);
 // Update the ranking of a candidate for a course
 router.patch(
   "/ranking",
-  // validateDTO(UpdateApplicationRankingDto),
+  validateDTO(UpdateApplicationRankingDto),
   courseController.updateApplicationStatusRanking
 );
 
