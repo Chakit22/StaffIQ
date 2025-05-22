@@ -117,6 +117,25 @@ export class CourseController {
     try {
       const { lecturerId, courseId } = req.params;
 
+      const lecturer = await this.userRepository.findOne({
+        where: { id: lecturerId },
+      });
+
+      if (!lecturer) {
+        const error = new Error("Lecturer does not exist!") as ApiError;
+        error.statusCode = 404;
+        throw error;
+      }
+
+      const course = await this.courseRepository.findOne({
+        where: { id: courseId },
+      });
+
+      if (!course) {
+        const error = new Error("Course does not exist!") as ApiError;
+        error.statusCode = 404;
+        throw error;
+      }
       // Here we have two tables: Ranking and Application with a common column being: applicationId.
       // To get all the preferences for a particular course set by a lecturer, we need to join these two tables on the applicationId column.
       const preferences = await this.rankingRepository
@@ -142,6 +161,16 @@ export class CourseController {
   getStats = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { courseId } = req.params;
+
+      const course = await this.courseRepository.findOne({
+        where: { id: courseId },
+      });
+
+      if (!course) {
+        const error = new Error("Course does not exist!") as ApiError;
+        error.statusCode = 404;
+        throw error;
+      }
 
       // Get the number of times each candidate has been chosen
       /** 
