@@ -63,6 +63,6 @@ export class Application {
   // Owning side of the many-to-many relationship, so JoinTable is added.(JoinTable is mandatory to be added)
   // A application can have many skills
   @ManyToMany(() => Skill)
-  @JoinTable({ name: "ApplicationSkills" })
+  @JoinTable({ name: "ApplicationSkill" })
   skills: Skill[];
 }
