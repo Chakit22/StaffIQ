@@ -1,9 +1,9 @@
 import { Router } from "express";
-import { AuthController } from "../controllers/auth/authController";
-import { validateDTO } from "../middleware/validate";
-import { CreateUserDto } from "../dtos/auth/create-user-dto";
-import { LoginUserDto } from "../dtos/auth/login-user-dto";
-import { authenticateToken } from "../middleware/auth.middleware";
+import { AuthController } from "./controllers/authController";
+import { validateDTO } from "../../shared/middleware/validate";
+import { CreateUserDto } from "./dtos/register-dto";
+import { LoginUserDto } from "./dtos/login-dto";
+import { authenticateToken } from "../../shared/middleware/auth.middleware";
 
 const router = Router();
 const authController = new AuthController();

@@ -1,11 +1,10 @@
 import { Request, Response, NextFunction } from "express";
-import { AppDataSource } from "../../data-source";
-import { Application } from "../../entity/Application";
-import { Course } from "../../entity/Course";
-import Ranking from "../../entity/Ranking";
-import { User } from "../../entity/User";
-import { ApiError } from "../../middleware/error-handler";
-import { UpdateAppCommentDto } from "../../dtos/update-application-comment.dto";
+import { AppDataSource } from "../../../data-source";
+import { Application } from "../../../entity/Application";
+import { Course } from "../../../entity/Course";
+import Ranking from "../../../entity/Ranking";
+import { User } from "../../../entity/User";
+import { ApiError } from "../../../shared/middleware/error-handler";
 
 export class CourseController {
   // repository for course
@@ -20,11 +19,8 @@ export class CourseController {
   // repository for user
   private userRepository = AppDataSource.getRepository(User);
 
-  // repository for comment
-  private commentRepository = AppDataSource.getRepository(Comment);
-
   // Get all applications by a particular course
-  getAllApplications = async (
+  getAllApplicationsByCourse = async (
     req: Request,
     res: Response,
     next: NextFunction
@@ -46,115 +42,6 @@ export class CourseController {
         success: true,
         body: course.applications,
         message: "Applications fetched succesfully!",
-      });
-    } catch (error) {
-      next(error);
-      return;
-    }
-  };
-
-  // Get all assigned courses of a lecturer
-  getAllAssignedCourses = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const lecturerId = req.params.lecturerId;
-      const lecturer = await this.userRepository.findOne({
-        where: { id: lecturerId },
-        relations: ["courses"],
-      });
-
-      if (!lecturer) {
-        const error = new Error("Lecturer does not exist!") as ApiError;
-        error.statusCode = 404;
-        throw error;
-      }
-
-      res.status(200).json({
-        success: true,
-        body: lecturer.courses,
-        message: "Assigned courses fetched succesfully!",
-      });
-    } catch (error) {
-      next(error);
-      return;
-    }
-  };
-
-  // Update the application status / ranking. if a lecturer ranks an applicant then he has chosen the applicant.
-  /**
-   * This accepts an array of updated rankings so that it can be used to update multiple rankings at once.
-   */
-  updateApplicationStatusRanking = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const { rankings } = req.body;
-
-      // Create a new ranking record for each ranking
-      const newRankings = this.rankingRepository.create(rankings);
-
-      // Save the new rankings
-      /**
-       * This creates a new ranking record for each ranking in the array.
-       * If a ranking already exists, it will be updated.
-       */
-      await this.rankingRepository.save(newRankings);
-
-      res.status(200).json({
-        success: true,
-        body: newRankings,
-        message: "Rankings updated successfully",
-      });
-    } catch (error) {
-      next(error);
-      return;
-    }
-  };
-
-  // Get the preferences/ ranking set by a lecturer for a particular course
-  getPreferences = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { lecturerId, courseId } = req.params;
-
-      const lecturer = await this.userRepository.findOne({
-        where: { id: lecturerId },
-      });
-
-      if (!lecturer) {
-        const error = new Error("Lecturer does not exist!") as ApiError;
-        error.statusCode = 404;
-        throw error;
-      }
-
-      const course = await this.courseRepository.findOne({
-        where: { id: courseId },
-      });
-
-      if (!course) {
-        const error = new Error("Course does not exist!") as ApiError;
-        error.statusCode = 404;
-        throw error;
-      }
-
-      // Here we have two tables: Ranking and Application with a common column being: applicationId.
-      // To get all the preferences for a particular course set by a lecturer, we need to join these two tables on the applicationId column.
-      const preferences = await this.rankingRepository
-        .createQueryBuilder("ranking")
-        .innerJoinAndSelect("ranking.application", "RankingApplication") // This joins on applicationId column and sets the table name as RankingApplication
-        .where("ranking.lecturerId = :lecturerId", { lecturerId })
-        .andWhere("RankingApplication.courseId = :courseId", { courseId })
-        .orderBy("ranking.rank", "ASC")
-        .getMany();
-
-      res.status(200).json({
-        success: true,
-        body: preferences,
-        message: "Preferences fetched succesfully!",
       });
     } catch (error) {
       next(error);
@@ -265,27 +152,13 @@ export class CourseController {
     }
   };
 
-  // // Update the comment on an application
-  updateAppComment = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
+  // Get the preferences/ ranking set by a lecturer for a particular course
+  getPreferences = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const body = req.body;
-
-      const application = await this.applicationRepository.findOne({
-        where: { id: body.applicationId },
-      });
-
-      if (!application) {
-        const error = new Error("Invalid Application!") as ApiError;
-        error.statusCode = 404;
-        throw error;
-      }
+      const { lecturerId, courseId } = req.params;
 
       const lecturer = await this.userRepository.findOne({
-        where: { id: body.lecturerId },
+        where: { id: lecturerId },
       });
 
       if (!lecturer) {
@@ -294,13 +167,30 @@ export class CourseController {
         throw error;
       }
 
-      // if comment already exists, update it else create a new one
-      await this.commentRepository.save(body);
+      const course = await this.courseRepository.findOne({
+        where: { id: courseId },
+      });
+
+      if (!course) {
+        const error = new Error("Course does not exist!") as ApiError;
+        error.statusCode = 404;
+        throw error;
+      }
+
+      // Here we have two tables: Ranking and Application with a common column being: applicationId.
+      // To get all the preferences for a particular course set by a lecturer, we need to join these two tables on the applicationId column.
+      const preferences = await this.rankingRepository
+        .createQueryBuilder("ranking")
+        .innerJoinAndSelect("ranking.application", "RankingApplication") // This joins on applicationId column and sets the table name as RankingApplication
+        .where("ranking.lecturerId = :lecturerId", { lecturerId })
+        .andWhere("RankingApplication.courseId = :courseId", { courseId })
+        .orderBy("ranking.rank", "ASC")
+        .getMany();
 
       res.status(200).json({
         success: true,
-        body: body,
-        message: "Successfully added the comment on the application",
+        body: preferences,
+        message: "Preferences fetched succesfully!",
       });
     } catch (error) {
       next(error);

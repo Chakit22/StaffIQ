@@ -1,11 +1,12 @@
 import express from "express";
 import cors from "cors";
 import { AppDataSource } from "./data-source";
-import candidateRoutes from "./routes/candidate.routes";
-import errorHandler from "./middleware/error-handler";
-import authRoutes from "./routes/auth.routes";
-import lecturerRoutes from "./routes/lecturer.routes";
+import errorHandler from "./shared/middleware/error-handler";
+import authRoutes from "./modules/auth/auth.routes";
 import dotenv from "dotenv";
+import applicationRoutes from "./modules/applications/application.routes";
+import courseRoutes from "./modules/courses/course.routes";
+import userRoutes from "./modules/users/user.routes";
 dotenv.config();
 
 const app = express();
@@ -14,13 +15,18 @@ app.use(cors({ origin: "http://localhost:3000", credentials: true }));
 app.use(express.json());
 
 //Mount the route
-app.use("/api", authRoutes);
 
-// Candidate routes
-app.use("/api/candidate", candidateRoutes);
+// application routes
+app.use("/api/applications", applicationRoutes);
 
-// Lecturer routes
-app.use("/api/lecturer", lecturerRoutes);
+// auth routes
+app.use("/api/auth", authRoutes);
+
+// course routes
+app.use("/api/courses", courseRoutes);
+
+// user routes
+app.use("/api/users", userRoutes);
 
 // Error handling middleware
 app.use(errorHandler);
@@ -29,8 +35,8 @@ app.use(errorHandler);
 AppDataSource.initialize()
   .then(() => {
     console.log("Connected to MySQL");
-    app.listen(5000, () => {
-      console.log("Server running on http://localhost:5000");
+    app.listen(3000, () => {
+      console.log("Server running on http://localhost:3000");
     });
   })
   .catch((err) => {

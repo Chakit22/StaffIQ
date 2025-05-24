@@ -1,10 +1,10 @@
 import { NextFunction, Request, Response, RequestHandler } from "express";
-import { AppDataSource } from "../../data-source";
-import { User } from "../../entity/User";
+import { AppDataSource } from "../../../data-source";
+import { User } from "../../../entity/User";
 import bcrypt from "bcrypt";
-import { ApiError } from "../../middleware/error-handler";
-import { AuthService } from "../../services/auth.service";
-import { AuthRequest } from "../../middleware/auth.middleware";
+import { ApiError } from "../../../shared/middleware/error-handler";
+import { AuthService } from "../services/auth.service";
+import { AuthRequest } from "../../../shared/middleware/auth.middleware";
 
 export class AuthController {
   // User repository
