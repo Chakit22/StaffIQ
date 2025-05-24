@@ -15,7 +15,11 @@ export const authenticateToken = (
   const token = authHeader && authHeader.split(" ")[1];
 
   if (!token) {
-    res.status(401).json({ message: "Authentication token is required" });
+    res.status(401).json({
+      success: false,
+      message: "Authentication token is required",
+      body: null,
+    });
     return;
   }
 
@@ -24,6 +28,11 @@ export const authenticateToken = (
     (req as AuthRequest).user = decoded;
     next();
   } catch (error) {
-    res.status(403).json({ message: "Invalid or expired token" });
+    res.status(403).json({
+      success: false,
+      message: "Invalid or expired token",
+      body: null,
+    });
+    return;
   }
 };

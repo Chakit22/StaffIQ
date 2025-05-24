@@ -18,11 +18,8 @@ router.post(
 // Login route
 router.post("/login", validateDTO(LoginUserDto), authController.loginUser);
 
-// Refresh token route
+// Refresh token route (This is used to generate a new access token if it is expired)
 router.post("/refresh-token", authController.refreshToken);
-
-// Protected route example
-router.get("/protected", authenticateToken, authController.getProtectedRoute);
 
 // Logout route
 router.post("/logout", authenticateToken, authController.logout);

@@ -5,6 +5,7 @@ import { UpdateUserAvatarDto } from "../dtos/update-user-avatar.dto";
 import { validateDTO } from "../middleware/validate";
 import { UserController } from "../controllers/candidate/UserController";
 import { ExperienceController } from "../controllers/candidate/ExperienceController";
+import { authenticateToken } from "../middleware/auth.middleware";
 const router = Router();
 
 // DTO Validation is of the payload which is passed in the request body
@@ -12,6 +13,9 @@ const router = Router();
 const applicationController = new ApplicationController();
 const userController = new UserController();
 const experienceController = new ExperienceController();
+
+// All the routes are protected by the authenticateToken middleware
+router.use(authenticateToken);
 
 // All the routes for candidate
 

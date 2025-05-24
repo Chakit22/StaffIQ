@@ -2,10 +2,13 @@ import { Router } from "express";
 import { CourseController } from "../controllers/lecturer/CourseController";
 import { validateDTO } from "../middleware/validate";
 import { UpdateApplicationRankingDto } from "../dtos/update-application-ranking";
+import { authenticateToken } from "../middleware/auth.middleware";
 
 const router = Router();
-
 const courseController = new CourseController();
+
+// All the routes are protected by the authenticateToken middleware
+router.use(authenticateToken);
 
 // Course routes
 

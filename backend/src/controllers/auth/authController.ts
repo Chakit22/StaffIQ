@@ -36,8 +36,9 @@ export class AuthController {
       const accessToken = this.authService.generateAccessToken(
         savedUser.id,
         savedUser.email,
-        savedUser.role || "user"
+        savedUser.role
       );
+
       const refreshToken = this.authService.generateRefreshToken(savedUser.id);
 
       res.status(201).json({
@@ -87,8 +88,9 @@ export class AuthController {
       const accessToken = this.authService.generateAccessToken(
         user.id,
         user.email,
-        user.role || "user"
+        user.role
       );
+
       const refreshToken = this.authService.generateRefreshToken(user.id);
 
       res.status(200).json({
@@ -116,7 +118,13 @@ export class AuthController {
       }
 
       const accessToken = this.authService.refreshAccessToken(refreshToken);
-      res.json({ accessToken });
+      res.json({
+        success: true,
+        message: "Access token refreshed successfully",
+        body: {
+          accessToken,
+        },
+      });
     } catch (error) {
       next(error);
     }
