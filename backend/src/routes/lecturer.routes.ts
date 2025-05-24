@@ -3,6 +3,7 @@ import { CourseController } from "../controllers/lecturer/CourseController";
 import { validateDTO } from "../middleware/validate";
 import { UpdateApplicationRankingDto } from "../dtos/update-application-ranking";
 import { authenticateToken } from "../middleware/auth.middleware";
+import { UpdateAppCommentDto } from "../dtos/update-application-comment.dto";
 
 const router = Router();
 const courseController = new CourseController();
@@ -35,6 +36,10 @@ router.get(
 router.get("/stats/:courseId", courseController.getStats);
 
 // Update the comment on an application
-// router.patch("/comments/:applicationId", courseController.updateAppComment);
+router.put(
+  "/comment",
+  validateDTO(UpdateAppCommentDto),
+  courseController.updateAppComment
+);
 
 export default router;

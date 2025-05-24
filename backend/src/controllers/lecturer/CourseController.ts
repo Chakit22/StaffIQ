@@ -5,6 +5,7 @@ import { Course } from "../../entity/Course";
 import Ranking from "../../entity/Ranking";
 import { User } from "../../entity/User";
 import { ApiError } from "../../middleware/error-handler";
+import { UpdateAppCommentDto } from "../../dtos/update-application-comment.dto";
 
 export class CourseController {
   // repository for course
@@ -18,6 +19,9 @@ export class CourseController {
 
   // repository for user
   private userRepository = AppDataSource.getRepository(User);
+
+  // repository for comment
+  private commentRepository = AppDataSource.getRepository(Comment);
 
   // Get all applications by a particular course
   getAllApplications = async (
@@ -262,43 +266,45 @@ export class CourseController {
   };
 
   // // Update the comment on an application
-  // updateAppComment = async (
-  //   req: Request,
-  //   res: Response,
-  //   next: NextFunction
-  // ) => {
-  //   try {
-  //     const applicationId = req.params.applicationId;
-  //     const body: { comments: string } = req.body;
-  //     const application = await this.applicationRepository.findOne({
-  //       where: { id: applicationId },
-  //     });
+  updateAppComment = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const body = req.body;
 
-  //     if (!application) {
-  //       const error = new Error("Invalid Application!") as ApiError;
-  //       error.statusCode = 404;
-  //       throw error;
-  //     }
+      const application = await this.applicationRepository.findOne({
+        where: { id: body.applicationId },
+      });
 
-  //     // Choose the application
-  //     await AppDataSource.createQueryBuilder()
-  //       .update(Application)
-  //       .set(body)
-  //       .where("id = :id", { id: applicationId })
-  //       .execute();
+      if (!application) {
+        const error = new Error("Invalid Application!") as ApiError;
+        error.statusCode = 404;
+        throw error;
+      }
 
-  //     const updatedApplication = await this.applicationRepository.findOne({
-  //       where: { id: applicationId },
-  //     });
+      const lecturer = await this.userRepository.findOne({
+        where: { id: body.lecturerId },
+      });
 
-  //     res.status(200).json({
-  //       success: true,
-  //       body: updatedApplication,
-  //       message: "Successfully added the comment on the application",
-  //     });
-  //   } catch (error) {
-  //     next(error);
-  //     return;
-  //   }
-  // };
+      if (!lecturer) {
+        const error = new Error("Lecturer does not exist!") as ApiError;
+        error.statusCode = 404;
+        throw error;
+      }
+
+      // if comment already exists, update it else create a new one
+      await this.commentRepository.save(body);
+
+      res.status(200).json({
+        success: true,
+        body: body,
+        message: "Successfully added the comment on the application",
+      });
+    } catch (error) {
+      next(error);
+      return;
+    }
+  };
 }

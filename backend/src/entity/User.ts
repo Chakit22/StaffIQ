@@ -11,6 +11,7 @@ import { Application } from "./Application";
 import { Experience } from "./Experience";
 import { Course } from "./Course";
 import Ranking from "./Ranking";
+import { Comment } from "./Comment";
 
 @Entity()
 export class User {
