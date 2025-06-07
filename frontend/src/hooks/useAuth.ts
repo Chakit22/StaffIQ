@@ -3,8 +3,10 @@ import apiClient from "@/api/client";
 import { User } from "@/types/User";
 import { useAuthContext } from "@/context/UserProvider";
 
+// Custom Hooks to handle all the authentication logic
 export default function useAuth() {
   const { setUser } = useAuthContext();
+
   // Hook to register a user
   const registerUser = async (userData: User) => {
     try {
@@ -22,7 +24,7 @@ export default function useAuth() {
     try {
       const response = await apiClient.post("/api/auth/login", userData);
       // Update context with the user data
-      setUser(response.data);
+      setUser(response.data.body.user);
       return response.data;
     } catch (error: unknown) {
       console.error("Error logging in user", error);
@@ -35,6 +37,8 @@ export default function useAuth() {
   const logoutUser = async () => {
     try {
       const response = await apiClient.post("/api/auth/logout");
+      // Clear user from context
+      setUser(null);
       return response.data;
     } catch (error: unknown) {
       console.error("Error logging out user", error);
