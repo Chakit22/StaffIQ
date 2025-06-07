@@ -30,7 +30,7 @@ import { toast } from "sonner";
 import { roles } from "@/utils/roles";
 import { availability } from "@/utils/availbility";
 import { useApplicant } from "@/context/ApplicantProvider";
-import { Applicant } from "@/types/ApplicantType";
+import { Applicant } from "@/types/ApplicationType";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { X } from "lucide-react";

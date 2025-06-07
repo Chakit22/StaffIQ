@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { ArrowUp, ArrowDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Applicant } from "@/types/ApplicantType";
+import { Applicant } from "@/types/ApplicationType";
 import { toast } from "sonner";
 import { useRanking } from "@/context/RankingProvider";
 import { useAuth } from "@/context/UserProvider";

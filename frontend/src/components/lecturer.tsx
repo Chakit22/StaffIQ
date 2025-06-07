@@ -8,7 +8,7 @@ import Link from "next/link";
 // import ApplicantStats from "./ApplicantStats";
 import { useAuth } from "@/context/UserProvider";
 import { useRouter } from "next/navigation";
-import { Applicant } from "@/types/ApplicantType";
+import { Applicant } from "@/types/ApplicationType";
 import {
   Select,
   SelectContent,

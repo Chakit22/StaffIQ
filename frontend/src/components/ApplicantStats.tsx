@@ -13,7 +13,7 @@ import {
 } from "recharts";
 
 //Importing the Applicant type to ensure correct props
-import { Applicant } from "@/types/ApplicantType";
+import { Applicant } from "@/types/ApplicationType";
 
 //Props type: this component receives a list of applicants
 interface Props {
