@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { jwtConfig } from "../config/jwt.config";
+import cookie from "cookie";
 
 export interface AuthRequest extends Request {
   user?: any;
@@ -11,8 +12,11 @@ export const authenticateToken = (
   res: Response,
   next: NextFunction
 ): void => {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
+  // Get the data from the cookies
+  const cookies = cookie.parse(req.headers.cookie || "");
+
+  // Get the access token from the cookies
+  const token = cookies.accessToken;
 
   if (!token) {
     res.status(401).json({
