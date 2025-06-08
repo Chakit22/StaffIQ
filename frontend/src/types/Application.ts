@@ -1,16 +1,20 @@
+import { Role } from "./Role";
+import { User } from "./User";
+import { Skill } from "./Skill";
+import { Course } from "./Course";
+
 export interface Application {
+  id: string;
   academic_creds: string;
   availability: string;
   comments?: string;
   userId: string;
   courseId: string;
   roleId: string;
-  skills: SkillInput[];
-}
-
-interface SkillInput {
-  id: string;
-  name: string;
+  user: User;
+  course: Course;
+  role: Role;
+  skills: Skill[];
 }
 
 // DTO for creating an application

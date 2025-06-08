@@ -75,8 +75,8 @@ export default function SignUpForm() {
 
   // Redirect to home page if user is already registered
   if (user) {
-    // redirect to home page
-    router.replace(`/${user.role}`);
+    // redirect to appropriate page based on user role
+    router.replace(`/${user.role}?id=${user.id}`);
   }
 
   return (

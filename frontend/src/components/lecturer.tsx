@@ -1,14 +1,8 @@
 "use client";
 
-import { useApplicant } from "@/context/ApplicantProvider";
-import { courses } from "@/utils/courses";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-
-// import ApplicantStats from "./ApplicantStats";
-import { useAuth } from "@/context/UserProvider";
 import { useRouter } from "next/navigation";
-import { Applicant } from "@/types/ApplicationType";
 import {
   Select,
   SelectContent,
@@ -20,103 +14,81 @@ import {
 import { Input } from "./ui/input";
 import { Checkbox } from "./ui/checkbox";
 import { RankingEditor } from "./RankingEditor";
-import { useQueryState, parseAsInteger } from "nuqs";
+import { useQueryState } from "nuqs";
 import LoaderComponent from "./Loading";
-import { useCourse } from "@/context/CourseProvider";
 import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
+import z from "zod";
+import { useAuthContext } from "@/context/UserProvider";
+import useUser from "@/hooks/useUser";
+import useCourse from "@/hooks/useCourse";
+import { Application } from "@/types/Application";
+import { Course } from "@/types/Course";
+import useRole from "@/hooks/useRole";
+import { Role } from "@/types/Role";
+import { Availability } from "@/types/Availability";
+import useAvailability from "@/hooks/useAvailability";
+import useSkill from "@/hooks/useSkill";
+import { Skill } from "@/types/Skill";
 
 export default function LecturerComponent() {
-  const { applicants, getApplicantsByCourse, applicantsLoading } =
-    useApplicant();
-  const { courseLoading } = useCourse();
   const router = useRouter();
-  const { user, userLoading } = useAuth();
-  const [, setId] = useQueryState("id", parseAsInteger.withDefault(-1));
+  const { user, loading } = useAuthContext();
+  // This extracts the parameter from the url and makes sure it is a valid uuid else it will be undefined
+  const [id] = useQueryState("id", z.string().uuid().optional());
 
-  const [selectedCourse, setSelectedCourse] = useState<string>();
-  const [currentApplicants, setCurrentApplicants] = useState<Applicant[]>([]);
-  const [filteredApplicants, setFilteredApplicants] = useState<Applicant[]>([]);
-  const [selectedApplicants, setSelectedApplicants] = useState<Applicant[]>([]);
+  // Get all applications for a course
+  const { getAllApplicationsForCourse } = useCourse();
 
+  // Filters
+  // Course Name
+  // Get all courses assigned to the lecturer
+  const { getAllCoursesAssigned } = useUser();
+  // Role
+  // Get all possible roles
+  const { getAllRoles } = useRole();
+  // availability
+  const { getAllAvailabilities } = useAvailability();
+  // Skills
+  const { getAllSkills } = useSkill();
+
+  // All filters in one state
+  const [filters, setFilters] = useState<{
+    courses: Course[];
+    roles: Role[];
+    availabilities: Availability[];
+    skills: Skill[];
+  }>({
+    courses: [],
+    roles: [],
+    availabilities: [],
+    skills: [],
+  });
+
+  // Search Terms
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [availabilityFilter, setAvailabilityFilter] = useState<string>("");
-  const [sortBy, setSortBy] = useState<string>("");
 
-  //redirect if not logged in
+  // SortBy
+  // Course Name (ascending or descending)
+  const [courseNameSort, setCourseNameSort] = useState<string>("");
+  // Availablity (ascending or descending)
+  const [availabilitySort, setAvailabilitySort] = useState<string>("");
+
+  // Check is there is an id in the url
   useEffect(() => {
-    if (!userLoading) {
-      if (!user) router.replace("/signin");
-      else setId(user.id);
+    if (!id || !user) {
+      router.replace("/signin");
     }
-  }, [userLoading, user, router]);
-
-  //update applicants when course changes
-  useEffect(() => {
-    if (selectedCourse) {
-      const apps = getApplicantsByCourse(selectedCourse);
-      setCurrentApplicants(apps);
-      setSelectedApplicants([]);
-    }
-  }, [selectedCourse, applicants]);
-
-  //apply filters and sort
-  useEffect(() => {
-    let results = [...currentApplicants];
-
-    if (searchTerm) {
-      results = results.filter(
-        (a) =>
-          `${a.firstname} ${a.lastname}`
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
-          a.skills.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    if (availabilityFilter) {
-      results = results.filter(
-        (a) => a.availability.toLowerCase() === availabilityFilter.toLowerCase()
-      );
-    }
-
-    if (sortBy === "course") {
-      results.sort((a, b) =>
-        (a.course_code ?? "").localeCompare(b.course_code ?? "")
-      );
-    }
-
-    setFilteredApplicants(results);
-  }, [searchTerm, availabilityFilter, sortBy, currentApplicants]);
-
-  //toggle applicant selection
-  const handleSelectToggle = (applicant: Applicant) => {
-    setSelectedApplicants((prev) =>
-      prev.some((a) => a.id === applicant.id && a.role === applicant.role)
-        ? prev.filter(
-            (a) => !(a.id === applicant.id && a.role === applicant.role)
-          )
-        : [...prev, applicant]
-    );
-  };
-
-  //remove duplicates
-  const uniqueSelectedApplicants = Object.values(
-    selectedApplicants.reduce((acc, applicant) => {
-      const key = `${applicant.id}-${applicant.role.toLowerCase()}`;
-      if (!acc[key]) {
-        acc[key] = applicant;
-      }
-      return acc;
-    }, {} as Record<string, Applicant>)
-  );
-
-  // console.log("userLoading", userLoading);
-  // console.log("applicants Loading: ", applicantsLoading);
+  }, [id, router, user]);
 
   // Show loading overlay while loading
-  if (userLoading || applicantsLoading || courseLoading) {
+  if (loading) {
     return <LoaderComponent />;
+  }
+
+  // If user is not logged in, redirect to signin page
+  if (!user) {
+    router.replace("/signin");
   }
 
   return (
@@ -130,9 +102,9 @@ export default function LecturerComponent() {
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
-              {courses.map((c) => (
-                <SelectItem key={c.code} value={c.code}>
-                  {c.label}
+              {coursesAssigned.map((c) => (
+                <SelectItem key={c.id} value={c.id}>
+                  {c.course_code} - {c.name}
                 </SelectItem>
               ))}
             </SelectGroup>
@@ -144,7 +116,7 @@ export default function LecturerComponent() {
       {selectedCourse && (
         <div className="flex flex-col md:flex-row justify-between md:items-center gap-2">
           <Input
-            placeholder="Search by name or skills"
+            placeholder="Search by name, course or skills"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -157,8 +129,21 @@ export default function LecturerComponent() {
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
+                <SelectItem value="">All</SelectItem>
                 <SelectItem value="full time">Full Time</SelectItem>
                 <SelectItem value="part time">Part Time</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+          <Select onValueChange={setRoleFilter} value={roleFilter}>
+            <SelectTrigger>
+              <SelectValue placeholder="Filter by Role" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectItem value="">All</SelectItem>
+                <SelectItem value="tutor">Tutor</SelectItem>
+                <SelectItem value="lab assistant">Lab Assistant</SelectItem>
               </SelectGroup>
             </SelectContent>
           </Select>
@@ -168,6 +153,7 @@ export default function LecturerComponent() {
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
+                <SelectItem value="">None</SelectItem>
                 <SelectItem value="course">Course</SelectItem>
                 <SelectItem value="availability">Availability</SelectItem>
               </SelectGroup>
@@ -184,59 +170,59 @@ export default function LecturerComponent() {
         📊 View Applicant Stats Graph
       </Link>
 
-      {/* applicants */}
-      {selectedCourse && filteredApplicants.length > 0 && (
+      {/* applications */}
+      {selectedCourse && currentApplications.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {filteredApplicants.map((applicant: Applicant) => {
-            return (
-              <Card key={applicant.id} className="hover:shadow-xl p-6">
-                <div className="flex justify-between items-center">
-                  <div className="text-md font-bold">{`${applicant.firstname.toUpperCase()} ${applicant.lastname.toUpperCase()}`}</div>
-                  <Badge>{applicant.id}</Badge>
+          {filteredApplications.map((application: Application) => (
+            <Card key={application.id} className="hover:shadow-xl p-6">
+              <div className="flex justify-between items-center">
+                <div className="text-md font-bold">{application.user.name}</div>
+                <Badge>{application.id.substring(0, 8)}</Badge>
+              </div>
+              {/* Role */}
+              <div>
+                <div className="text-gray-400">Role</div>
+                {application.role.name.toUpperCase()}
+              </div>
+              {/* Availability */}
+              <div>
+                <div className="text-gray-400">Availability</div>
+                {application.availability.toUpperCase()}
+              </div>
+              {/* Skills */}
+              <div>
+                <div className="text-gray-400">Skills</div>
+                {/* Separate skills by badge */}
+                <div className="flex flex-wrap justify-start items-center gap-2">
+                  {application.skills.map((skill, i) => (
+                    <Badge key={i}>{skill.name}</Badge>
+                  ))}
                 </div>
-                {/* Role */}
-                <div>
-                  <div className="text-gray-400">Role</div>
-                  {applicant.role.toUpperCase()}
-                </div>
-                {/* Availability */}
-                <div>
-                  <div className="text-gray-400">Availability</div>
-                  {applicant.availability.toUpperCase()}
-                </div>
-                {/* Skills */}
-                <div>
-                  <div className="text-gray-400">Skills</div>
-                  {/* Seperate skills by badge */}
-                  <div className="flex flex-wrap justify-start items-center gap-2">
-                    {applicant.skills.split(",").map((skill: string, i) => (
-                      <Badge key={i}>{skill}</Badge>
-                    ))}
-                  </div>
-                </div>
-                {/* Academic credentials */}
-                <div>
-                  <div className="text-gray-400">Academic Credentials</div>
-                  {applicant.academic_creds.toUpperCase()}
-                </div>
-                <hr />
-                {/* Select candidate */}
-                <div className="flex justify-start items-center gap-2">
-                  <Checkbox
-                    checked={selectedApplicants.some(
-                      (x) => x.id === applicant.id && x.role === applicant.role
-                    )}
-                    onCheckedChange={() => handleSelectToggle(applicant)}
-                  />
-                  Select Candidate
-                </div>
-              </Card>
-            );
-          })}
+              </div>
+              {/* Academic credentials */}
+              <div>
+                <div className="text-gray-400">Academic Credentials</div>
+                {application.academic_creds}
+              </div>
+              <hr />
+              {/* Select candidate */}
+              <div className="flex justify-start items-center gap-2">
+                <Checkbox
+                  checked={selectedApplicants.some(
+                    (x) =>
+                      x.id === application.id &&
+                      x.role.id === application.role.id
+                  )}
+                  onCheckedChange={() => handleSelectToggle(application)}
+                />
+                Select Candidate
+              </div>
+            </Card>
+          ))}
         </div>
       )}
 
-      {selectedCourse && filteredApplicants.length == 0 && (
+      {selectedCourse && filteredApplications.length === 0 && (
         <div className="text-center">No applicants found</div>
       )}
 
@@ -247,7 +233,7 @@ export default function LecturerComponent() {
             course_code={selectedCourse}
             role="tutor"
             selectedApplicants={uniqueSelectedApplicants.filter(
-              (a) => a.role.toLowerCase() === "tutor"
+              (a) => a.role.name.toLowerCase() === "tutor"
             )}
             applicants={uniqueSelectedApplicants.map((a) => a.id)}
           />
@@ -255,7 +241,7 @@ export default function LecturerComponent() {
             course_code={selectedCourse}
             role="lab assistant"
             selectedApplicants={uniqueSelectedApplicants.filter(
-              (a) => a.role.toLowerCase() === "lab assistant"
+              (a) => a.role.name.toLowerCase() === "lab assistant"
             )}
             applicants={uniqueSelectedApplicants.map((a) => a.id)}
           />

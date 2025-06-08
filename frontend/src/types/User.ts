@@ -1,4 +1,6 @@
 // @/types/User.ts
+import { Application } from "./Application";
+import { Experience } from "./Experience";
 
 export type UserRole = "candidate" | "lecturer";
 
@@ -12,6 +14,8 @@ export interface User {
   dateOfJoining: Date;
   access?: boolean;
   avatarUrl?: string;
+  applications: Application[];
+  experiences: Experience[];
 }
 
 export interface UserRegistrationInput {

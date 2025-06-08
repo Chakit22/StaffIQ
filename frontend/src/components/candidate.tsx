@@ -29,14 +29,11 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { roles } from "@/utils/roles";
 import { availability } from "@/utils/availbility";
-import { useApplicant } from "@/context/ApplicantProvider";
-import { Applicant } from "@/types/ApplicationType";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { X } from "lucide-react";
 import { useQueryState, parseAsInteger } from "nuqs";
 import LoaderComponent from "./Loading";
-import { useCourse } from "@/context/CourseProvider";
 
 export default function TutorComponent() {
   const { user, userLoading } = useAuth();

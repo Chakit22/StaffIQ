@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import TutorComponent from "@/components/tutor";
+import TutorComponent from "@/components/candidate";
 
 //Mock necessary providers/hooks
 jest.mock("next/navigation", () => ({

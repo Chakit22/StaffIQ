@@ -2,9 +2,9 @@
 
 import React from "react";
 import Layout from "@/components/layout";
-import TutorComponent from "@/components/tutor";
+import CandidateComponent from "@/components/candidate";
 
-export default function Tutor() {
+export default function Candidate() {
   return (
     <div
       className="min-h-screen bg-cover bg-center bg-no-repeat"
@@ -15,7 +15,7 @@ export default function Tutor() {
     >
       <div className="bg-white/80 backdrop-blur-md">
         <Layout>
-          <TutorComponent />
+          <CandidateComponent />
         </Layout>
       </div>
     </div>

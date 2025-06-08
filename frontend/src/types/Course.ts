@@ -1,7 +1,12 @@
+import { Application } from "./Application";
+import { User } from "./User";
+
 export interface Course {
   id: string;
   name: string;
   course_code: string;
+  applications: Application[];
+  users: User[];
 }
 
 // import { Column, ManyToMany, OneToMany, PrimaryGeneratedColumn } from "typeorm";

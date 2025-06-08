@@ -1,7 +1,7 @@
 import apiClient from "@/api/client";
-import { Application } from "@/types/ApplicationType";
+import { Application } from "@/types/Application";
 import { AxiosError } from "axios";
-import { Ranking } from "@/types/RankingType";
+import { Ranking } from "@/types/Ranking";
 
 // Custom Hooks to handle all the application logic
 export default function useApplication() {
