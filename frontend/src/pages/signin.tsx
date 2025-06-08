@@ -1,6 +1,6 @@
-"use client";
-import { useAuth } from "@/context/UserProvider";
-import { useEffect, useState } from "react";
+import { useAuthContext } from "@/context/UserProvider";
+import useAuth from "@/hooks/useAuth";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { LoginFormType } from "@/types/LoginFormType";
 import { Card } from "@/components/ui/card";
@@ -17,11 +17,12 @@ import Captcha from "@/components/captcha";
 import LoaderComponent from "@/components/Loading";
 
 export default function SignInForm() {
-  const { user, login, userLoading } = useAuth();
   const [showPassword, setShowPassword] = useState<boolean>(true);
   const [isPasswordFocused, setIsPasswordFocused] = useState<boolean>(false);
   const router = useRouter();
   const [isVerified, setIsVerified] = useState<boolean>(false);
+  const { loading, user } = useAuthContext();
+  const { loginUser } = useAuth();
 
   const {
     register,
@@ -30,29 +31,31 @@ export default function SignInForm() {
     formState: { errors },
   } = useForm<LoginFormType>();
 
-  //Async login with backend API
+  // Async login with backend API
   const onSubmit = async (data: LoginFormType) => {
     if (!isVerified) {
       toast.error("Please complete CAPTCHA before logging in.");
       return;
     }
 
-    const isValidUser = await login(data.email, data.password);
-    if (!isValidUser) {
-      toast.error("Invalid email or password!");
-    } else {
+    try {
+      await loginUser(data);
       toast.success("Login successful!");
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to login");
     }
   };
 
-  useEffect(() => {
-  if (!userLoading && user) {
-    router.replace(`/${user.role}`);
-  }
-}, [user, router, userLoading]);
-
-  if (userLoading) {
+  // Show loading overlay while loading
+  if (loading) {
     return <LoaderComponent />;
+  }
+
+  // Redirect to home page if user is already logged in
+  if (user) {
+    // redirect to home page
+    router.replace(`/${user.role}`);
   }
 
   return (
@@ -62,7 +65,9 @@ export default function SignInForm() {
         <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
           {/* Email */}
           <div>
-            <Label htmlFor="email" className="text-bold text-md">Email</Label>
+            <Label htmlFor="email" className="text-bold text-md">
+              Email
+            </Label>
             <Input
               id="email"
               type="email"
@@ -70,12 +75,16 @@ export default function SignInForm() {
               className="placeholder:text-md"
               {...register("email", { required: "Email is required" })}
             />
-            {errors.email && <span className="text-red-500">{errors.email.message}</span>}
+            {errors.email && (
+              <span className="text-red-500">{errors.email.message}</span>
+            )}
           </div>
 
           {/* Password */}
           <div>
-            <Label htmlFor="password" className="text-bold text-md">Password</Label>
+            <Label htmlFor="password" className="text-bold text-md">
+              Password
+            </Label>
             <div className="relative">
               <Input
                 id="password"
@@ -113,12 +122,16 @@ export default function SignInForm() {
           {!isVerified && <Captcha setIsVerified={setIsVerified} />}
 
           {/* Submit */}
-          <Button type="submit" className="rounded-sm text-md">Login</Button>
+          <Button type="submit" className="rounded-sm text-md">
+            Login
+          </Button>
         </form>
 
         <div className="flex justify-center items-center gap-2 mt-4">
           New User?{" "}
-          <Link href={"/signup"} className="text-blue-400">Register</Link>
+          <Link href={"/signup"} className="text-blue-400">
+            Register
+          </Link>
         </div>
       </Card>
     </div>

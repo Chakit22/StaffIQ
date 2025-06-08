@@ -1,7 +1,5 @@
-"use client";
-
 import { useForm } from "react-hook-form";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import PasswordRules from "@/components/password-rules";
 import { passwordRules } from "@/utils/password-rules";
-import { UserRegistrationInput, UserRole } from "@/types/User";
+import { UserRegistrationInput } from "@/types/User";
 import {
   Select,
   SelectContent,
@@ -18,24 +16,68 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import useRole from "@/hooks/useRole";
+import { Role } from "@/types/Role";
+import {
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import Link from "next/link";
+import useAuth from "@/hooks/useAuth";
+import { toast } from "sonner";
+import LoaderComponent from "@/components/Loading";
+import { useAuthContext } from "@/context/UserProvider";
+import { useRouter } from "next/navigation";
 
 export default function SignUpForm() {
   const [isPasswordFocused, setIsPasswordFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [role, setRole] = useState<UserRole>("candidate");
+  const { getAllRoles } = useRole();
+  const [roles, setRoles] = useState<Role[]>([]);
+  const { registerUser } = useAuth();
+  const { loading, user } = useAuthContext();
+  const router = useRouter();
+
+  //This will run on every render as getAllRoles will add a new reference everytime when this component is rendered
+  useEffect(() => {
+    const fetchRoles = async () => {
+      const roles = await getAllRoles();
+      setRoles(roles);
+    };
+    fetchRoles();
+  }, [getAllRoles]);
 
   const {
     register,
     handleSubmit,
     watch,
     formState: { errors },
-  } = useForm<UserRegistrationInput>();
+    control,
+  } = useForm<UserRegistrationInput & { confirmPassword: string }>();
 
   const onSubmit = async (data: UserRegistrationInput) => {
-    // Register the new user
-    console.log(data);
+    try {
+      await registerUser(data);
+      toast.success("User registered successfully");
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to register user");
+    }
   };
+
+  // Show loading overlay while loading
+  if (loading) {
+    return <LoaderComponent />;
+  }
+
+  // Redirect to home page if user is already registered
+  if (user) {
+    // redirect to home page
+    router.replace(`/${user.role}`);
+  }
 
   return (
     <div className="min-h-screen flex justify-center items-center">
@@ -140,24 +182,32 @@ export default function SignUpForm() {
             )}
           </div>
 
-          {/* Add role selection dropdown */}
-          <div>
-            <Label htmlFor="role">Register as</Label>
-            <Select onValueChange={setRole} value={role}>
-              <SelectTrigger className="min-w-1/3">
-                <SelectValue placeholder="Select a role" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectItem value="candidate">Candidate</SelectItem>
-                  <SelectItem value="lecturer">Lecturer</SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-            {errors.role && (
-              <p className="text-red-500 text-sm">{errors.role.message}</p>
+          {/* Role selection dropdown */}
+          <FormField
+            control={control}
+            name="role"
+            rules={{ required: "Please select a role" }}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Role</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <SelectTrigger className="min-w-1/3">
+                    <SelectValue placeholder="Select a role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      {roles.map((role) => (
+                        <SelectItem key={role.id} value={role.name}>
+                          {role.name}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
             )}
-          </div>
+          />
 
           <Button type="submit" className="w-full">
             Register
@@ -166,9 +216,9 @@ export default function SignUpForm() {
 
         <div className="text-sm text-center mt-4">
           Already have an account?{" "}
-          <a href="/signin" className="text-blue-500 underline">
+          <Link href="/signin" className="text-blue-500 underline">
             Sign In
-          </a>
+          </Link>
         </div>
       </Card>
     </div>
