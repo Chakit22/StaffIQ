@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -34,30 +34,54 @@ import { Skill } from "@/types/Skill";
 export default function LecturerComponent() {
   const router = useRouter();
   const { user, loading } = useAuthContext();
+
   // This extracts the parameter from the url and makes sure it is a valid uuid else it will be undefined
   const [id] = useQueryState("id", z.string().uuid().optional());
 
-  // Get all applications for a course
-  const { getAllApplicationsForCourse } = useCourse();
+  // Sorting Options
+  const sortingOptions = [
+    { id: "1", label: "Course Name (ascending)", value: "course_name_asc" },
+    { id: "2", label: "Course Name (descending)", value: "course_name_desc" },
+    {
+      id: "3",
+      label: "Availability (Full time first)",
+      value: "availability_asc",
+    },
+    {
+      id: "4",
+      label: "Availability (Part time first)",
+      value: "availability_desc",
+    },
+  ];
 
   // Filters
   // Course Name
   // Get all courses assigned to the lecturer
   const { getAllCoursesAssigned } = useUser();
+  const [coursesAssigned, setCoursesAssigned] = useState<Course[]>([]);
+
   // Role
   // Get all possible roles
   const { getAllRoles } = useRole();
+  const [roles, setRoles] = useState<Role[]>([]);
+
   // availability
   const { getAllAvailabilities } = useAvailability();
+  const [availabilities, setAvailabilities] = useState<Availability[]>([]);
+
   // Skills
   const { getAllSkills } = useSkill();
+  const [skills, setSkills] = useState<Skill[]>([]);
 
   // All filters in one state
+  /**
+   * It stores the ids of the courses, roles, availabilities and skills that are selected
+   */
   const [filters, setFilters] = useState<{
-    courses: Course[];
-    roles: Role[];
-    availabilities: Availability[];
-    skills: Skill[];
+    courses: string[];
+    roles: string[];
+    availabilities: string[];
+    skills: string[];
   }>({
     courses: [],
     roles: [],
@@ -68,18 +92,45 @@ export default function LecturerComponent() {
   // Search Terms
   const [searchTerm, setSearchTerm] = useState<string>("");
 
-  // SortBy
-  // Course Name (ascending or descending)
-  const [courseNameSort, setCourseNameSort] = useState<string>("");
-  // Availablity (ascending or descending)
-  const [availabilitySort, setAvailabilitySort] = useState<string>("");
+  // SortBy (Selects the sorting option)
+  const [sortBy, setSortBy] = useState<string>("");
 
   // Check is there is an id in the url
   useEffect(() => {
     if (!id || !user) {
       router.replace("/signin");
+      return;
     }
-  }, [id, router, user]);
+
+    // Fetch all courses assigned to the lecturer
+    const fetchCoursesAssigned = async () => {
+      const courses = await getAllCoursesAssigned(user?.id);
+      setCoursesAssigned(courses);
+    };
+
+    // Fetch all roles
+    const fetchRoles = async () => {
+      const roles = await getAllRoles();
+      setRoles(roles);
+    };
+
+    // Fetch all availabilities
+    const fetchAvailabilities = async () => {
+      const availabilities = await getAllAvailabilities();
+      setAvailabilities(availabilities);
+    };
+
+    // Fetch all skills
+    const fetchSkills = async () => {
+      const skills = await getAllSkills();
+      setSkills(skills);
+    };
+
+    fetchCoursesAssigned();
+    fetchRoles();
+    fetchAvailabilities();
+    fetchSkills();
+  }, []);
 
   // Show loading overlay while loading
   if (loading) {
@@ -89,6 +140,7 @@ export default function LecturerComponent() {
   // If user is not logged in, redirect to signin page
   if (!user) {
     router.replace("/signin");
+    return;
   }
 
   return (
