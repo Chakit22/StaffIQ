@@ -11,7 +11,7 @@ import { User } from "./User";
 import { Role } from "./Role";
 import { Course } from "./Course";
 import { Skill } from "./Skill";
-import Ranking from "./Ranking";
+import { Availability } from "./Availability";
 
 @Entity()
 export class Application {
@@ -20,13 +20,6 @@ export class Application {
 
   @Column()
   academic_creds: string;
-
-  @Column()
-  availability: string;
-
-  // By default it is Varchar(255), but comments can be longer than 255 characters.
-  @Column("text", { nullable: true })
-  comments?: string;
 
   // Define foreign keys as a seperate columns for easy query access
   @Column()
@@ -37,6 +30,9 @@ export class Application {
 
   @Column()
   roleId: string;
+
+  @Column()
+  availabilityId: string;
 
   // Define relations
   // A application belongs to one user (owning side of the relation)
@@ -60,6 +56,11 @@ export class Application {
   @ManyToOne(() => Role, (role) => role.applications)
   @JoinColumn({ name: "roleId" })
   role: Role;
+
+  // A applicant will have a single availability but many applicants can have the same availability
+  @ManyToOne(() => Availability, (availability) => availability.applications)
+  @JoinColumn({ name: "availabilityId" })
+  availability: Availability;
 
   // Owning side of the many-to-many relationship, so JoinTable is added.(JoinTable is mandatory to be added)
   // A application can have many skills

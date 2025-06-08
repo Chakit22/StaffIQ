@@ -36,6 +36,10 @@ export class CreateApplicationDto {
   roleId: string;
 
   @IsNotEmpty()
+  @IsString()
+  availabilityId: string;
+
+  @IsNotEmpty()
   @IsArray()
   @ValidateNested({ each: true }) // Validate each object in the array
   @Type(() => SkillInput)
