@@ -1,5 +1,3 @@
-
-
 "use client";
 
 import { useAuth } from "@/context/UserProvider";
@@ -116,7 +114,11 @@ export default function ProfilePage() {
                 {avatarOptions.map((url) => (
                   <div
                     key={url}
-                    className={`cursor-pointer border-2 rounded-full p-1 transition ${selectedAvatar === url ? "border-blue-500" : "border-transparent"}`}
+                    className={`cursor-pointer border-2 rounded-full p-1 transition ${
+                      selectedAvatar === url
+                        ? "border-blue-500"
+                        : "border-transparent"
+                    }`}
                     onClick={() => setSelectedAvatar(url)}
                   >
                     <img

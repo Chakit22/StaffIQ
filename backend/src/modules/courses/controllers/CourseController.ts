@@ -19,6 +19,22 @@ export class CourseController {
   // repository for user
   private userRepository = AppDataSource.getRepository(User);
 
+  // Get all courses
+  getAllCourses = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const courses = await this.courseRepository.find();
+
+      res.status(200).json({
+        success: true,
+        message: "Courses fetched succesfully!",
+        body: courses,
+      });
+    } catch (error) {
+      next(error);
+      return;
+    }
+  };
+
   // Get all applications by a particular course
   getAllApplicationsByCourse = async (
     req: Request,

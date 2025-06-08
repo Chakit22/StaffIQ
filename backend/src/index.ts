@@ -7,6 +7,7 @@ import dotenv from "dotenv";
 import applicationRoutes from "./modules/applications/application.routes";
 import courseRoutes from "./modules/courses/course.routes";
 import userRoutes from "./modules/users/user.routes";
+import roleRoutes from "./modules/roles/role.routes";
 dotenv.config();
 
 const app = express();
@@ -27,6 +28,9 @@ app.use("/api/courses", courseRoutes);
 
 // user routes
 app.use("/api/users", userRoutes);
+
+// role routes
+app.use("/api/roles", roleRoutes);
 
 // Error handling middleware
 app.use(errorHandler);

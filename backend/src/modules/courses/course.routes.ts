@@ -8,6 +8,9 @@ const courseController = new CourseController();
 // All the routes are protected by the authenticateToken middleware
 router.use(authenticateToken);
 
+// Get all courses
+router.get("/", courseController.getAllCourses);
+
 // Get all applications for a course
 router.get(
   "/:courseId/applications",
