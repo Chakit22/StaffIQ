@@ -1,6 +1,6 @@
 import { AxiosError } from "axios";
 import apiClient from "@/api/client";
-import { User } from "@/types/User";
+import { UserRegistrationInput } from "@/types/User";
 import { useAuthContext } from "@/context/UserProvider";
 
 // Custom Hooks to handle all the authentication logic
@@ -8,7 +8,7 @@ export default function useAuth() {
   const { setUser } = useAuthContext();
 
   // Hook to register a user
-  const registerUser = async (userData: User) => {
+  const registerUser = async (userData: UserRegistrationInput) => {
     try {
       const response = await apiClient.post("/api/auth/register", userData);
       return response.data;

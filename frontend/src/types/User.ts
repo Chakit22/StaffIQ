@@ -1,29 +1,23 @@
+// @/types/User.ts
+
+export type UserRole = "candidate" | "lecturer" | "admin";
+
 export interface User {
+  id: string;
   name: string;
   email: string;
   phone: number;
   password: string;
-  role: string;
+  role: UserRole;
+  dateOfJoining: Date;
+  access?: boolean;
+  avatarUrl?: string;
 }
 
-// export class CreateUserDto {
-//   @IsNotEmpty()
-//   @IsString()
-//   name: string;
-
-//   @IsNotEmpty()
-//   @IsEmail()
-//   email: string;
-
-//   @IsNotEmpty()
-//   @IsNumber()
-//   phone: number;
-
-//   @IsNotEmpty()
-//   @IsStrongPassword()
-//   password: string;
-
-//   @IsNotEmpty()
-//   @IsIn(["candidate", "lecturer", "admin"])
-//   role: string;
-// }
+export interface UserRegistrationInput {
+  name: string;
+  email: string;
+  phone: number;
+  password: string;
+  role: UserRole;
+}
