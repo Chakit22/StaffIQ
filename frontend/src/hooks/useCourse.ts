@@ -2,6 +2,18 @@ import apiClient from "@/api/client";
 import { AxiosError } from "axios";
 
 export default function useCourse() {
+  // Hook to get all courses
+  const getAllCourses = async () => {
+    try {
+      const response = await apiClient.get("/api/courses");
+      return response.data;
+    } catch (error: unknown) {
+      console.error("Error fetching courses", error);
+      const axiosError = error as AxiosError;
+      return axiosError.response?.data;
+    }
+  };
+
   // Hook to get all applications for a course
   const getAllApplicationsForCourse = async (courseId: string) => {
     try {
@@ -45,6 +57,7 @@ export default function useCourse() {
   };
 
   return {
+    getAllCourses,
     getAllApplicationsForCourse,
     getPreferences,
     getStats,
