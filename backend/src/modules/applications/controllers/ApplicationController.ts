@@ -14,6 +14,7 @@ import { Role } from "../../../entity/Role";
 import { ApiError } from "../../../shared/middleware/error-handler";
 import Ranking from "../../../entity/Ranking";
 import { Comment } from "../../../entity/Comment";
+import { In } from "typeorm";
 
 export class ApplicationController {
   // Repository for application
@@ -95,6 +96,39 @@ export class ApplicationController {
     } catch (error) {
       next(error);
       return;
+    }
+  };
+
+  // Get all applications
+  /**
+   * query params in this are comma separated string of UUIds
+   */
+  getAllApplications = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { courses, roles, availabilities, skills, search, sortBy } =
+        req.query;
+
+      const applications = await this.applicationRepository.find({
+        where: {
+          courseId: In(courses?.toString().split(",") || []),
+          roleId: In(roles?.toString().split(",") || []),
+          availabilityId: In(availabilities?.toString().split(",") || []),
+          skills: In(skills?.toString().split(",") || []),
+          sortBy: sortBy?.toString(),
+        },
+      });
+
+      res.status(200).json({
+        success: true,
+        body: applications,
+        message: "Applications fetched successfully",
+      });
+    } catch (error) {
+      next(error);
     }
   };
 
