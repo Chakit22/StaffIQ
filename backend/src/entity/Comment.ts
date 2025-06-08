@@ -1,13 +1,6 @@
 // This is the entity for the comment on an application
 
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  PrimaryColumn,
-  JoinColumn,
-} from "typeorm";
+import { Entity, Column, ManyToOne, PrimaryColumn, JoinColumn } from "typeorm";
 import { Application } from "./Application";
 import { User } from "./User";
 
@@ -23,7 +16,6 @@ export class Comment {
   comment: string;
 
   // Define relations
-
   @ManyToOne(() => User)
   @JoinColumn({ name: "lecturerId" })
   lecturer: User;

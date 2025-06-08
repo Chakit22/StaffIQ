@@ -58,7 +58,7 @@ export class Application {
   role: Role;
 
   // A applicant will have a single availability but many applicants can have the same availability
-  @ManyToOne(() => Availability, (availability) => availability.applications)
+  @ManyToOne(() => Availability)
   @JoinColumn({ name: "availabilityId" })
   availability: Availability;
 
