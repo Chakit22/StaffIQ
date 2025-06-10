@@ -112,15 +112,92 @@ export class ApplicationController {
       const { courses, roles, availabilities, skills, search, sortBy } =
         req.query;
 
-      const applications = await this.applicationRepository.find({
-        where: {
-          courseId: In(courses?.toString().split(",") || []),
-          roleId: In(roles?.toString().split(",") || []),
-          availabilityId: In(availabilities?.toString().split(",") || []),
-          skills: In(skills?.toString().split(",") || []),
-          sortBy: sortBy?.toString(),
-        },
-      });
+      // Start building the query with joins for related entities
+      let query = this.applicationRepository
+        .createQueryBuilder("application")
+        .leftJoinAndSelect("application.user", "user")
+        .leftJoinAndSelect("application.course", "course")
+        .leftJoinAndSelect("application.role", "role")
+        .leftJoinAndSelect("application.availability", "availability")
+        .leftJoinAndSelect("application.skills", "skills");
+
+      // Apply filters - these work as OR conditions within each filter type
+      if (courses && courses.toString().trim()) {
+        const courseIds = courses
+          .toString()
+          .split(",")
+          .filter((id) => id.trim());
+        if (courseIds.length > 0) {
+          query = query.andWhere("application.courseId IN (:...courseIds)", {
+            courseIds,
+          });
+        }
+      }
+
+      if (roles && roles.toString().trim()) {
+        const roleIds = roles
+          .toString()
+          .split(",")
+          .filter((id) => id.trim());
+        if (roleIds.length > 0) {
+          query = query.andWhere("application.roleId IN (:...roleIds)", {
+            roleIds,
+          });
+        }
+      }
+
+      if (availabilities && availabilities.toString().trim()) {
+        const availabilityIds = availabilities
+          .toString()
+          .split(",")
+          .filter((id) => id.trim());
+        if (availabilityIds.length > 0) {
+          query = query.andWhere(
+            "application.availabilityId IN (:...availabilityIds)",
+            { availabilityIds }
+          );
+        }
+      }
+
+      if (skills && skills.toString().trim()) {
+        const skillIds = skills
+          .toString()
+          .split(",")
+          .filter((id) => id.trim());
+        if (skillIds.length > 0) {
+          query = query.andWhere("skills.id IN (:...skillIds)", { skillIds });
+        }
+      }
+
+      // Apply search - searches across course name, candidate name, availability, and skill names
+      if (search && search.toString().trim()) {
+        const searchTerm = `%${search.toString().trim()}%`;
+        query = query.andWhere(
+          "(LOWER(course.name) LIKE LOWER(:searchTerm) OR LOWER(user.name) LIKE LOWER(:searchTerm) OR LOWER(availability.availability) LIKE LOWER(:searchTerm) OR LOWER(skills.name) LIKE LOWER(:searchTerm))",
+          { searchTerm }
+        );
+      }
+
+      // Apply sorting
+      if (sortBy) {
+        switch (sortBy.toString()) {
+          case "course_name_asc":
+            query = query.orderBy("course.name", "ASC");
+            break;
+          case "course_name_desc":
+            query = query.orderBy("course.name", "DESC");
+            break;
+          case "availability_asc":
+            query = query.orderBy("availability.availability", "ASC");
+            break;
+          case "availability_desc":
+            query = query.orderBy("availability.availability", "DESC");
+            break;
+        }
+      }
+
+      // Execute the query
+      const applications = await query.getMany();
 
       res.status(200).json({
         success: true,
