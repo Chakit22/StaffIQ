@@ -15,10 +15,6 @@ export class CreateApplicationDto {
   @IsString()
   academic_creds: string;
 
-  @IsNotEmpty()
-  @IsString()
-  availability: string;
-
   @IsOptional()
   @IsString()
   comments: string;

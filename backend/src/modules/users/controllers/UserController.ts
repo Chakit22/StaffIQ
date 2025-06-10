@@ -36,6 +36,7 @@ export class UserController {
 
       res.status(200).json({
         success: true,
+        message: "User details fetched successfully!",
         body: user,
       });
     } catch (error) {
@@ -72,6 +73,7 @@ export class UserController {
 
       res.status(200).json({
         success: true,
+        message: "Experiences fetched successfully!",
         body: user.experiences,
       });
     } catch (error) {

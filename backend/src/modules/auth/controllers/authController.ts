@@ -5,7 +5,7 @@ import bcrypt from "bcrypt";
 import { ApiError } from "../../../shared/middleware/error-handler";
 import { AuthService } from "../services/auth.service";
 import { AuthRequest } from "../../../shared/middleware/auth.middleware";
-import cookie from "cookie";
+import * as cookie from "cookie";
 
 export class AuthController {
   // User repository
@@ -171,13 +171,32 @@ export class AuthController {
   // LOGOUT
   logout: RequestHandler = (req, res, next) => {
     try {
-      // Clear the cookies
+      // Clear the cookies properly with all attributes
       res.setHeader("Set-Cookie", [
-        cookie.serialize("accessToken", "", { maxAge: 0 }),
-        cookie.serialize("refreshToken", "", { maxAge: 0 }),
-        cookie.serialize("user", "", { maxAge: 0 }),
+        cookie.serialize("accessToken", "", {
+          maxAge: 0,
+          path: "/",
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "lax",
+        }),
+        cookie.serialize("refreshToken", "", {
+          maxAge: 0,
+          path: "/",
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "lax",
+        }),
+        cookie.serialize("user", "", {
+          maxAge: 0,
+          path: "/",
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "lax",
+        }),
       ]);
-      res.json({
+
+      res.status(200).json({
         success: true,
         message: "Successfully logged out",
         body: null,

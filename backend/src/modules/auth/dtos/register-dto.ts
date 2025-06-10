@@ -20,7 +20,6 @@ export class CreateUserDto {
   email: string;
 
   @IsNotEmpty()
-  @IsNumber()
   phone: number;
 
   @IsNotEmpty()

@@ -205,6 +205,7 @@ export class ApplicationController {
         message: "Applications fetched successfully",
       });
     } catch (error) {
+      console.log("error ", error);
       next(error);
     }
   };
