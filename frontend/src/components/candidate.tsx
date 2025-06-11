@@ -38,6 +38,7 @@ import useCourse from "@/hooks/useCourse";
 import useRole from "@/hooks/useRole";
 import useAvailability from "@/hooks/useAvailability";
 import useSkill from "@/hooks/useSkill";
+import useUser from "@/hooks/useUser";
 
 // Types and Schemas
 import { CreateApplicationSchema } from "@/schemas/applications/create-application.schema";
@@ -45,6 +46,7 @@ import { Course } from "@/types/Course";
 import { Role } from "@/types/Role";
 import { Availability } from "@/types/Availability";
 import { Skill } from "@/types/Skill";
+import { Experience } from "@/types/Experience";
 
 export default function CandidateComponent() {
   const { user, loading } = useAuthContext();
@@ -56,12 +58,16 @@ export default function CandidateComponent() {
   const { getAllRoles } = useRole();
   const { getAllAvailabilities } = useAvailability();
   const { getAllSkills } = useSkill();
+  const { getAllExperiences } = useUser();
 
   // State for dropdown data
   const [courses, setCourses] = useState<Course[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
   const [availabilities, setAvailabilities] = useState<Availability[]>([]);
   const [allSkills, setAllSkills] = useState<Skill[]>([]);
+
+  // State for user data
+  const [experiences, setExperiences] = useState<Experience[]>([]);
 
   // State for skills management
   const [skillInput, setSkillInput] = useState("");
@@ -124,19 +130,28 @@ export default function CandidateComponent() {
       console.log("Fetching initial data...");
 
       // Fetch all dropdown data in parallel
-      const [coursesRes, rolesRes, availabilitiesRes, skillsRes] =
-        await Promise.all([
-          getAllCourses(),
-          getAllRoles(),
-          getAllAvailabilities(),
-          getAllSkills(),
-        ]);
+      const [
+        coursesRes,
+        rolesRes,
+        availabilitiesRes,
+        skillsRes,
+        experiencesRes,
+      ] = await Promise.all([
+        getAllCourses(),
+        getAllRoles(),
+        getAllAvailabilities(),
+        getAllSkills(),
+        user
+          ? getAllExperiences(user.id)
+          : Promise.resolve({ success: false, body: [] }),
+      ]);
 
       console.log("API Responses:", {
         courses: coursesRes,
         roles: rolesRes,
         availabilities: availabilitiesRes,
         skills: skillsRes,
+        experiences: experiencesRes,
       });
 
       if (coursesRes.success) {
@@ -174,6 +189,13 @@ export default function CandidateComponent() {
       } else {
         console.error("Failed to load skills:", skillsRes.message);
         toast.error(`Failed to load skills: ${skillsRes.message}`);
+      }
+
+      if (experiencesRes.success) {
+        setExperiences(experiencesRes.body as Experience[]);
+        console.log("Experiences loaded:", experiencesRes.body);
+      } else if ("message" in experiencesRes) {
+        console.error("Failed to load experiences:", experiencesRes.message);
       }
     } catch (error) {
       console.error("Error fetching initial data:", error);
@@ -267,7 +289,8 @@ export default function CandidateComponent() {
   }
 
   return (
-    <div className="flex justify-center items-center min-h-screen">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 justify-items-center p-4">
+      {/* Application Form */}
       <Card className="py-8 shadow-2xl bg-blue-50 w-full max-w-2xl">
         <div className="text-2xl font-bold px-6">Apply for Roles</div>
         <div className="text-sm text-muted-foreground px-6">
@@ -459,6 +482,44 @@ export default function CandidateComponent() {
               </Button>
             </form>
           </Form>
+        </CardContent>
+      </Card>
+
+      {/* Previous Experience */}
+      <Card className="py-8 rounded-lg shadow-2xl bg-blue-50 w-full max-w-2xl">
+        <div className="text-2xl font-bold px-6">Work Experience</div>
+        <div className="text-sm text-muted-foreground px-6">
+          Your professional work experience history
+        </div>
+        <CardContent className="flex flex-col gap-4">
+          <div>
+            {experiences.length > 0 ? (
+              experiences.map((experience) => (
+                <Card key={experience.id} className="px-4 py-3 mb-3">
+                  <div className="text-lg font-semibold">{experience.role}</div>
+                  <p>
+                    <span className="font-bold">Company:</span>{" "}
+                    {experience.company_name}
+                  </p>
+                  <p>
+                    <span className="font-bold">Description:</span>{" "}
+                    {experience.description}
+                  </p>
+                  <p>
+                    <span className="font-bold">Duration:</span>{" "}
+                    {new Date(experience.start_date).toLocaleDateString()} -{" "}
+                    {experience.end_date
+                      ? new Date(experience.end_date).toLocaleDateString()
+                      : "Present"}
+                  </p>
+                </Card>
+              ))
+            ) : (
+              <div className="text-center py-4 text-muted-foreground">
+                No work experience found
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>
