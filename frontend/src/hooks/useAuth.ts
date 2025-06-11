@@ -1,15 +1,15 @@
 import { AxiosError } from "axios";
 import apiClient from "@/api/client";
-import { UserRegistrationInput } from "@/types/User";
+import { RegisterUserSchema } from "@/schemas/auth/register.schema";
 import { useAuthContext } from "@/context/UserProvider";
-import { LoginFormType } from "@/types/LoginFormType";
+import { LoginUserSchema } from "@/schemas/auth/login.schema";
 
 // Custom Hooks to handle all the authentication logic
 export default function useAuth() {
   const { setUser } = useAuthContext();
 
   // Hook to register a user
-  const registerUser = async (userData: UserRegistrationInput) => {
+  const registerUser = async (userData: RegisterUserSchema) => {
     try {
       const response = await apiClient.post("/api/auth/register", userData);
       return response.data;
@@ -21,7 +21,7 @@ export default function useAuth() {
   };
 
   // Hook to login a user
-  const loginUser = async (userData: LoginFormType) => {
+  const loginUser = async (userData: LoginUserSchema) => {
     try {
       const response = await apiClient.post("/api/auth/login", userData);
       // Update context with the user data
