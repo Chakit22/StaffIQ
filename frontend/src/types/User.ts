@@ -1,6 +1,7 @@
 // @/types/User.ts
 import { Application } from "./Application";
 import { Experience } from "./Experience";
+import { Course } from "./Course";
 
 export type UserRole = "candidate" | "lecturer";
 
@@ -8,7 +9,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  phone: number;
+  phone: string;
   password: string;
   role: UserRole;
   dateOfJoining: Date;
@@ -16,6 +17,7 @@ export interface User {
   avatarUrl?: string;
   applications: Application[];
   experiences: Experience[];
+  courses: Course[];
 }
 
 export interface UserRegistrationInput {

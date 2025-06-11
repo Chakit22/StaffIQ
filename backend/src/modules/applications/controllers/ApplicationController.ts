@@ -16,6 +16,7 @@ import Ranking from "../../../entity/Ranking";
 import { Comment } from "../../../entity/Comment";
 import { In } from "typeorm";
 import { GetAllApplicationsSchema } from "../schemas/get-all-applications.schema";
+import { Skill } from "../../../entity/Skill";
 
 export class ApplicationController {
   // Repository for application
@@ -36,6 +37,9 @@ export class ApplicationController {
   // Repository for comment
   private commentRepository = AppDataSource.getRepository(Comment);
 
+  // Repository for skill
+  private skillRepository = AppDataSource.getRepository(Skill);
+
   // Create a application
   /**
    *
@@ -50,6 +54,7 @@ export class ApplicationController {
   ) => {
     try {
       const body = req.body;
+      console.log("body", body);
       // UserId must be valid
       const user = await this.userRepository.findOne({
         where: { id: body.userId },
@@ -82,6 +87,27 @@ export class ApplicationController {
         error.statusCode = 404;
         throw error;
       }
+
+      // Check if skills exist, create them if they don't
+      const skillPromises = body.skills.map(async (skill: { name: string }) => {
+        const existingSkill = await this.skillRepository.findOne({
+          where: { name: skill.name },
+        });
+
+        if (!existingSkill) {
+          // Create the skill if it doesn't exist
+          const newSkill = this.skillRepository.create({
+            name: skill.name,
+          });
+          return await this.skillRepository.save(newSkill);
+        }
+
+        return existingSkill;
+      });
+
+      // Wait for all skills to be created/fetched
+      const savedSkills = await Promise.all(skillPromises);
+      body.skills = savedSkills;
 
       // Create a application
       const application = this.applicationRepository.create(body);

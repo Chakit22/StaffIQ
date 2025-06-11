@@ -2,18 +2,19 @@ import { Role } from "./Role";
 import { User } from "./User";
 import { Skill } from "./Skill";
 import { Course } from "./Course";
+import { Availability } from "./Availability";
 
 export interface Application {
   id: string;
   academic_creds: string;
-  availability: string;
-  comments?: string;
   userId: string;
   courseId: string;
   roleId: string;
+  availabilityId: string;
   user: User;
   course: Course;
   role: Role;
+  availability: Availability;
   skills: Skill[];
 }
 

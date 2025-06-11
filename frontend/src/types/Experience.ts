@@ -1,3 +1,5 @@
+import { User } from "./User";
+
 export interface Experience {
   id: string;
   role: string;
@@ -5,6 +7,7 @@ export interface Experience {
   description: string;
   start_date: Date;
   end_date?: Date;
+  user: User;
 }
 
 // import {

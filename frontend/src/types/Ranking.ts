@@ -1,3 +1,6 @@
+import { Application } from "./Application";
+import { User } from "./User";
+
 export interface Ranking {
   rankings: RankingInput[];
 }
@@ -6,6 +9,8 @@ interface RankingInput {
   lecturerId: string;
   applicationId: string;
   rank: number;
+  lecturer: User;
+  application: Application;
 }
 
 // export class UpdateApplicationRankingDto {

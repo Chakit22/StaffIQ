@@ -73,6 +73,8 @@ export default function useApplication() {
         };
       } else {
         const response = await apiClient.get(`/api/applications`);
+
+        console.log("response", response);
         return {
           success: response.data.success,
           message: response.data.message,
