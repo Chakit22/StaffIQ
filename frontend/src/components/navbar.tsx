@@ -3,18 +3,24 @@
 import { LogOut, Home } from "lucide-react";
 import { Button } from "./ui/button";
 import Link from "next/link";
-import { useAuth } from "@/context/UserProvider";
 import { useRouter } from "next/navigation";
 import { SidebarTrigger } from "./ui/sidebar";
 import { AppSidebar } from "./app-sidebar";
+import useAuth from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 export default function Navbar() {
-  const { logout } = useAuth();
+  const { logoutUser } = useAuth();
   const router = useRouter();
 
-  const handleLogout = () => {
-    logout();
-    router.replace("/");
+  const handleLogout = async () => {
+    const response = await logoutUser();
+    if (response.success) {
+      toast.success(response.message);
+      router.replace("/signin");
+    } else {
+      toast.error(response.message);
+    }
   };
 
   return (

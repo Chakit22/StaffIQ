@@ -131,6 +131,21 @@ export class AuthController {
     }
   };
 
+  // GET CURRENT USER
+  getCurrentUser: RequestHandler = async (req, res, next) => {
+    try {
+      const user = (req as AuthRequest).user;
+      console.log("user", user);
+      res.json({
+        success: true,
+        message: "User fetched successfully",
+        body: user,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
   // REFRESH TOKEN
   refreshToken: RequestHandler = async (req, res, next) => {
     try {

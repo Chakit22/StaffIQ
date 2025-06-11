@@ -4,8 +4,8 @@
  */
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import Cookies from "js-cookie";
 import { User } from "../types/User";
+import apiClient from "../api/client";
 
 interface AuthContextType {
   user: User | null;
@@ -19,31 +19,27 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Store user data in cookies
   const handleSetUser = (userData: User | null) => {
     setUser(userData);
-    if (userData) {
-      // logging in
-      Cookies.set("user", JSON.stringify(userData), { expires: 7 }); // Store for 7 days
-    } else {
-      // logging out
-      Cookies.remove("user");
-    }
   };
 
-  // Load user data from cookies on mount
+  // Load user data from API on mount
   useEffect(() => {
-    const cookieUser = Cookies.get("user");
-    if (cookieUser) {
+    const fetchCurrentUser = async () => {
       try {
-        const parsedUser = JSON.parse(cookieUser);
-        setUser(parsedUser);
+        const response = await apiClient.get("/api/auth/me");
+        if (response.data.success) {
+          setUser(response.data.body);
+        }
       } catch (error) {
-        console.error("Error parsing user from cookie:", error);
-        Cookies.remove("user");
+        console.error("Error fetching current user:", error);
+        // User is not authenticated or there was an error
+      } finally {
+        setLoading(false);
       }
-    }
-    setLoading(false);
+    };
+
+    fetchCurrentUser();
   }, []);
 
   return (

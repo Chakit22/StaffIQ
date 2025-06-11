@@ -35,6 +35,7 @@ export const authenticateToken = (
     // Verify the JWT token
     const decoded = jwt.verify(token, jwtConfig.secret);
     (req as AuthRequest).user = decoded;
+    console.log("decoded", decoded);
     next();
   } catch (error) {
     // Handle any other unexpected errors

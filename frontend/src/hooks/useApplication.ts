@@ -30,7 +30,7 @@ export default function useApplication() {
 
   // Hook to get all applications
   const getAllApplications = async (
-    query: GetAllApplicationsSchema
+    query?: GetAllApplicationsSchema
   ): Promise<ApiResponse> => {
     try {
       const response = await apiClient.get(`/api/applications`, {

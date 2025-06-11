@@ -11,18 +11,22 @@ import {
 } from "@/components/ui/sidebar";
 import { Button } from "./ui/button";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/UserProvider";
+import useAuth from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 export function AppSidebar() {
   const router = useRouter();
-  const { logout } = useAuth();
+  const { logoutUser } = useAuth();
 
-  const handleLogout = () => {
-  logout(); // Clears user and localStorage
-  router.replace("/signin");
-};
-
-
+  const handleLogout = async () => {
+    const response = await logoutUser();
+    if (response.success) {
+      toast.success(response.message);
+      router.replace("/signin");
+    } else {
+      toast.error(response.message);
+    }
+  };
   return (
     <Sidebar>
       <SidebarContent>

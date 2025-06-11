@@ -14,11 +14,7 @@ export default function useAuth() {
     userData: RegisterUserSchema
   ): Promise<ApiResponse> => {
     try {
-      const { confirmPassword, ...userDataWithoutConfirmPassword } = userData;
-      const response = await apiClient.post(
-        "/api/auth/register",
-        userDataWithoutConfirmPassword
-      );
+      const response = await apiClient.post("/api/auth/register", userData);
 
       return {
         success: response.data.success,

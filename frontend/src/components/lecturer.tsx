@@ -13,7 +13,7 @@ import {
 } from "./ui/select";
 import { Input } from "./ui/input";
 import { Checkbox } from "./ui/checkbox";
-import { RankingEditor } from "./RankingEditor";
+// import { RankingEditor } from "./RankingEditor";
 import { useQueryState } from "nuqs";
 import LoaderComponent from "./Loading";
 import { Card } from "./ui/card";
@@ -21,7 +21,6 @@ import { Badge } from "./ui/badge";
 import z from "zod";
 import { useAuthContext } from "@/context/UserProvider";
 import useUser from "@/hooks/useUser";
-import useCourse from "@/hooks/useCourse";
 import { Application } from "@/types/Application";
 import { Course } from "@/types/Course";
 import useRole from "@/hooks/useRole";
@@ -30,6 +29,8 @@ import { Availability } from "@/types/Availability";
 import useAvailability from "@/hooks/useAvailability";
 import useSkill from "@/hooks/useSkill";
 import { Skill } from "@/types/Skill";
+import { toast } from "sonner";
+import useApplication from "@/hooks/useApplication";
 
 export default function LecturerComponent() {
   const router = useRouter();
@@ -56,6 +57,10 @@ export default function LecturerComponent() {
   // Skills
   const { getAllSkills } = useSkill();
   const [skills, setSkills] = useState<Skill[]>([]);
+
+  // Applications
+  const { getAllApplications } = useApplication();
+  const [applications, setApplications] = useState<Application[]>([]);
 
   // All filters in one state
   /**
@@ -88,32 +93,59 @@ export default function LecturerComponent() {
 
     // Fetch all courses assigned to the lecturer
     const fetchCoursesAssigned = async () => {
-      const courses = await getAllCoursesAssigned(user?.id);
-      setCoursesAssigned(courses);
+      const response = await getAllCoursesAssigned(user?.id);
+      if (response.success) {
+        setCoursesAssigned(response.body as Course[]);
+      } else {
+        toast.error(response.message);
+      }
     };
 
     // Fetch all roles
     const fetchRoles = async () => {
-      const roles = await getAllRoles();
-      setRoles(roles);
+      const response = await getAllRoles();
+      if (response.success) {
+        setRoles(response.body as Role[]);
+      } else {
+        toast.error(response.message);
+      }
     };
 
     // Fetch all availabilities
     const fetchAvailabilities = async () => {
-      const availabilities = await getAllAvailabilities();
-      setAvailabilities(availabilities);
+      const response = await getAllAvailabilities();
+      if (response.success) {
+        setAvailabilities(response.body as Availability[]);
+      } else {
+        toast.error(response.message);
+      }
     };
 
     // Fetch all skills
     const fetchSkills = async () => {
-      const skills = await getAllSkills();
-      setSkills(skills);
+      const response = await getAllSkills();
+      if (response.success) {
+        setSkills(response.body as Skill[]);
+      } else {
+        toast.error(response.message);
+      }
+    };
+
+    // Fetch all applications
+    const fetchApplications = async () => {
+      const response = await getAllApplications();
+      if (response.success) {
+        setApplications(response.body as Application[]);
+      } else {
+        toast.error(response.message);
+      }
     };
 
     fetchCoursesAssigned();
     fetchRoles();
     fetchAvailabilities();
     fetchSkills();
+    fetchApplications();
   }, []);
 
   // Show loading overlay while loading
@@ -128,27 +160,14 @@ export default function LecturerComponent() {
   }
 
   return (
-    <div className="flex flex-col gap-8">
-      {/* course selection dropdown */}
-      <div className="border rounded-xl shadow p-4 bg-blue-50">
-        <h2 className="text-lg font-semibold pb-2">Select Course</h2>
-        <Select onValueChange={setSelectedCourse} value={selectedCourse}>
-          <SelectTrigger className="min-w-1/3">
-            <SelectValue placeholder="Select a course" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              {coursesAssigned.map((c) => (
-                <SelectItem key={c.id} value={c.id}>
-                  {c.course_code} - {c.name}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-      </div>
+    <div>
+      <h1>Lecturer Dashboard</h1>
+    </div>
+  );
 
-      {/* filters */}
+  return (
+    <div className="flex flex-col gap-8">
+      filters
       {selectedCourse && (
         <div className="flex flex-col md:flex-row justify-between md:items-center gap-2">
           <Input
@@ -197,7 +216,6 @@ export default function LecturerComponent() {
           </Select>
         </div>
       )}
-
       {/* link to stats */}
       <Link
         href="/lecturer/graph"
@@ -205,11 +223,10 @@ export default function LecturerComponent() {
       >
         📊 View Applicant Stats Graph
       </Link>
-
       {/* applications */}
-      {selectedCourse && currentApplications.length > 0 && (
+      {applications.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {filteredApplications.map((application: Application) => (
+          {applications.map((application: Application) => (
             <Card key={application.id} className="hover:shadow-xl p-6">
               <div className="flex justify-between items-center">
                 <div className="text-md font-bold">{application.user.name}</div>
@@ -244,12 +261,8 @@ export default function LecturerComponent() {
               {/* Select candidate */}
               <div className="flex justify-start items-center gap-2">
                 <Checkbox
-                  checked={selectedApplicants.some(
-                    (x) =>
-                      x.id === application.id &&
-                      x.role.id === application.role.id
-                  )}
-                  onCheckedChange={() => handleSelectToggle(application)}
+                  checked={application.selected}
+                  onCheckedChange={() => {}}
                 />
                 Select Candidate
               </div>
@@ -257,11 +270,9 @@ export default function LecturerComponent() {
           ))}
         </div>
       )}
-
       {selectedCourse && filteredApplications.length === 0 && (
         <div className="text-center">No applicants found</div>
       )}
-
       {/* ranking editor section */}
       {uniqueSelectedApplicants.length > 0 && selectedCourse && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

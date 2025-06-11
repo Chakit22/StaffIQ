@@ -1,6 +1,6 @@
 import { useAuthContext } from "@/context/UserProvider";
 import useAuth from "@/hooks/useAuth";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -34,18 +34,12 @@ export default function SignInForm() {
     resolver: zodResolver(LoginUserSchema),
   });
 
-  useEffect(() => {
-    if (user) {
-      router.replace(`/${user.role}?id=${user.id}`);
-    }
-  }, [user, router]);
-
   // Async login with backend API
   const onSubmit = async (data: LoginUserSchema) => {
-    if (!isVerified) {
-      toast.error("Please complete CAPTCHA before logging in.");
-      return;
-    }
+    // if (!isVerified) {
+    //   toast.error("Please complete CAPTCHA before logging in.");
+    //   return;
+    // }
 
     const response = await loginUser(data);
     if (response.success) {
@@ -65,6 +59,7 @@ export default function SignInForm() {
   if (user) {
     // redirect to appropriate page based on user role
     router.replace(`/${user.role}?id=${user.id}`);
+    return;
   }
 
   return (
@@ -128,7 +123,7 @@ export default function SignInForm() {
           </div>
 
           {/* Captcha */}
-          {!isVerified && <Captcha setIsVerified={setIsVerified} />}
+          {/* {!isVerified && <Captcha setIsVerified={setIsVerified} />} */}
 
           {/* Submit */}
           <Button type="submit" className="rounded-sm text-md">

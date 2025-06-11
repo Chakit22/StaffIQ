@@ -7,9 +7,9 @@ const router = Router();
 const roleController = new RoleController();
 
 // All the routes are protected by the authenticateToken middleware
-router.use(authenticateToken);
+// router.use(authenticateToken);
 
 // Get all roles - Only lecturers can view available roles
-router.get("/", requireLecturer, roleController.getAllRoles);
+router.get("/", roleController.getAllRoles);
 
 export default router;

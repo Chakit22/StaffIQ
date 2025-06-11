@@ -22,6 +22,9 @@ router.post(
   authController.loginUser
 );
 
+// Get current user route
+router.get("/me", authenticateToken, authController.getCurrentUser);
+
 // Refresh token route (This is used to generate a new access token if it is expired)
 router.post("/refresh-token", authController.refreshToken);
 
