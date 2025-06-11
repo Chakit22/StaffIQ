@@ -38,7 +38,7 @@ app.use("/api/roles", roleRoutes);
 app.use("/api/skills", skillRoutes);
 
 // availability routes
-app.use("/api/availability", availabilityRoutes);
+app.use("/api/availabilities", availabilityRoutes);
 
 // Error handling middleware
 app.use(errorHandler);

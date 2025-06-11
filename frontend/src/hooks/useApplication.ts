@@ -33,14 +33,52 @@ export default function useApplication() {
     query?: GetAllApplicationsSchema
   ): Promise<ApiResponse> => {
     try {
-      const response = await apiClient.get(`/api/applications`, {
-        params: query,
-      });
-      return {
-        success: response.data.success,
-        message: response.data.message,
-        body: response.data.body,
-      };
+      console.log("query", query);
+
+      if (query) {
+        // Import the schema
+        const { GetAllApplicationsSchema } = await import(
+          "../schemas/applications/get-all-applications.schema"
+        );
+
+        // Validate the query with Zod using safeParse
+        const validationResult = GetAllApplicationsSchema.safeParse(query);
+
+        if (!validationResult.success) {
+          // Handle validation errors
+          console.error("Validation errors:", validationResult.error.issues);
+
+          const errorMessages = validationResult.error.issues
+            .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
+            .join(", ");
+
+          return {
+            success: false,
+            message: `Validation failed: ${errorMessages}`,
+            body: null,
+          };
+        }
+
+        // Use the validated data
+        const validatedQuery = validationResult.data;
+
+        const response = await apiClient.get(`/api/applications`, {
+          params: validatedQuery,
+        });
+
+        return {
+          success: response.data.success,
+          message: response.data.message,
+          body: response.data.body,
+        };
+      } else {
+        const response = await apiClient.get(`/api/applications`);
+        return {
+          success: response.data.success,
+          message: response.data.message,
+          body: response.data.body,
+        };
+      }
     } catch (error: unknown) {
       console.error("Error getting all applications", error);
       return handleApiError(error);

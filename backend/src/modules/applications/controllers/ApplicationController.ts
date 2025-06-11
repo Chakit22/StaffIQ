@@ -15,6 +15,7 @@ import { ApiError } from "../../../shared/middleware/error-handler";
 import Ranking from "../../../entity/Ranking";
 import { Comment } from "../../../entity/Comment";
 import { In } from "typeorm";
+import { GetAllApplicationsSchema } from "../schemas/get-all-applications.schema";
 
 export class ApplicationController {
   // Repository for application
@@ -109,8 +110,10 @@ export class ApplicationController {
     next: NextFunction
   ) => {
     try {
+      // Use validated query data if available, fallback to req.query
+      const queryData = (req as any).validatedQuery || req.query;
       const { courses, roles, availabilities, skills, search, sortBy } =
-        req.query;
+        queryData;
 
       // Start building the query with joins for related entities
       let query = this.applicationRepository
@@ -122,56 +125,39 @@ export class ApplicationController {
         .leftJoinAndSelect("application.skills", "skills");
 
       // Apply filters - these work as OR conditions within each filter type
-      if (courses && courses.toString().trim()) {
-        const courseIds = courses
-          .toString()
-          .split(",")
-          .filter((id) => id.trim());
-        if (courseIds.length > 0) {
-          query = query.andWhere("application.courseId IN (:...courseIds)", {
-            courseIds,
-          });
-        }
+      if (courses && Array.isArray(courses) && courses.length > 0) {
+        query = query.andWhere("application.courseId IN (:...courseIds)", {
+          courseIds: courses,
+        });
       }
 
-      if (roles && roles.toString().trim()) {
-        const roleIds = roles
-          .toString()
-          .split(",")
-          .filter((id) => id.trim());
-        if (roleIds.length > 0) {
-          query = query.andWhere("application.roleId IN (:...roleIds)", {
-            roleIds,
-          });
-        }
+      if (roles && Array.isArray(roles) && roles.length > 0) {
+        query = query.andWhere("application.roleId IN (:...roleIds)", {
+          roleIds: roles,
+        });
       }
 
-      if (availabilities && availabilities.toString().trim()) {
-        const availabilityIds = availabilities
-          .toString()
-          .split(",")
-          .filter((id) => id.trim());
-        if (availabilityIds.length > 0) {
-          query = query.andWhere(
-            "application.availabilityId IN (:...availabilityIds)",
-            { availabilityIds }
-          );
-        }
+      if (
+        availabilities &&
+        Array.isArray(availabilities) &&
+        availabilities.length > 0
+      ) {
+        query = query.andWhere(
+          "application.availabilityId IN (:...availabilityIds)",
+          { availabilityIds: availabilities }
+        );
       }
 
-      if (skills && skills.toString().trim()) {
-        const skillIds = skills
-          .toString()
-          .split(",")
-          .filter((id) => id.trim());
-        if (skillIds.length > 0) {
-          query = query.andWhere("skills.id IN (:...skillIds)", { skillIds });
-        }
+      if (skills && Array.isArray(skills) && skills.length > 0) {
+        const skillNames = skills.map((skill: any) => skill.name);
+        query = query.andWhere("skills.name IN (:...skillNames)", {
+          skillNames,
+        });
       }
 
       // Apply search - searches across course name, candidate name, availability, and skill names
-      if (search && search.toString().trim()) {
-        const searchTerm = `%${search.toString().trim()}%`;
+      if (search && typeof search === "string" && search.trim()) {
+        const searchTerm = `%${search.trim()}%`;
         query = query.andWhere(
           "(LOWER(course.name) LIKE LOWER(:searchTerm) OR LOWER(user.name) LIKE LOWER(:searchTerm) OR LOWER(availability.availability) LIKE LOWER(:searchTerm) OR LOWER(skills.name) LIKE LOWER(:searchTerm))",
           { searchTerm }
@@ -179,8 +165,8 @@ export class ApplicationController {
       }
 
       // Apply sorting
-      if (sortBy) {
-        switch (sortBy.toString()) {
+      if (sortBy && typeof sortBy === "string") {
+        switch (sortBy) {
           case "course_name_asc":
             query = query.orderBy("course.name", "ASC");
             break;

@@ -12,7 +12,7 @@ import PasswordRules from "@/components/password-rules";
 import { passwordRules } from "@/utils/password-rules";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import Captcha from "@/components/captcha";
+// import Captcha from "@/components/captcha";
 import LoaderComponent from "@/components/Loading";
 import { LoginUserSchema } from "@/schemas/auth/login.schema";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -21,7 +21,7 @@ export default function SignInForm() {
   const [showPassword, setShowPassword] = useState<boolean>(true);
   const [isPasswordFocused, setIsPasswordFocused] = useState<boolean>(false);
   const router = useRouter();
-  const [isVerified, setIsVerified] = useState<boolean>(false);
+  // const [isVerified, setIsVerified] = useState<boolean>(false);
   const { loading, user } = useAuthContext();
   const { loginUser } = useAuth();
 

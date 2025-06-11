@@ -6,7 +6,7 @@ export class SkillController {
   private skillRepository = AppDataSource.getRepository(Skill);
 
   // Get all skills
-  async getAllSkills(req: Request, res: Response, next: NextFunction) {
+  getAllSkills = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const skills = await this.skillRepository.find();
       res.status(200).json({
@@ -18,5 +18,5 @@ export class SkillController {
       next(error);
       return;
     }
-  }
+  };
 }
