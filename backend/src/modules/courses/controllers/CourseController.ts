@@ -119,9 +119,18 @@ export class CourseController {
       let leastChosenCandidates: any[] = [];
       let unchosenCandidates: any[] = [];
 
-      // If both max and min are the same then all are most chosen candidates
-      if (maxTimesChosen === minTimesChosen) {
-        mostChosenCandidates = counts;
+      // If no rankings exist, all candidates are unchosen
+      if (counts.length === 0) {
+        unchosenCandidates = await this.applicationRepository
+          .createQueryBuilder("application")
+          .leftJoinAndSelect("application.user", "user")
+          .leftJoinAndSelect("application.course", "course")
+          .leftJoinAndSelect("application.role", "role")
+          .leftJoinAndSelect("application.availability", "availability")
+          .leftJoinAndSelect("application.skills", "skills")
+          .where("application.courseId = :courseId", { courseId })
+          .getMany();
+
         res.status(200).json({
           success: true,
           body: {
@@ -129,29 +138,78 @@ export class CourseController {
             leastChosenCandidates,
             unchosenCandidates,
           },
+          message: "Stats fetched succesfully!",
         });
         return;
       }
 
-      // Get the most chosen candidates. Get the highest value of timesChosen and get all the applications with that value.
-      mostChosenCandidates = counts.filter(
-        (count) => count.timesChosen == maxTimesChosen
-      );
+      // If both max and min are the same then all are most chosen candidates
+      if (maxTimesChosen === minTimesChosen && counts.length > 0) {
+        const allChosenIds = counts.map((count) => count.applicationId);
+        mostChosenCandidates = await this.applicationRepository
+          .createQueryBuilder("application")
+          .leftJoinAndSelect("application.user", "user")
+          .leftJoinAndSelect("application.course", "course")
+          .leftJoinAndSelect("application.role", "role")
+          .leftJoinAndSelect("application.availability", "availability")
+          .leftJoinAndSelect("application.skills", "skills")
+          .where("application.id IN (:...ids)", { ids: allChosenIds })
+          .getMany();
 
-      // Get the least chosen candidates
-      leastChosenCandidates = counts.filter(
-        (count) => count.timesChosen == minTimesChosen
-      );
+        res.status(200).json({
+          success: true,
+          body: {
+            mostChosenCandidates,
+            leastChosenCandidates,
+            unchosenCandidates,
+          },
+          message: "Stats fetched succesfully!",
+        });
+        return;
+      }
 
-      // Get the unchosen candidates. These are the ones which are not ranked by the lecturer.
-      // Left join from application table onto Ranking table and filter out where applicationId is NULL
+      // Get the most chosen candidates with full application data
+      const mostChosenIds = counts
+        .filter((count) => count.timesChosen == maxTimesChosen)
+        .map((count) => count.applicationId);
+
+      mostChosenCandidates = await this.applicationRepository
+        .createQueryBuilder("application")
+        .leftJoinAndSelect("application.user", "user")
+        .leftJoinAndSelect("application.course", "course")
+        .leftJoinAndSelect("application.role", "role")
+        .leftJoinAndSelect("application.availability", "availability")
+        .leftJoinAndSelect("application.skills", "skills")
+        .where("application.id IN (:...ids)", { ids: mostChosenIds })
+        .getMany();
+
+      // Get the least chosen candidates with full application data
+      const leastChosenIds = counts
+        .filter((count) => count.timesChosen == minTimesChosen)
+        .map((count) => count.applicationId);
+
+      leastChosenCandidates = await this.applicationRepository
+        .createQueryBuilder("application")
+        .leftJoinAndSelect("application.user", "user")
+        .leftJoinAndSelect("application.course", "course")
+        .leftJoinAndSelect("application.role", "role")
+        .leftJoinAndSelect("application.availability", "availability")
+        .leftJoinAndSelect("application.skills", "skills")
+        .where("application.id IN (:...ids)", { ids: leastChosenIds })
+        .getMany();
+
+      // Get the unchosen candidates with full application data
       unchosenCandidates = await this.applicationRepository
         .createQueryBuilder("application")
-        .select("id AS applicationId")
-        .leftJoin(Ranking, "ranking", "id = applicationId")
-        .where("applicationId IS NULL")
-        .andWhere("courseId = :courseId", { courseId })
-        .getRawMany();
+        .leftJoinAndSelect("application.user", "user")
+        .leftJoinAndSelect("application.course", "course")
+        .leftJoinAndSelect("application.role", "role")
+        .leftJoinAndSelect("application.availability", "availability")
+        .leftJoinAndSelect("application.skills", "skills")
+        .leftJoin(Ranking, "ranking", "application.id = ranking.applicationId")
+        .where("ranking.applicationId IS NULL")
+        .andWhere("application.courseId = :courseId", { courseId })
+        .getMany();
 
       res.status(200).json({
         success: true,
@@ -195,9 +253,15 @@ export class CourseController {
 
       // Here we have two tables: Ranking and Application with a common column being: applicationId.
       // To get all the preferences for a particular course set by a lecturer, we need to join these two tables on the applicationId column.
+      // Also join all related entities that the frontend expects (user, role, availability, skills)
       const preferences = await this.rankingRepository
         .createQueryBuilder("ranking")
         .innerJoinAndSelect("ranking.application", "RankingApplication") // This joins on applicationId column and sets the table name as RankingApplication
+        .leftJoinAndSelect("RankingApplication.user", "user")
+        .leftJoinAndSelect("RankingApplication.course", "course")
+        .leftJoinAndSelect("RankingApplication.role", "role")
+        .leftJoinAndSelect("RankingApplication.availability", "availability")
+        .leftJoinAndSelect("RankingApplication.skills", "skills")
         .where("ranking.lecturerId = :lecturerId", { lecturerId })
         .andWhere("RankingApplication.courseId = :courseId", { courseId })
         .orderBy("ranking.rank", "ASC")

@@ -357,10 +357,10 @@ export default function LecturerComponent() {
         {/* link to stats */}
         <div className="flex justify-between items-center">
           <Link
-            href="/lecturer/graph"
+            href="/lecturer/stats"
             className="text-blue-500 underline text-sm self-start"
           >
-            📊 View Applicant Stats Graph
+            📊 View Course Statistics
           </Link>
 
           {activeFilterCount > 0 && (
