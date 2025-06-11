@@ -17,6 +17,7 @@ import { Comment } from "../../../entity/Comment";
 import { In } from "typeorm";
 import { GetAllApplicationsSchema } from "../schemas/get-all-applications.schema";
 import { Skill } from "../../../entity/Skill";
+import { AuthRequest } from "../../../shared/middleware/auth.middleware";
 
 export class ApplicationController {
   // Repository for application
@@ -136,6 +137,24 @@ export class ApplicationController {
     next: NextFunction
   ) => {
     try {
+      // Get the current user (lecturer) from the authenticated request
+      const currentUser = (req as AuthRequest).user;
+
+      // Get the lecturer with their assigned courses
+      const lecturer = await this.userRepository.findOne({
+        where: { id: currentUser.id },
+        relations: ["courses"],
+      });
+
+      if (!lecturer) {
+        const error = new Error("Lecturer not found!") as ApiError;
+        error.statusCode = 404;
+        throw error;
+      }
+
+      // Extract course IDs that are assigned to this lecturer
+      const assignedCourseIds = lecturer.courses.map((course) => course.id);
+
       // Use validated query data if available, fallback to req.query
       const queryData = (req as any).validatedQuery || req.query;
       const { courses, roles, availabilities, skills, search, sortBy } =
@@ -148,33 +167,33 @@ export class ApplicationController {
         .leftJoinAndSelect("application.course", "course")
         .leftJoinAndSelect("application.role", "role")
         .leftJoinAndSelect("application.availability", "availability")
-        .leftJoinAndSelect("application.skills", "skills");
+        .leftJoinAndSelect("application.skills", "skills")
+        // Filter applications to only show those for courses assigned to the lecturer
+        .where("application.courseId IN (:...assignedCourseIds)", {
+          assignedCourseIds,
+        });
 
       // Apply filters - these work as OR conditions within each filter type
-      if (courses && Array.isArray(courses) && courses.length > 0) {
+      if (courses) {
         query = query.andWhere("application.courseId IN (:...courseIds)", {
           courseIds: courses,
         });
       }
 
-      if (roles && Array.isArray(roles) && roles.length > 0) {
+      if (roles) {
         query = query.andWhere("application.roleId IN (:...roleIds)", {
           roleIds: roles,
         });
       }
 
-      if (
-        availabilities &&
-        Array.isArray(availabilities) &&
-        availabilities.length > 0
-      ) {
+      if (availabilities) {
         query = query.andWhere(
           "application.availabilityId IN (:...availabilityIds)",
           { availabilityIds: availabilities }
         );
       }
 
-      if (skills && Array.isArray(skills) && skills.length > 0) {
+      if (skills) {
         const skillNames = skills.map((skill: any) => skill.name);
         query = query.andWhere("skills.name IN (:...skillNames)", {
           skillNames,
@@ -182,7 +201,7 @@ export class ApplicationController {
       }
 
       // Apply search - searches across course name, candidate name, availability, and skill names
-      if (search && typeof search === "string" && search.trim()) {
+      if (search && search.trim()) {
         const searchTerm = `%${search.trim()}%`;
         query = query.andWhere(
           "(LOWER(course.name) LIKE LOWER(:searchTerm) OR LOWER(user.name) LIKE LOWER(:searchTerm) OR LOWER(availability.availability) LIKE LOWER(:searchTerm) OR LOWER(skills.name) LIKE LOWER(:searchTerm))",
@@ -191,7 +210,7 @@ export class ApplicationController {
       }
 
       // Apply sorting
-      if (sortBy && typeof sortBy === "string") {
+      if (sortBy) {
         switch (sortBy) {
           case "course_name_asc":
             query = query.orderBy("course.name", "ASC");
