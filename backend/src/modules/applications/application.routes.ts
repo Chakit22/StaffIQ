@@ -1,11 +1,11 @@
 import { Router } from "express";
 import { ApplicationController } from "./controllers/ApplicationController";
-import { CreateApplicationDto } from "./dtos/create-application.dto";
-import { validateDTO } from "../../shared/middleware/validate";
+import { CreateApplicationSchema } from "./schemas/create-application.schema";
+import { validateSchema } from "../../shared/middleware/validate";
 import { authenticateToken } from "../../shared/middleware/auth.middleware";
-import { UpdateApplicationRankingDto } from "./dtos/update-application-ranking";
-import { UpdateAppCommentDto } from "./dtos/update-application-comment.dto";
-import { GetAllApplicationsDto } from "./dtos/get-all-applications.dto";
+import { UpdateApplicationRankingSchema } from "./schemas/update-application-ranking.schema";
+import { UpdateApplicationCommentSchema } from "./schemas/update-application-comment.schema";
+import { GetAllApplicationsSchema } from "./schemas/get-all-applications.schema";
 import {
   requireLecturer,
   requireCandidate,
@@ -22,7 +22,7 @@ const applicationController = new ApplicationController();
 router.post(
   "/",
   requireCandidate,
-  validateDTO(CreateApplicationDto),
+  validateSchema(CreateApplicationSchema),
   applicationController.createApplication
 );
 
@@ -30,7 +30,7 @@ router.post(
 router.get(
   "/",
   requireLecturer,
-  // validateDTO(GetAllApplicationsDto, "query"),
+  validateSchema(GetAllApplicationsSchema, "query"),
   applicationController.getAllApplications
 );
 
@@ -38,7 +38,7 @@ router.get(
 router.patch(
   "/rankings/batch",
   requireLecturer,
-  validateDTO(UpdateApplicationRankingDto),
+  validateSchema(UpdateApplicationRankingSchema),
   applicationController.updateApplicationStatusRanking
 );
 
@@ -46,7 +46,7 @@ router.patch(
 router.put(
   "/comment",
   requireLecturer,
-  validateDTO(UpdateAppCommentDto),
+  validateSchema(UpdateApplicationCommentSchema),
   applicationController.updateAppComment
 );
 
