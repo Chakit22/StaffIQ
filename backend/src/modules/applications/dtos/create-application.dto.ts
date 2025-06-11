@@ -1,53 +1,53 @@
-import {
-  IsArray,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  ValidateNested,
-} from "class-validator";
-import { Type } from "class-transformer";
+import { z } from "zod";
 
-/**
- * DTO for creating a application
- */
-export class CreateApplicationDto {
-  @IsNotEmpty() // Checks if given value is not empty (!== '', !== null, !== undefined).
-  @IsString()
-  academic_creds: string;
+export const CreateApplicationDto = z.object({
+  academic_creds: z.string(),
+  userId: z.string(),
+  courseId: z.string(),
+  roleId: z.string(),
+  availabilityId: z.string(),
+  skills: z.array(z.string()),
+});
 
-  @IsOptional()
-  @IsString()
-  comments: string;
+export type CreateApplicationDto = z.infer<typeof CreateApplicationDto>;
 
-  @IsNotEmpty()
-  @IsString()
-  userId: string;
+// /**
+//  * DTO for creating a application
+//  */
+// export class CreateApplicationDto {
+//   @IsNotEmpty() // Checks if given value is not empty (!== '', !== null, !== undefined).
+//   @IsString()
+//   academic_creds: string;
 
-  @IsNotEmpty()
-  @IsString()
-  courseId: string;
+//   @IsNotEmpty()
+//   @IsString()
+//   userId: string;
 
-  @IsNotEmpty()
-  @IsString()
-  roleId: string;
+//   @IsNotEmpty()
+//   @IsString()
+//   courseId: string;
 
-  @IsNotEmpty()
-  @IsString()
-  availabilityId: string;
+//   @IsNotEmpty()
+//   @IsString()
+//   roleId: string;
 
-  @IsNotEmpty()
-  @IsArray()
-  @ValidateNested({ each: true }) // Validate each object in the array
-  @Type(() => SkillInput)
-  skills: SkillInput[];
-}
+//   @IsNotEmpty()
+//   @IsString()
+//   availabilityId: string;
 
-class SkillInput {
-  @IsNotEmpty()
-  @IsString()
-  id: string;
+//   @IsNotEmpty()
+//   @IsArray()
+//   @ValidateNested({ each: true }) // Validate each object in the array
+//   @Type(() => SkillInput)
+//   skills: SkillInput[];
+// }
 
-  @IsNotEmpty()
-  @IsString()
-  name: string;
-}
+// class SkillInput {
+//   @IsNotEmpty()
+//   @IsString()
+//   id: string;
+
+//   @IsNotEmpty()
+//   @IsString()
+//   name: string;
+// }

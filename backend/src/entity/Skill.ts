@@ -1,10 +1,7 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Entity, PrimaryColumn } from "typeorm";
 
 @Entity()
 export class Skill {
-  @PrimaryGeneratedColumn("uuid")
-  id: string;
-
-  @Column()
+  @PrimaryColumn()
   name: string;
 }

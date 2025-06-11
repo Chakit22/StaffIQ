@@ -62,9 +62,18 @@ export class Application {
   @JoinColumn({ name: "availabilityId" })
   availability: Availability;
 
-  // Owning side of the many-to-many relationship, so JoinTable is added.(JoinTable is mandatory to be added)
-  // A application can have many skills
+  // Owning side of the many-to-many relationship
   @ManyToMany(() => Skill)
-  @JoinTable({ name: "ApplicationSkill" })
+  @JoinTable({
+    name: "ApplicationSkill",
+    joinColumn: {
+      name: "applicationId",
+      referencedColumnName: "id",
+    },
+    inverseJoinColumn: {
+      name: "skillName",
+      referencedColumnName: "name",
+    },
+  })
   skills: Skill[];
 }
