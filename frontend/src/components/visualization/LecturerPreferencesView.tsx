@@ -1,10 +1,3 @@
-/**
- * VISUALIZATION COMPONENT - Lecturer Preferences Display
- *
- * Pure presentation component that renders lecturer rankings/preferences
- * without any business logic or state management.
- */
-
 import { Application } from "@/types/Application";
 import { Card } from "../ui/card";
 import { Badge } from "../ui/badge";

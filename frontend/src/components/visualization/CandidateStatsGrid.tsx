@@ -1,16 +1,3 @@
-/**
- * VISUALIZATION COMPONENT - Pure Presentation Layer
- *
- * This component follows the Presentation Component pattern, focusing solely on
- * rendering data passed to it as props without any business logic or data fetching.
- *
- * ARCHITECTURAL BENEFITS:
- * 1. PURE FUNCTION: Component is predictable - same props always produce same output
- * 2. REUSABLE: Can display any candidate data regardless of source (most/least/unchosen)
- * 3. TESTABLE: Easy to test with mock data, no dependencies on external APIs
- * 4. MAINTAINABLE: Changes to data fetching logic don't affect this component
- */
-
 import { Application } from "@/types/Application";
 import { Card } from "../ui/card";
 import { Badge } from "../ui/badge";
@@ -22,10 +9,6 @@ export interface CandidateStatsGridProps {
   emptyMessage?: string;
 }
 
-/**
- * Pure presentation component that renders candidate data in a grid layout
- * Contains no business logic, only visual presentation concerns
- */
 export function CandidateStatsGrid({
   title,
   candidates,
