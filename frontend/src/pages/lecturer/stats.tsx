@@ -41,6 +41,14 @@ import {
 } from "@/components/ui/select";
 import { CandidateStatsGrid } from "@/components/visualization/CandidateStatsGrid";
 import { LecturerPreferencesView } from "@/components/visualization/LecturerPreferencesView";
+import {
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
+} from "recharts";
 
 export default function StatsPage() {
   const { user, loading: userLoading } = useAuthContext();
@@ -231,9 +239,172 @@ function StatsContent() {
           {/* Course Statistics Section */}
           {courseStats && (
             <div className="space-y-6">
+              {/* Summary Stats from existing graph implementation */}
+              <Card className="p-6">
+                <CardTitle className="text-center">Summary Stats</CardTitle>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                  <div className="bg-blue-100 p-4 rounded">
+                    Total:{" "}
+                    {courseStats.mostChosenCandidates.length +
+                      courseStats.leastChosenCandidates.length +
+                      courseStats.unchosenCandidates.length}
+                  </div>
+                  <div className="bg-green-100 p-4 rounded">
+                    Most Chosen: {courseStats.mostChosenCandidates.length}
+                  </div>
+                  <div className="bg-yellow-100 p-4 rounded">
+                    Least Chosen: {courseStats.leastChosenCandidates.length}
+                  </div>
+                </div>
+              </Card>
+
+              {/* Distribution Charts from existing graph implementation */}
+              <Card className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Role Distribution */}
+                  <div className="bg-white p-6 rounded-lg shadow overflow-hidden">
+                    <h2 className="text-lg font-semibold mb-4 text-center">
+                      Role Distribution
+                    </h2>
+                    <div style={{ minHeight: "250px" }}>
+                      <ResponsiveContainer width="100%" height={250}>
+                        <PieChart>
+                          <Pie
+                            data={(() => {
+                              const allCandidates = [
+                                ...courseStats.mostChosenCandidates,
+                                ...courseStats.leastChosenCandidates,
+                                ...courseStats.unchosenCandidates,
+                              ];
+                              const roleMap: Record<string, number> = {};
+                              allCandidates.forEach((candidate) => {
+                                const role = candidate.role?.name || "Unknown";
+                                roleMap[role] = (roleMap[role] || 0) + 1;
+                              });
+                              return Object.entries(roleMap).map(
+                                ([name, value]) => ({ name, value })
+                              );
+                            })()}
+                            dataKey="value"
+                            nameKey="name"
+                            cx="50%"
+                            cy="50%"
+                            outerRadius={80}
+                            label
+                          >
+                            {(() => {
+                              const allCandidates = [
+                                ...courseStats.mostChosenCandidates,
+                                ...courseStats.leastChosenCandidates,
+                                ...courseStats.unchosenCandidates,
+                              ];
+                              const roleMap: Record<string, number> = {};
+                              allCandidates.forEach((candidate) => {
+                                const role = candidate.role?.name || "Unknown";
+                                roleMap[role] = (roleMap[role] || 0) + 1;
+                              });
+                              return Object.entries(roleMap).map((_, index) => (
+                                <Cell
+                                  key={`role-cell-${index}`}
+                                  fill={
+                                    [
+                                      "#3b82f6",
+                                      "#10b981",
+                                      "#f59e0b",
+                                      "#ef4444",
+                                    ][index % 4]
+                                  }
+                                />
+                              ));
+                            })()}
+                          </Pie>
+                          <Tooltip />
+                          <Legend />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+
+                  {/* Availability Distribution */}
+                  <div className="bg-white p-6 rounded-lg shadow overflow-hidden">
+                    <h2 className="text-lg font-semibold mb-4 text-center">
+                      Availability Distribution
+                    </h2>
+                    <div style={{ minHeight: "250px" }}>
+                      <ResponsiveContainer width="100%" height={250}>
+                        <PieChart>
+                          <Pie
+                            data={(() => {
+                              const allCandidates = [
+                                ...courseStats.mostChosenCandidates,
+                                ...courseStats.leastChosenCandidates,
+                                ...courseStats.unchosenCandidates,
+                              ];
+                              const availabilityMap: Record<string, number> =
+                                {};
+                              allCandidates.forEach((candidate) => {
+                                const availability =
+                                  candidate.availability?.availability ||
+                                  "Unknown";
+                                availabilityMap[availability] =
+                                  (availabilityMap[availability] || 0) + 1;
+                              });
+                              return Object.entries(availabilityMap).map(
+                                ([name, value]) => ({ name, value })
+                              );
+                            })()}
+                            dataKey="value"
+                            nameKey="name"
+                            cx="50%"
+                            cy="50%"
+                            outerRadius={80}
+                            label
+                          >
+                            {(() => {
+                              const allCandidates = [
+                                ...courseStats.mostChosenCandidates,
+                                ...courseStats.leastChosenCandidates,
+                                ...courseStats.unchosenCandidates,
+                              ];
+                              const availabilityMap: Record<string, number> =
+                                {};
+                              allCandidates.forEach((candidate) => {
+                                const availability =
+                                  candidate.availability?.availability ||
+                                  "Unknown";
+                                availabilityMap[availability] =
+                                  (availabilityMap[availability] || 0) + 1;
+                              });
+                              return Object.entries(availabilityMap).map(
+                                (_, index) => (
+                                  <Cell
+                                    key={`availability-cell-${index}`}
+                                    fill={
+                                      [
+                                        "#3b82f6",
+                                        "#10b981",
+                                        "#f59e0b",
+                                        "#ef4444",
+                                      ][index % 4]
+                                    }
+                                  />
+                                )
+                              );
+                            })()}
+                          </Pie>
+                          <Tooltip />
+                          <Legend />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Detailed Grid Views */}
               <Card className="p-6">
                 <CardTitle className="text-center mb-6">
-                  Course Statistics: {selectedCourse?.name}
+                  Detailed Candidate Information
                 </CardTitle>
 
                 <div className="space-y-8">
@@ -275,8 +446,8 @@ function StatsContent() {
               No Courses Assigned
             </h3>
             <p className="text-gray-500">
-              You don't have any courses assigned yet. Contact the administrator
-              to get course assignments.
+              You don&apos;t have any courses assigned yet. Contact the
+              administrator to get course assignments.
             </p>
           </Card>
         </div>
