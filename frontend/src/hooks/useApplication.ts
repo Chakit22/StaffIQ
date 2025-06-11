@@ -36,11 +36,6 @@ export default function useApplication() {
       console.log("query", query);
 
       if (query) {
-        // Import the schema
-        const { GetAllApplicationsSchema } = await import(
-          "../schemas/applications/get-all-applications.schema"
-        );
-
         // Validate the query with Zod using safeParse
         const validationResult = GetAllApplicationsSchema.safeParse(query);
 

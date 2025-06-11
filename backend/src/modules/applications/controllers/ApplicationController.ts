@@ -155,6 +155,14 @@ export class ApplicationController {
       // Extract course IDs that are assigned to this lecturer
       const assignedCourseIds = lecturer.courses.map((course) => course.id);
 
+      if (assignedCourseIds.length === 0) {
+        const error = new Error(
+          "No courses assigned to this lecturer!"
+        ) as ApiError;
+        error.statusCode = 404;
+        throw error;
+      }
+
       // Use validated query data if available, fallback to req.query
       const queryData = (req as any).validatedQuery || req.query;
       const { courses, roles, availabilities, skills, search, sortBy } =
