@@ -1,49 +1,65 @@
 "use client";
+
 import { useState } from "react";
-import { Button } from "./ui/button";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
+  DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "./ui/dialog";
-import { Textarea } from "./ui/textarea";
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { MessageSquare } from "lucide-react";
+
+interface CommentDialogProps {
+  handleSaveComment: (comment: string) => void;
+  initialComment?: string;
+}
 
 export default function CommentDialog({
   handleSaveComment,
-}: {
-  handleSaveComment: (comment: string) => void;
-}) {
-  const [comment, setComment] = useState<string>("");
+  initialComment = "",
+}: CommentDialogProps) {
+  const [comment, setComment] = useState(initialComment);
+  const [open, setOpen] = useState(false);
+
+  const onSave = () => {
+    handleSaveComment(comment);
+    setOpen(false);
+  };
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>Add comment</Button>
+        <Button variant="outline" size="sm">
+          <MessageSquare className="h-4 w-4 mr-2" />
+          Comment
+        </Button>
       </DialogTrigger>
-      <DialogContent>
-        <DialogTitle>Add comment</DialogTitle>
-        <DialogDescription>
-          Add your comments about this candidate
-        </DialogDescription>
-        <div className="flex justify-center items-center p-4 h-full">
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Add Comment</DialogTitle>
+          <DialogDescription>
+            Add your comments about this candidate
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex flex-col gap-4 py-4">
           <Textarea
-            placeholder="Enter your comments here..."
             value={comment}
             onChange={(e) => setComment(e.target.value)}
+            placeholder="Enter your comment here..."
+            className="min-h-[100px]"
           />
         </div>
-        <div className="flex justify-end items-center">
-          <Button
-            onClick={() => {
-              setComment("");
-              handleSaveComment(comment);
-            }}
-          >
-            Save Comment
+        <DialogFooter>
+          <Button variant="secondary" onClick={() => setOpen(false)}>
+            Cancel
           </Button>
-        </div>
+          <Button onClick={onSave}>Save Comment</Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

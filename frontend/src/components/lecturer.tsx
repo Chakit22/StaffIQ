@@ -8,6 +8,8 @@ import { useQueryState } from "nuqs";
 import LoaderComponent from "./Loading";
 import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
+import { Button } from "./ui/button";
+import { ArrowUp, ArrowDown } from "lucide-react";
 import z from "zod";
 import { useAuthContext } from "@/context/UserProvider";
 import useUser from "@/hooks/useUser";
@@ -22,6 +24,8 @@ import { Skill } from "@/types/Skill";
 import { toast } from "sonner";
 import useApplication from "@/hooks/useApplication";
 import FilterSidebar from "./FilterSidebar";
+import { ApplicationRankingEditor } from "./ApplicationRankingEditor";
+import { GetAllApplicationsSchema } from "@/schemas/applications/get-all-applications.schema";
 
 export default function LecturerComponent() {
   const router = useRouter();
@@ -50,11 +54,26 @@ export default function LecturerComponent() {
   const [skills, setSkills] = useState<Skill[]>([]);
 
   // Applications
-  const { getAllApplications } = useApplication();
+  const {
+    getAllApplications,
+    selectCandidate,
+    getLecturerRankings,
+    deleteRanking,
+  } = useApplication();
   const [applications, setApplications] = useState<Application[]>([]);
   const [filteredApplications, setFilteredApplications] = useState<
     Application[]
   >([]);
+
+  // Rankings
+  const [selectedApplications, setSelectedApplications] = useState<Set<string>>(
+    new Set()
+  );
+  const [rankedApplications, setRankedApplications] = useState<Application[]>(
+    []
+  );
+  const [isLoadingRankings, setIsLoadingRankings] = useState<boolean>(false);
+  const [showRankingEditor, setShowRankingEditor] = useState<boolean>(false);
 
   // Active filters
   const [activeFilters, setActiveFilters] = useState<{
@@ -66,6 +85,9 @@ export default function LecturerComponent() {
 
   // Check is there is an id in the url
   useEffect(() => {
+    // Don't redirect while authentication is still loading
+    if (loading) return;
+
     if (!id || !user) {
       router.replace("/signin");
       return;
@@ -128,7 +150,64 @@ export default function LecturerComponent() {
     fetchAvailabilities();
     fetchSkills();
     fetchApplications();
-  }, []);
+
+    // Fetch lecturer rankings if user is logged in
+    if (user && user.id) {
+      fetchLecturerRankings(user.id);
+    }
+  }, [id, user, loading]);
+
+  // Fetch lecturer rankings
+  const fetchLecturerRankings = async (lecturerId: string) => {
+    try {
+      setIsLoadingRankings(true);
+      const response = await getLecturerRankings(lecturerId);
+
+      if (response.success && Array.isArray(response.body)) {
+        // Extract applications from the rankings
+        const rankings = response.body;
+
+        // Create a set of selected application IDs
+        const selectedIds = new Set<string>();
+
+        // Create a map of applications with their rankings
+        const rankedApps: Application[] = [];
+
+        // Process each ranking
+        rankings.forEach((ranking: any) => {
+          if (ranking.application) {
+            selectedIds.add(ranking.application.id);
+            rankedApps.push(ranking.application);
+          }
+        });
+
+        // Sort by rank
+        rankedApps.sort((a, b) => {
+          const rankA =
+            rankings.find((r: any) => r.application.id === a.id)?.rank || 0;
+          const rankB =
+            rankings.find((r: any) => r.application.id === b.id)?.rank || 0;
+          return rankA - rankB;
+        });
+
+        // Update state
+        setSelectedApplications(selectedIds);
+        setRankedApplications(rankedApps);
+
+        // Show ranking editor if there are ranked applications
+        if (rankedApps.length > 0) {
+          setShowRankingEditor(true);
+        }
+      } else {
+        toast.error(response.message || "Failed to fetch rankings");
+      }
+    } catch (error) {
+      console.error("Error fetching rankings:", error);
+      toast.error("An error occurred while fetching rankings");
+    } finally {
+      setIsLoadingRankings(false);
+    }
+  };
 
   // Handle filter applications
   const handleApplyFilters = (appliedFilters: {
@@ -176,7 +255,7 @@ export default function LecturerComponent() {
     setFilteredApplications(filtered);
   };
 
-  // Show loading overlay while loading
+  // Show loading overlay while authentication is loading
   if (loading) {
     return <LoaderComponent />;
   }
@@ -186,6 +265,72 @@ export default function LecturerComponent() {
     router.replace("/signin");
     return null;
   }
+
+  // Handle checkbox change for selecting/deselecting a candidate
+  const handleCandidateSelection = async (
+    application: Application,
+    checked: boolean
+  ) => {
+    try {
+      if (!user) return;
+
+      // Create a copy of the selected applications set
+      const updatedSelectedApplications = new Set(selectedApplications);
+
+      if (checked) {
+        // Add to selected applications
+        updatedSelectedApplications.add(application.id);
+
+        // Add to ranked applications if not already present
+        if (!rankedApplications.some((app) => app.id === application.id)) {
+          const updatedRankedApplications = [
+            ...rankedApplications,
+            application,
+          ];
+          setRankedApplications(updatedRankedApplications);
+
+          // Save the ranking
+          const rankingsToUpdate = {
+            rankings: updatedRankedApplications.map((app, index) => ({
+              lecturerId: user.id,
+              applicationId: app.id,
+              rank: index + 1,
+            })),
+          };
+
+          await selectCandidate(rankingsToUpdate);
+        }
+      } else {
+        // Remove from selected applications
+        updatedSelectedApplications.delete(application.id);
+
+        // Remove from ranked applications
+        const updatedRankedApplications = rankedApplications.filter(
+          (app) => app.id !== application.id
+        );
+        setRankedApplications(updatedRankedApplications);
+
+        // Delete the ranking
+        await deleteRanking(user.id, application.id);
+      }
+
+      // Update selected applications
+      setSelectedApplications(updatedSelectedApplications);
+
+      // Show/hide ranking editor based on number of selections
+      setShowRankingEditor(updatedSelectedApplications.size > 0);
+    } catch (error) {
+      console.error("Error updating selection:", error);
+      toast.error("Failed to update selection");
+    }
+  };
+
+  // Handle rankings changed event
+  const handleRankingsChanged = async () => {
+    if (user && user.id) {
+      await fetchLecturerRankings(user.id);
+    }
+  };
 
   // Count active filters
   const activeFilterCount =
@@ -225,6 +370,15 @@ export default function LecturerComponent() {
             </Badge>
           )}
         </div>
+
+        {/* Ranking Editor */}
+        {showRankingEditor && user && (
+          <ApplicationRankingEditor
+            lecturerId={user.id}
+            rankedApplications={rankedApplications}
+            onRankingsChanged={handleRankingsChanged}
+          />
+        )}
 
         {/* Applications */}
         {filteredApplications.length > 0 ? (
@@ -267,8 +421,10 @@ export default function LecturerComponent() {
                 <div className="flex justify-start items-center gap-2">
                   <Checkbox
                     id={`select-${application.id}`}
-                    // checked={application.selected}
-                    onCheckedChange={() => {}}
+                    checked={selectedApplications.has(application.id)}
+                    onCheckedChange={(checked) =>
+                      handleCandidateSelection(application, !!checked)
+                    }
                   />
                   <label
                     htmlFor={`select-${application.id}`}

@@ -108,6 +108,45 @@ export default function useApplication() {
     }
   };
 
+  // Hook to get all rankings for a lecturer
+  const getLecturerRankings = async (
+    lecturerId: string
+  ): Promise<ApiResponse> => {
+    try {
+      const response = await apiClient.get(
+        `/api/applications/rankings/lecturer/${lecturerId}`
+      );
+      return {
+        success: response.data.success,
+        message: response.data.message,
+        body: response.data.body,
+      };
+    } catch (error: unknown) {
+      console.error("Error getting lecturer rankings", error);
+      return handleApiError(error);
+    }
+  };
+
+  // Hook to delete a ranking
+  const deleteRanking = async (
+    lecturerId: string,
+    applicationId: string
+  ): Promise<ApiResponse> => {
+    try {
+      const response = await apiClient.delete(
+        `/api/applications/rankings/${lecturerId}/${applicationId}`
+      );
+      return {
+        success: response.data.success,
+        message: response.data.message,
+        body: response.data.body,
+      };
+    } catch (error: unknown) {
+      console.error("Error deleting ranking", error);
+      return handleApiError(error);
+    }
+  };
+
   // Hook to update comments on an application
   const updateComment = async (
     comment: UpdateApplicationCommentSchema
@@ -133,5 +172,7 @@ export default function useApplication() {
     selectCandidate,
     updateComment,
     getAllApplications,
+    getLecturerRankings,
+    deleteRanking,
   };
 }

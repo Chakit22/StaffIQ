@@ -274,6 +274,67 @@ export class ApplicationController {
     }
   };
 
+  // Get all rankings for a lecturer
+  /**
+   * Returns all the rankings done by a lecturer
+   */
+  getLecturerRankings = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const lecturerId = (req as any).params.lecturerId;
+
+      // Get all rankings for the lecturer
+      const rankings = await this.rankingRepository.find({
+        where: { lecturerId },
+        relations: [
+          "application",
+          "application.user",
+          "application.course",
+          "application.role",
+          "application.availability",
+          "application.skills",
+        ],
+        order: { rank: "ASC" },
+      });
+
+      res.status(200).json({
+        success: true,
+        body: rankings,
+        message: "Rankings fetched successfully",
+      });
+    } catch (error) {
+      next(error);
+      return;
+    }
+  };
+
+  // Delete a ranking
+  /**
+   * Deletes a ranking for a lecturer and application
+   */
+  deleteRanking = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { lecturerId, applicationId } = req.params;
+
+      // Delete the ranking
+      await this.rankingRepository.delete({
+        lecturerId,
+        applicationId,
+      });
+
+      res.status(200).json({
+        success: true,
+        message: "Ranking deleted successfully",
+      });
+    } catch (error) {
+      next(error);
+      return;
+    }
+  };
+
   // // Update the comment on an application
   updateAppComment = async (
     req: Request,

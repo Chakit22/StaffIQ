@@ -42,6 +42,20 @@ router.patch(
   applicationController.updateApplicationStatusRanking
 );
 
+// Get all rankings for a lecturer - Only lecturers can view their rankings
+router.get(
+  "/rankings/lecturer/:lecturerId",
+  requireLecturer,
+  applicationController.getLecturerRankings
+);
+
+// Delete a ranking - Only lecturers can delete their rankings
+router.delete(
+  "/rankings/:lecturerId/:applicationId",
+  requireLecturer,
+  applicationController.deleteRanking
+);
+
 // Update the comment on an application - Only lecturers can do this
 router.put(
   "/comment",
