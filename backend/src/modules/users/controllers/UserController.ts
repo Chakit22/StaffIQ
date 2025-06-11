@@ -128,7 +128,13 @@ export class UserController {
       const userId = req.params.userId;
       const user = await this.userRepository.findOne({
         where: { id: userId },
-        relations: ["applications"],
+        relations: [
+          "applications",
+          "applications.course",
+          "applications.role",
+          "applications.availability",
+          "applications.skills",
+        ],
       });
 
       if (!user) {
@@ -139,6 +145,7 @@ export class UserController {
 
       res.status(200).json({
         success: true,
+        message: "Applications fetched successfully!",
         body: user.applications,
       });
     } catch (error) {

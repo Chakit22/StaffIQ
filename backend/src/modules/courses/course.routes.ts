@@ -1,7 +1,10 @@
 import { Router } from "express";
 import { CourseController } from "./controllers/CourseController";
 import { authenticateToken } from "../../shared/middleware/auth.middleware";
-import { requireLecturer } from "../../shared/middleware/role.middleware";
+import {
+  requireLecturer,
+  requireLecturerOrCandidate,
+} from "../../shared/middleware/role.middleware";
 
 const router = Router();
 const courseController = new CourseController();
@@ -10,7 +13,7 @@ const courseController = new CourseController();
 router.use(authenticateToken);
 
 // Get all courses - Both lecturers and candidates can view courses
-router.get("/", requireLecturer, courseController.getAllCourses);
+router.get("/", requireLecturerOrCandidate, courseController.getAllCourses);
 
 // Get all applications for a course - Only lecturers can view course applications
 router.get(

@@ -18,63 +18,182 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Tutorformtype } from "@/types/Tutorformtype";
-import { useAuth } from "@/context/UserProvider";
+import { useAuthContext } from "@/context/UserProvider";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { courses } from "@/utils/courses";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { roles } from "@/utils/roles";
-import { availability } from "@/utils/availbility";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { X } from "lucide-react";
-import { useQueryState, parseAsInteger } from "nuqs";
+import { useQueryState, parseAsString } from "nuqs";
 import LoaderComponent from "./Loading";
+import { zodResolver } from "@hookform/resolvers/zod";
 
-export default function TutorComponent() {
-  const { user, userLoading } = useAuth();
+// API Hooks
+import useApplication from "@/hooks/useApplication";
+import useCourse from "@/hooks/useCourse";
+import useRole from "@/hooks/useRole";
+import useAvailability from "@/hooks/useAvailability";
+import useSkill from "@/hooks/useSkill";
+
+// Types and Schemas
+import { CreateApplicationSchema } from "@/schemas/applications/create-application.schema";
+import { Course } from "@/types/Course";
+import { Role } from "@/types/Role";
+import { Availability } from "@/types/Availability";
+import { Skill } from "@/types/Skill";
+
+export default function CandidateComponent() {
+  const { user, loading } = useAuthContext();
   const router = useRouter();
-  const {
-    addApplicant,
-    applicants,
-    getApplicationsOfCurrentUser,
-    applicantsLoading,
-  } = useApplicant();
-  const { courseLoading } = useCourse();
+
+  // API Hooks
+  const { createNewApplication } = useApplication();
+  const { getAllCourses } = useCourse();
+  const { getAllRoles } = useRole();
+  const { getAllAvailabilities } = useAvailability();
+  const { getAllSkills } = useSkill();
+
+  // State for dropdown data
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [availabilities, setAvailabilities] = useState<Availability[]>([]);
+  const [allSkills, setAllSkills] = useState<Skill[]>([]);
+
+  // State for skills management
   const [skillInput, setSkillInput] = useState("");
   const [skills, setSkills] = useState<string[]>([]);
-  const [, setId] = useQueryState<number>("id", parseAsInteger.withDefault(-1));
+  const [showSkillDropdown, setShowSkillDropdown] = useState(false);
+  const [filteredSkills, setFilteredSkills] = useState<Skill[]>([]);
 
-  const form = useForm<Tutorformtype>({
+  // Loading states
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(true);
+
+  // URL state
+  const [, setId] = useQueryState("id", parseAsString.withDefault(""));
+
+  const form = useForm<CreateApplicationSchema>({
+    resolver: zodResolver(CreateApplicationSchema),
     defaultValues: {
-      course_code: "",
-      role: "",
-      availability: "",
-      skills: "",
       academic_creds: "",
+      userId: "",
+      courseId: "",
+      roleId: "",
+      availabilityId: "",
+      skills: [],
     },
   });
 
+  // Fetch initial data
   useEffect(() => {
-    if (!userLoading) {
-      if (!user) router.replace("/signin"); //redirect if not logged in
-      else setId(user.id);
+    if (!loading && user) {
+      setId(user.id);
+      form.setValue("userId", user.id);
+      fetchInitialData();
+    } else if (!loading && !user) {
+      router.replace("/signin");
     }
-  }, [userLoading, user, router]);
+  }, [loading, user, router, setId, form]);
 
+  // Filter skills based on input
   useEffect(() => {
-    // Update the form's skills value when skills array changes
-    form.setValue("skills", skills.join(", "));
-  }, [skills, form]);
+    if (skillInput.trim()) {
+      const filtered = allSkills
+        .filter(
+          (skill) =>
+            skill.name.toLowerCase().includes(skillInput.toLowerCase()) &&
+            !skills.includes(skill.name)
+        )
+        .slice(0, 5); // Top 5 matches
+      setFilteredSkills(filtered);
+      setShowSkillDropdown(filtered.length > 0);
+    } else {
+      setFilteredSkills([]);
+      setShowSkillDropdown(false);
+    }
+  }, [skillInput, allSkills, skills]);
 
-  const previousRoles = useMemo(() => {
-    if (!user) return [];
-    return getApplicationsOfCurrentUser(user.id);
-  }, [applicants, user, getApplicationsOfCurrentUser]);
+  const fetchInitialData = async () => {
+    try {
+      setIsLoadingData(true);
+
+      console.log("Fetching initial data...");
+
+      // Fetch all dropdown data in parallel
+      const [coursesRes, rolesRes, availabilitiesRes, skillsRes] =
+        await Promise.all([
+          getAllCourses(),
+          getAllRoles(),
+          getAllAvailabilities(),
+          getAllSkills(),
+        ]);
+
+      console.log("API Responses:", {
+        courses: coursesRes,
+        roles: rolesRes,
+        availabilities: availabilitiesRes,
+        skills: skillsRes,
+      });
+
+      if (coursesRes.success) {
+        setCourses(coursesRes.body as Course[]);
+        console.log("Courses loaded:", coursesRes.body);
+      } else {
+        console.error("Failed to load courses:", coursesRes.message);
+        toast.error(`Failed to load courses: ${coursesRes.message}`);
+      }
+
+      if (rolesRes.success) {
+        setRoles(rolesRes.body as Role[]);
+        console.log("Roles loaded:", rolesRes.body);
+      } else {
+        console.error("Failed to load roles:", rolesRes.message);
+        toast.error(`Failed to load roles: ${rolesRes.message}`);
+      }
+
+      if (availabilitiesRes.success) {
+        setAvailabilities(availabilitiesRes.body as Availability[]);
+        console.log("Availabilities loaded:", availabilitiesRes.body);
+      } else {
+        console.error(
+          "Failed to load availabilities:",
+          availabilitiesRes.message
+        );
+        toast.error(
+          `Failed to load availabilities: ${availabilitiesRes.message}`
+        );
+      }
+
+      if (skillsRes.success) {
+        setAllSkills(skillsRes.body as Skill[]);
+        console.log("Skills loaded:", skillsRes.body);
+      } else {
+        console.error("Failed to load skills:", skillsRes.message);
+        toast.error(`Failed to load skills: ${skillsRes.message}`);
+      }
+    } catch (error) {
+      console.error("Error fetching initial data:", error);
+      toast.error("Failed to load data");
+    } finally {
+      setIsLoadingData(false);
+    }
+  };
+
+  const handleSkillInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSkillInput(e.target.value);
+  };
+
+  const handleSkillSelect = (skillName: string) => {
+    if (!skills.includes(skillName)) {
+      setSkills([...skills, skillName]);
+    }
+    setSkillInput("");
+    setShowSkillDropdown(false);
+  };
 
   const handleAddSkill = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && skillInput.trim()) {
@@ -83,56 +202,73 @@ export default function TutorComponent() {
         setSkills([...skills, skillInput.trim()]);
       }
       setSkillInput("");
+      setShowSkillDropdown(false);
     }
   };
 
   const handleRemoveSkill = (skillToRemove: string) => {
-    // console.log(skillToRemove);
     setSkills(skills.filter((skill) => skill !== skillToRemove));
   };
 
-  const onSubmit = (formData: Tutorformtype) => {
-    // console.log(formData.skills);
+  const onSubmit = async (formData: CreateApplicationSchema) => {
     if (!user) {
       toast.error("User not logged in.");
       return;
     }
 
-    const { id, ...filteredUser } = user; //remove sensitive fields
+    try {
+      setIsSubmitting(true);
 
-    const newApplicant = {
-      id: applicants.length + 1,
-      ...filteredUser,
-      ...formData,
-      user_id: id,
-    };
+      // Convert skills array to the required format
+      const skillObjects = skills.map((skill) => ({ name: skill }));
 
-    addApplicant(newApplicant); //save applicant
-    toast.success("Application submitted successfully!");
+      const applicationData: CreateApplicationSchema = {
+        ...formData,
+        skills: skillObjects,
+      };
 
-    // Reset the form and skills state
-    setSkills([]);
-    form.reset({
-      course_code: "",
-      role: "",
-      availability: "",
-      skills: "",
-      academic_creds: "",
-    });
+      console.log("Submitting application:", applicationData);
+
+      const response = await createNewApplication(applicationData);
+
+      if (response.success) {
+        toast.success("Application submitted successfully!");
+
+        // Reset form and skills
+        setSkills([]);
+        form.reset({
+          academic_creds: "",
+          userId: user.id,
+          courseId: "",
+          roleId: "",
+          availabilityId: "",
+          skills: [],
+        });
+      } else {
+        toast.error(response.message || "Failed to submit application");
+      }
+    } catch (error) {
+      console.error("Error submitting application:", error);
+      toast.error("An error occurred while submitting the application");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  // console.log("userLoading", userLoading);
-  // console.log("applicants Loading: ", applicantsLoading);
-
   // Show loading overlay while loading
-  if (userLoading || applicantsLoading || courseLoading) {
+  if (loading || isLoadingData) {
     return <LoaderComponent />;
   }
 
-  // Rest of the component remains unchanged
+  // Redirect if user is not logged in
+  if (!user) {
+    router.replace("/signin");
+    return null;
+  }
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 justify-items-center">
-      <Card className="py-8 shadow-2xl bg-blue-50">
+    <div className="flex justify-center items-center min-h-screen">
+      <Card className="py-8 shadow-2xl bg-blue-50 w-full max-w-2xl">
         <div className="text-2xl font-bold px-6">Apply for Roles</div>
         <div className="text-sm text-muted-foreground px-6">
           Apply for tutor and lab-assistant roles for the current semester
@@ -146,8 +282,7 @@ export default function TutorComponent() {
               {/* Course */}
               <FormField
                 control={form.control}
-                name="course_code"
-                rules={{ required: "Please select your course" }}
+                name="courseId"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Course</FormLabel>
@@ -159,11 +294,17 @@ export default function TutorComponent() {
                       </FormControl>
                       <SelectContent>
                         <SelectGroup>
-                          {courses.map((course, i) => (
-                            <SelectItem key={i} value={course.code}>
-                              {course.code} - {course.label}
+                          {courses.length > 0 ? (
+                            courses.map((course) => (
+                              <SelectItem key={course.id} value={course.id}>
+                                {course.course_code} - {course.name}
+                              </SelectItem>
+                            ))
+                          ) : (
+                            <SelectItem value="no-courses" disabled>
+                              No courses available
                             </SelectItem>
-                          ))}
+                          )}
                         </SelectGroup>
                       </SelectContent>
                     </Select>
@@ -175,8 +316,7 @@ export default function TutorComponent() {
               {/* Role */}
               <FormField
                 control={form.control}
-                name="role"
-                rules={{ required: "Please select a role" }}
+                name="roleId"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Role</FormLabel>
@@ -188,11 +328,17 @@ export default function TutorComponent() {
                       </FormControl>
                       <SelectContent>
                         <SelectGroup>
-                          {roles.map((role, i) => (
-                            <SelectItem key={i} value={role}>
-                              {role}
+                          {roles.length > 0 ? (
+                            roles.map((role) => (
+                              <SelectItem key={role.id} value={role.id}>
+                                {role.name}
+                              </SelectItem>
+                            ))
+                          ) : (
+                            <SelectItem value="no-roles" disabled>
+                              No roles available
                             </SelectItem>
-                          ))}
+                          )}
                         </SelectGroup>
                       </SelectContent>
                     </Select>
@@ -204,8 +350,7 @@ export default function TutorComponent() {
               {/* Availability */}
               <FormField
                 control={form.control}
-                name="availability"
-                rules={{ required: "Please select your availability" }}
+                name="availabilityId"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Availability</FormLabel>
@@ -217,11 +362,20 @@ export default function TutorComponent() {
                       </FormControl>
                       <SelectContent>
                         <SelectGroup>
-                          {availability.map((a, i) => (
-                            <SelectItem key={i} value={a}>
-                              {a}
+                          {availabilities.length > 0 ? (
+                            availabilities.map((availability) => (
+                              <SelectItem
+                                key={availability.id}
+                                value={availability.id}
+                              >
+                                {availability.availability}
+                              </SelectItem>
+                            ))
+                          ) : (
+                            <SelectItem value="no-availabilities" disabled>
+                              No availabilities available
                             </SelectItem>
-                          ))}
+                          )}
                         </SelectGroup>
                       </SelectContent>
                     </Select>
@@ -230,63 +384,62 @@ export default function TutorComponent() {
                 )}
               />
 
-              {/* Skills */}
-              <FormField
-                control={form.control}
-                name="skills"
-                rules={{
-                  required: "Please add at least one skill",
-                  validate: (value) =>
-                    value.length > 0 || "Please add at least one skill",
-                }}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Skills</FormLabel>
-                    <FormControl>
-                      <div className="flex flex-col gap-2">
-                        <Input
-                          placeholder="Type a skill and press Enter..."
-                          value={skillInput}
-                          onChange={(e) => setSkillInput(e.target.value)}
-                          onKeyDown={handleAddSkill}
-                        />
-                        <div className="flex flex-wrap gap-2 mt-2">
-                          {skills.map((skill, index) => (
-                            <Badge
-                              key={index}
-                              variant="secondary"
-                              className="flex items-center gap-1 px-3 py-1"
-                            >
-                              <span>{skill}</span>
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveSkill(skill)}
-                                className="inline-flex items-center justify-center h-4 w-4 rounded-full hover:bg-gray-300 focus:outline-none"
-                              >
-                                <X className="h-3 w-3" />
-                              </button>
-                            </Badge>
-                          ))}
+              {/* Skills with Autocomplete */}
+              <div>
+                <FormLabel>Skills</FormLabel>
+                <div className="relative">
+                  <Input
+                    placeholder="Type skill and press Enter or select from suggestions"
+                    value={skillInput}
+                    onChange={handleSkillInputChange}
+                    onKeyDown={handleAddSkill}
+                    onFocus={() =>
+                      skillInput &&
+                      setShowSkillDropdown(filteredSkills.length > 0)
+                    }
+                    onBlur={() =>
+                      setTimeout(() => setShowSkillDropdown(false), 200)
+                    }
+                  />
+
+                  {/* Skills Dropdown */}
+                  {showSkillDropdown && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-40 overflow-y-auto">
+                      {filteredSkills.map((skill) => (
+                        <div
+                          key={skill.name}
+                          className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                          onClick={() => handleSkillSelect(skill.name)}
+                        >
+                          {skill.name}
                         </div>
-                        <input type="hidden" {...field} />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Selected Skills */}
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {skills.map((skill, index) => (
+                    <Badge
+                      key={index}
+                      variant="secondary"
+                      className="flex items-center gap-1"
+                    >
+                      {skill}
+                      <X
+                        className="h-3 w-3 cursor-pointer"
+                        onClick={() => handleRemoveSkill(skill)}
+                      />
+                    </Badge>
+                  ))}
+                </div>
+              </div>
 
               {/* Academic Credentials */}
               <FormField
                 control={form.control}
                 name="academic_creds"
-                rules={{
-                  required: "Credentials must be at least 5 characters",
-                  minLength: {
-                    value: 5,
-                    message: "Credentials must be at least 5 characters",
-                  },
-                }}
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Academic Credentials</FormLabel>
@@ -301,42 +454,11 @@ export default function TutorComponent() {
                 )}
               />
 
-              <Button type="submit">Submit Application</Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Submitting..." : "Submit Application"}
+              </Button>
             </form>
           </Form>
-        </CardContent>
-      </Card>
-
-      <Card className="py-8 rounded-lg shadow-2xl bg-blue-50">
-        <div className="text-2xl font-bold px-6">Previous Roles</div>
-        <div className="text-sm text-muted-foreground px-6">
-          List of previous roles you have applied for and general experience
-        </div>
-        <CardContent className="flex flex-col gap-4">
-          {previousRoles.length > 0 &&
-            previousRoles.map((role: Applicant) => (
-              <Card key={role.id} className="px-4 gap-2">
-                <div className="text-lg font-semibold">
-                  {role.role.toUpperCase()}
-                </div>
-                <p>
-                  <span className="font-bold">Skills:</span> {role.skills}
-                </p>
-                <p>
-                  <span className="font-bold">Academic Credentials:</span>{" "}
-                  {role.academic_creds}
-                </p>
-                <p>
-                  <span className="font-bold">Availability:</span>{" "}
-                  {role.availability}
-                </p>
-              </Card>
-            ))}
-          {previousRoles.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground">
-              No previous applications found
-            </div>
-          )}
         </CardContent>
       </Card>
     </div>
