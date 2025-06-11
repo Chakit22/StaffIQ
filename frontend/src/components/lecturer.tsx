@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -37,22 +37,6 @@ export default function LecturerComponent() {
 
   // This extracts the parameter from the url and makes sure it is a valid uuid else it will be undefined
   const [id] = useQueryState("id", z.string().uuid().optional());
-
-  // Sorting Options
-  const sortingOptions = [
-    { id: "1", label: "Course Name (ascending)", value: "course_name_asc" },
-    { id: "2", label: "Course Name (descending)", value: "course_name_desc" },
-    {
-      id: "3",
-      label: "Availability (Full time first)",
-      value: "availability_asc",
-    },
-    {
-      id: "4",
-      label: "Availability (Part time first)",
-      value: "availability_desc",
-    },
-  ];
 
   // Filters
   // Course Name

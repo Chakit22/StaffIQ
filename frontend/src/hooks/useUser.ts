@@ -1,54 +1,67 @@
 import apiClient from "@/api/client";
-import { AxiosError } from "axios";
+import { ApiResponse } from "@/types/Api";
+import { handleApiError } from "@/utils/handleApiError";
 
 export default function useUser() {
   // Hook to get details of a particular user
-  const getUserDetails = async (userId: string) => {
+  const getUserDetails = async (userId: string): Promise<ApiResponse> => {
     try {
       const response = await apiClient.get(`/api/users/${userId}`);
-      return response.data;
+      return {
+        success: response.data.success,
+        message: response.data.message,
+        body: response.data.body,
+      };
     } catch (error: unknown) {
       console.error("Error fetching user details", error);
-      const axiosError = error as AxiosError;
-      return axiosError.response?.data;
+      return handleApiError(error);
     }
   };
 
   // Hook to get all experiences of a candidate
-  const getAllExperiences = async (userId: string) => {
+  const getAllExperiences = async (userId: string): Promise<ApiResponse> => {
     try {
       const response = await apiClient.get(`/api/users/${userId}/experiences`);
-      return response.data;
+      return {
+        success: response.data.success,
+        message: response.data.message,
+        body: response.data.body,
+      };
     } catch (error: unknown) {
       console.error("Error fetching experiences", error);
-      const axiosError = error as AxiosError;
-      return axiosError.response?.data;
+      return handleApiError(error);
     }
   };
 
   // Hook to get all courses assigned to the current lecturer
-  const getAllCoursesAssigned = async (lecturerId: string) => {
+  const getAllCoursesAssigned = async (
+    lecturerId: string
+  ): Promise<ApiResponse> => {
     try {
       const response = await apiClient.get(
         `/api/users/lecturer/${lecturerId}/assigned-courses`
       );
-      return response.data;
+      return {
+        success: response.data.success,
+        message: response.data.message,
+        body: response.data.body,
+      };
     } catch (error: unknown) {
       console.error("Error fetching courses for lecturer", error);
-      const axiosError = error as AxiosError;
-      return axiosError.response?.data;
+      return handleApiError(error);
     }
   };
 
   // Hook to get all applications of a candidate
-  const getAllApplicationsOfCandidate = async (userId: string) => {
+  const getAllApplicationsOfCandidate = async (
+    userId: string
+  ): Promise<ApiResponse> => {
     try {
       const response = await apiClient.get(`/api/users/${userId}/applications`);
       return response.data;
     } catch (error: unknown) {
       console.error("Error fetching applications of candidate", error);
-      const axiosError = error as AxiosError;
-      return axiosError.response?.data;
+      return handleApiError(error);
     }
   };
 

@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import PasswordRules from "@/components/password-rules";
 import { passwordRules } from "@/utils/password-rules";
-import { UserRegistrationInput } from "@/types/User";
 import {
   Select,
   SelectContent,
@@ -30,6 +29,8 @@ import { toast } from "sonner";
 import LoaderComponent from "@/components/Loading";
 import { useAuthContext } from "@/context/UserProvider";
 import { useRouter } from "next/navigation";
+import { RegisterUserSchema } from "@/schemas/auth/register.schema";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 export default function SignUpForm() {
   const [isPasswordFocused, setIsPasswordFocused] = useState(false);
@@ -44,8 +45,13 @@ export default function SignUpForm() {
   //This will run on every render as getAllRoles will add a new reference everytime when this component is rendered
   useEffect(() => {
     const fetchRoles = async () => {
-      const roles = await getAllRoles();
-      setRoles(roles);
+      const response = await getAllRoles();
+      if (response.success) {
+        setRoles(response.body as Role[]);
+        toast.success(response.message);
+      } else {
+        toast.error(response.message);
+      }
     };
     fetchRoles();
   }, [getAllRoles]);
@@ -56,15 +62,18 @@ export default function SignUpForm() {
     watch,
     formState: { errors },
     control,
-  } = useForm<UserRegistrationInput & { confirmPassword: string }>();
+  } = useForm<RegisterUserSchema>({
+    resolver: zodResolver(RegisterUserSchema),
+  });
 
-  const onSubmit = async (data: UserRegistrationInput) => {
-    try {
-      await registerUser(data);
-      toast.success("User registered successfully");
-    } catch (error) {
-      console.error(error);
-      toast.error("Failed to register user");
+  const onSubmit = async (data: RegisterUserSchema) => {
+    const response = await registerUser(data);
+    if (response.success) {
+      toast.success(response.message);
+      // Redirect to login page
+      router.replace("/signin");
+    } else {
+      toast.error(response.message);
     }
   };
 

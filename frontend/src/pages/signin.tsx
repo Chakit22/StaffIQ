@@ -1,8 +1,7 @@
 import { useAuthContext } from "@/context/UserProvider";
 import useAuth from "@/hooks/useAuth";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { LoginFormType } from "@/types/LoginFormType";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FaEyeSlash, FaEye } from "react-icons/fa";
@@ -15,6 +14,8 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import Captcha from "@/components/captcha";
 import LoaderComponent from "@/components/Loading";
+import { LoginUserSchema } from "@/schemas/auth/login.schema";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 export default function SignInForm() {
   const [showPassword, setShowPassword] = useState<boolean>(true);
@@ -29,21 +30,29 @@ export default function SignInForm() {
     handleSubmit,
     watch,
     formState: { errors },
-  } = useForm<LoginFormType>();
+  } = useForm<LoginUserSchema>({
+    resolver: zodResolver(LoginUserSchema),
+  });
+
+  useEffect(() => {
+    if (user) {
+      router.replace(`/${user.role}?id=${user.id}`);
+    }
+  }, [user, router]);
 
   // Async login with backend API
-  const onSubmit = async (data: LoginFormType) => {
+  const onSubmit = async (data: LoginUserSchema) => {
     if (!isVerified) {
       toast.error("Please complete CAPTCHA before logging in.");
       return;
     }
 
-    try {
-      await loginUser(data);
-      toast.success("Login successful!");
-    } catch (error) {
-      console.error(error);
-      toast.error("Failed to login");
+    const response = await loginUser(data);
+    if (response.success) {
+      toast.success(response.message);
+      // router.replace(`/${user.role}?id=${user.id}`);
+    } else {
+      toast.error(response.message);
     }
   };
 

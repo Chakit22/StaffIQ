@@ -1,49 +1,64 @@
 import apiClient from "@/api/client";
-import { AxiosError } from "axios";
+import { ApiResponse } from "@/types/Api";
+import { handleApiError } from "@/utils/handleApiError";
 
 export default function useCourse() {
   // Hook to get all courses
-  const getAllCourses = async () => {
+  const getAllCourses = async (): Promise<ApiResponse> => {
     try {
       const response = await apiClient.get("/api/courses");
-      return response.data;
+      return {
+        success: response.data.success,
+        message: response.data.message,
+        body: response.data.body,
+      };
     } catch (error: unknown) {
       console.error("Error fetching courses", error);
-      const axiosError = error as AxiosError;
-      return axiosError.response?.data;
+      return handleApiError(error);
     }
   };
 
   // Hook to get all applications for a course
-  const getAllApplicationsForCourse = async (courseId: string) => {
+  const getAllApplicationsForCourse = async (
+    courseId: string
+  ): Promise<ApiResponse> => {
     try {
       const response = await apiClient.get(
         `/api/courses/${courseId}/applications`
       );
-      return response.data;
+      return {
+        success: response.data.success,
+        message: response.data.message,
+        body: response.data.body,
+      };
     } catch (error: unknown) {
       console.error("Error fetching applications for course", error);
-      const axiosError = error as AxiosError;
-      return axiosError.response?.data;
+      return handleApiError(error);
     }
   };
 
   // Hook to get the statistics of a course
-  const getStats = async (courseId: string) => {
+  const getStats = async (courseId: string): Promise<ApiResponse> => {
     try {
       const response = await apiClient.get(
         `/api/courses/${courseId}/statistics`
       );
-      return response.data;
+      return {
+        success: response.data.success,
+        message: response.data.message,
+        body: response.data.body,
+      };
     } catch (error: unknown) {
       console.error("Error fetching statistics for course", error);
-      const axiosError = error as AxiosError;
-      return axiosError.response?.data;
+      return handleApiError(error);
     }
   };
 
   // Hook to get all preferences set by a lecturer
-  const getPreferences = async (courseId: string, lecturerId: string) => {
+  const getPreferences = async (
+    courseId: string,
+    lecturerId: string
+  ): Promise<ApiResponse> => {
     try {
       const response = await apiClient.get(
         `/api/courses/${courseId}/lecturer/${lecturerId}/preferences`
@@ -51,8 +66,7 @@ export default function useCourse() {
       return response.data;
     } catch (error: unknown) {
       console.error("Error fetching preferences", error);
-      const axiosError = error as AxiosError;
-      return axiosError.response?.data;
+      return handleApiError(error);
     }
   };
 

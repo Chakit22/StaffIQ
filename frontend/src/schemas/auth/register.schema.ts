@@ -14,6 +14,7 @@ export const RegisterUserSchema = z.object({
       /[^A-Za-z0-9]/,
       "Password must contain at least one special character"
     ),
+  confirmPassword: z.string(),
   role: z.enum(["candidate", "lecturer"]),
 });
 

@@ -1,16 +1,20 @@
 import apiClient from "@/api/client";
-import { AxiosError } from "axios";
+import { ApiResponse } from "@/types/Api";
+import { handleApiError } from "@/utils/handleApiError";
 
 export default function useSkill() {
   // Hook to get all skills
-  const getAllSkills = async () => {
+  const getAllSkills = async (): Promise<ApiResponse> => {
     try {
       const response = await apiClient.get("/api/skills");
-      return response.data;
+      return {
+        success: response.data.success,
+        message: response.data.message,
+        body: response.data.body,
+      };
     } catch (error: unknown) {
       console.error("Error fetching skills", error);
-      const axiosError = error as AxiosError;
-      return axiosError.response?.data;
+      return handleApiError(error);
     }
   };
 
