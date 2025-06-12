@@ -8,8 +8,6 @@ import { FaEyeSlash, FaEye } from "react-icons/fa";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
-import PasswordRules from "@/components/password-rules";
-import { passwordRules } from "@/utils/password-rules";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import Captcha from "@/components/captcha";
@@ -19,7 +17,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 export default function SignInForm() {
   const [showPassword, setShowPassword] = useState<boolean>(true);
-  const [isPasswordFocused, setIsPasswordFocused] = useState<boolean>(false);
   const router = useRouter();
   const [isVerified, setIsVerified] = useState<boolean>(false);
   const { loading, user } = useAuthContext();
@@ -28,7 +25,6 @@ export default function SignInForm() {
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors },
   } = useForm<LoginUserSchema>({
     resolver: zodResolver(LoginUserSchema),
@@ -95,14 +91,7 @@ export default function SignInForm() {
                 type={showPassword ? "password" : "text"}
                 placeholder="Password"
                 className="placeholder:text-md"
-                {...register("password", {
-                  required: "Password is required",
-                  validate: (value) =>
-                    passwordRules.every((rule) => rule.validate(value)) ||
-                    "Password does not meet the requirements",
-                })}
-                onFocus={() => setIsPasswordFocused(true)}
-                onBlur={() => setIsPasswordFocused(false)}
+                {...register("password")}
               />
               <div onClick={() => setShowPassword(!showPassword)}>
                 {showPassword ? (
@@ -112,10 +101,6 @@ export default function SignInForm() {
                 )}
               </div>
             </div>
-
-            {(isPasswordFocused || watch("password")) && (
-              <PasswordRules password={watch("password")} />
-            )}
 
             {errors.password && (
               <span className="text-red-500">{errors.password.message}</span>

@@ -14,7 +14,8 @@ dotenv.config();
 
 const app = express();
 
-app.use(cors({ origin: "http://localhost:3001", credentials: true }));
+// Allow all origins
+app.use(cors({ origin: "*", credentials: true }));
 app.use(express.json());
 
 //Mount the route
