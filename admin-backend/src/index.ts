@@ -6,9 +6,7 @@ import { expressMiddleware } from "@apollo/server/express4";
 import { AppDataSource } from "./data-source";
 import { createSchema } from "./graphql/schema";
 import dotenv from "dotenv";
-import { createContext } from "./graphql/context";
-import { GraphQLContext } from "./middleware/auth.middleware";
-import cookie from "cookie";
+// import { createContext } from "./graphql/context";
 
 dotenv.config();
 
@@ -39,16 +37,6 @@ async function startServer() {
   // Initialize Apollo Server
   const server = new ApolloServer({
     schema,
-    context: ({ req, res }): GraphQLContext => {
-      const cookies = cookie.parse(req.headers.cookie || "");
-      const token = cookies.token;
-
-      return {
-        req,
-        res,
-        token,
-      };
-    },
     introspection: true,
     plugins: [],
   });
@@ -56,7 +44,7 @@ async function startServer() {
   await server.start();
 
   // Apply GraphQL middleware
-  app.use("/graphql", expressMiddleware(server, { context: createContext }));
+  app.use("/graphql", expressMiddleware(server));
 
   // Health check endpoint
   app.get("/health", (req, res) => {
