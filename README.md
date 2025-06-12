@@ -11,7 +11,7 @@ This project is a comprehensive tutor assignment system consisting of a frontend
 
 ## Development Tools
 
-This project was developed with the assistance of CursorAI, which was used to build the basic folder structure for the APIs and application components. The AI helped establish the initial project architecture and folder organization to ensure a clean and maintainable codebase.
+This project was developed with the assistance of CursorAI (claude-3.7-sonnet, claude-4-sonnet), which was used to build the basic folder structure for the APIs and application components. The AI helped establish the initial project architecture and folder organization to ensure a clean and maintainable codebase.
 
 ## Features
 
