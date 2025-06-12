@@ -88,7 +88,7 @@ export class ApplicationController {
         error.statusCode = 404;
         throw error;
       }
-
+      ``;
       // Check if skills exist, create them if they don't
       const skillPromises = body.skills.map(async (skill: { name: string }) => {
         const existingSkill = await this.skillRepository.findOne({
@@ -109,6 +109,23 @@ export class ApplicationController {
       // Wait for all skills to be created/fetched
       const savedSkills = await Promise.all(skillPromises);
       body.skills = savedSkills;
+
+      // Check if the user has already applied for the same course and role
+      const existingApplication = await this.applicationRepository.findOne({
+        where: {
+          userId: body.userId,
+          courseId: body.courseId,
+          roleId: body.roleId,
+        },
+      });
+
+      if (existingApplication) {
+        const error = new Error(
+          "You have already applied for this course and role!"
+        ) as ApiError;
+        error.statusCode = 400;
+        throw error;
+      }
 
       // Create a application
       const application = this.applicationRepository.create(body);

@@ -16,6 +16,7 @@ export class AuthController {
   registerUser: RequestHandler = async (req, res, next) => {
     try {
       const user = this.userRepository.create(req.body as User);
+      console.log("user", user);
       const existingUser = await this.userRepository.findOne({
         where: { email: user.email },
         relations: ["experiences"],
