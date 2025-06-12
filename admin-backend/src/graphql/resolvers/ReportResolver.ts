@@ -9,43 +9,50 @@ import { User } from "../../entities/User";
 import { Course } from "../../entities/Course";
 import { Application } from "../../entities/Application";
 import { In } from "typeorm";
+import { Ranking } from "../../entities/Ranking";
 
 @Resolver()
 export class ReportResolver {
   // Candidates chosen for each course
   @Query(() => [CourseWithCandidates])
   async getCandidatesChosenForEachCourse(): Promise<CourseWithCandidates[]> {
-    const courseRepository = AppDataSource.getRepository(Course);
-    const userRepository = AppDataSource.getRepository(User);
+    try {
+      const courseRepository = AppDataSource.getRepository(Course);
+      const rankingRepository = AppDataSource.getRepository(Ranking);
 
-    const courses = await courseRepository.find({
-      relations: ["users", "applications"],
-    });
+      const courses = await courseRepository.find();
 
-    const result: CourseWithCandidates[] = [];
+      const result: CourseWithCandidates[] = [];
 
-    for (const course of courses) {
-      // Get candidates who have applied for this course
-      const candidateIds = course.applications
-        .filter((app) => app.user && app.user.role === "candidate")
-        .map((app) => app.userId);
+      for (const course of courses) {
+        // Join Ranking ➝ Application ➝ User
+        const rankedApplications = await rankingRepository
+          .createQueryBuilder("ranking")
+          .innerJoinAndSelect("ranking.application", "application")
+          .innerJoinAndSelect("application.user", "user")
+          .where("application.courseId = :courseId", { courseId: course.id })
+          .getMany();
 
-      const candidates = await userRepository.find({
-        where:
-          candidateIds.length > 0
-            ? { id: In(candidateIds) }
-            : { id: "non-existent" },
-        relations: ["applications"],
-      });
+        // Extract users from ranked applications
+        const candidates = rankedApplications.map((r) => r.application.user);
 
-      result.push({
-        course,
-        candidates,
-        candidateCount: candidates.length,
-      });
+        // Remove duplicate users (in case multiple ranked applications by same user)
+        const uniqueCandidates = Array.from(
+          new Map(candidates.map((u) => [u.id, u])).values()
+        );
+
+        result.push({
+          course,
+          candidates: uniqueCandidates,
+          candidateCount: uniqueCandidates.length,
+        });
+      }
+
+      return result;
+    } catch (error) {
+      console.error("Error in getCandidatesChosenForEachCourse:", error);
+      return [];
     }
-
-    return result;
   }
 
   // Candidates chosen for more than three courses
