@@ -13,6 +13,7 @@ import { In } from "typeorm";
 
 @Resolver()
 export class CourseResolver {
+  // Get all courses
   @Query(() => CourseListResponse)
   async getAllCourses(): Promise<CourseListResponse> {
     try {
@@ -26,6 +27,7 @@ export class CourseResolver {
     }
   }
 
+  // Get a course by id
   @Query(() => CourseResponse)
   async getCourse(@Arg("id", () => ID) id: string): Promise<CourseResponse> {
     try {
@@ -45,6 +47,7 @@ export class CourseResolver {
     }
   }
 
+  // Create a course
   @Mutation(() => CourseResponse)
   async createCourse(
     @Arg("input") input: CreateCourseInput
@@ -70,6 +73,7 @@ export class CourseResolver {
     }
   }
 
+  // Update a course
   @Mutation(() => CourseResponse)
   async updateCourse(
     @Arg("input") input: UpdateCourseInput
@@ -83,17 +87,6 @@ export class CourseResolver {
 
       if (!course) {
         return { error: "Course not found" };
-      }
-
-      // Check if updating course code and it conflicts with existing one
-      if (input.course_code && input.course_code !== course.course_code) {
-        const existingCourse = await courseRepository.findOne({
-          where: { course_code: input.course_code },
-        });
-
-        if (existingCourse) {
-          return { error: "Course code already exists" };
-        }
       }
 
       await courseRepository.update(input.id, {
@@ -112,9 +105,11 @@ export class CourseResolver {
     }
   }
 
+  // Delete a course
   @Mutation(() => CourseResponse)
   async deleteCourse(@Arg("id", () => ID) id: string): Promise<CourseResponse> {
     try {
+      console.log("Deleting course with id: ", id);
       const courseRepository = AppDataSource.getRepository(Course);
 
       const course = await courseRepository.findOne({
@@ -125,14 +120,20 @@ export class CourseResolver {
         return { error: "Course not found" };
       }
 
+      // Store course data before removal
+      const deletedCourse = { ...course };
+
+      // Remove the course
       await courseRepository.remove(course);
 
-      return { course };
+      // Return the stored course data
+      return { course: deletedCourse as Course };
     } catch (error) {
       return { error: "Failed to delete course" };
     }
   }
 
+  // Assign a lecturer to courses
   @Mutation(() => CourseResponse)
   async assignLecturerToCourses(
     @Arg("input") input: AssignLecturerInput
@@ -156,8 +157,19 @@ export class CourseResolver {
         where: { id: In(input.courseIds) },
       });
 
+      // This happens if trying to assign a course that does not exist or assigning a course that is already assigned to the lecturer
       if (courses.length !== input.courseIds.length) {
         return { error: "Some courses not found" };
+      }
+
+      // Check if lecturer is already assigned to any of the courses
+      const assignedCourses = lecturer.courses;
+      const isAlreadyAssigned = assignedCourses.some((course) =>
+        input.courseIds.includes(course.id)
+      );
+
+      if (isAlreadyAssigned) {
+        return { error: "Lecturer already assigned to some of the courses" };
       }
 
       // Assign courses to lecturer
@@ -170,6 +182,7 @@ export class CourseResolver {
     }
   }
 
+  // Remove a lecturer from a course
   @Mutation(() => CourseResponse)
   async removeLecturerFromCourse(
     @Arg("lecturerId", () => ID) lecturerId: string,

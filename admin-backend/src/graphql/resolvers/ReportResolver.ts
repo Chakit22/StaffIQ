@@ -12,6 +12,7 @@ import { In } from "typeorm";
 
 @Resolver()
 export class ReportResolver {
+  // Candidates chosen for each course
   @Query(() => [CourseWithCandidates])
   async getCandidatesChosenForEachCourse(): Promise<CourseWithCandidates[]> {
     const courseRepository = AppDataSource.getRepository(Course);
@@ -47,6 +48,7 @@ export class ReportResolver {
     return result;
   }
 
+  // Candidates chosen for more than three courses
   @Query(() => [CandidateWithCourseCount])
   async getCandidatesChosenForMoreThanThreeCourses(): Promise<
     CandidateWithCourseCount[]
@@ -79,6 +81,7 @@ export class ReportResolver {
     return result;
   }
 
+  // Candidates not chosen for any course
   @Query(() => [UnselectedCandidate])
   async getCandidatesNotChosenForAnyCourse(): Promise<UnselectedCandidate[]> {
     const userRepository = AppDataSource.getRepository(User);
@@ -106,6 +109,7 @@ export class ReportResolver {
     return result;
   }
 
+  // Lecturers with course assignments
   @Query(() => [User])
   async getAllLecturersWithCourseAssignments(): Promise<User[]> {
     const userRepository = AppDataSource.getRepository(User);
@@ -116,6 +120,7 @@ export class ReportResolver {
     });
   }
 
+  // All applications
   @Query(() => [Application])
   async getAllApplications(): Promise<Application[]> {
     const applicationRepository = AppDataSource.getRepository(Application);
