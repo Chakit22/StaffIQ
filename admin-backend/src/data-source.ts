@@ -9,6 +9,7 @@ import { Role } from "./entities/Role";
 import { Skill } from "./entities/Skill";
 import { Availability } from "./entities/Availability";
 import { Admin } from "./entities/Admin";
+import { Ranking } from "./entities/Ranking";
 
 export const AppDataSource = new DataSource({
   type: "mysql",
@@ -29,5 +30,7 @@ export const AppDataSource = new DataSource({
     Skill,
     Availability,
     Admin,
+    Comment,
+    Ranking,
   ],
 });
