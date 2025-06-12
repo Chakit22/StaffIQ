@@ -1,3 +1,14 @@
+/**
+ * Course Tests
+ *
+ * This file contains tests for course management functionality including:
+ * - Course creation
+ * - Course retrieval
+ * - Course updates
+ * - Course deletion
+ * - Course enrollment and assignment
+ */
+
 import { AppDataSource } from "../data-source";
 import { Course } from "../entity/Course";
 import { v4 as uuidv4 } from "uuid";
@@ -13,7 +24,6 @@ describe("Course Entity", () => {
     await AppDataSource.destroy();
   });
 
-  // This test ensures a Course can be created, saved, and retrieved correctly
   it("should create and fetch a course", async () => {
     const courseRepo = AppDataSource.getRepository(Course); // Access the Course repository
 

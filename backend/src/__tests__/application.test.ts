@@ -1,3 +1,14 @@
+/**
+ * Application Tests
+ *
+ * This file contains tests for application functionality including:
+ * - Application submission
+ * - Application retrieval
+ * - Application status updates
+ * - Application approval/rejection flows
+ * - Application filtering and sorting
+ */
+
 import { AppDataSource } from "../data-source";
 import { Application } from "../entity/Application";
 import { User } from "../entity/User";
@@ -8,13 +19,7 @@ import { Availability } from "../entity/Availability";
 import bcrypt from "bcrypt";
 import { v4 as uuidv4 } from "uuid";
 
-/**
- * This test ensures the Application entity works end-to-end,
- * meaning it can be created and saved with all required relationships:
- * user, course, role, skill, and availability.
- */
 describe("Application Entity Integration", () => {
-
   // Connect to the database before running tests
   beforeAll(async () => {
     await AppDataSource.initialize();

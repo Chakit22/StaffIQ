@@ -1,3 +1,13 @@
+/**
+ * Role Tests
+ *
+ * This file contains tests for the role management functionality including:
+ * - Creating roles
+ * - Retrieving roles
+ * - Updating roles
+ * - Role permissions and access control
+ */
+
 import { AppDataSource } from "../data-source";
 import { Role } from "../entity/Role";
 import { v4 as uuidv4 } from "uuid";
@@ -13,7 +23,6 @@ describe("Role Entity", () => {
     await AppDataSource.destroy();
   });
 
-  // This test checks if we can successfully create, save, and retrieve a role from the database
   it("should create and fetch a role", async () => {
     const roleRepo = AppDataSource.getRepository(Role); // Get access to the Role repository
 

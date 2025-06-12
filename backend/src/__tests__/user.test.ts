@@ -1,17 +1,24 @@
+/**
+ * User Tests
+ *
+ * This file contains tests for user management functionality including:
+ * - User creation
+ * - User retrieval
+ * - User updates
+ * - User deletion
+ * - User profile management
+ */
 
 import { AppDataSource } from "../data-source";
 import { User } from "../entity/User";
 import { v4 as uuidv4 } from "uuid";
 import bcrypt from "bcrypt";
 
-// This test suite checks the functionality of the User entity in the database
 describe("User Entity", () => {
-  // Before running any tests, initialize the database connection
   beforeAll(async () => {
     await AppDataSource.initialize();
   });
 
-  // After all tests finish, close the database connection to clean up
   afterAll(async () => {
     if (AppDataSource.isInitialized) {
       await AppDataSource.destroy();

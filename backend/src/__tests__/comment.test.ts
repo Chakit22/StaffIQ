@@ -1,3 +1,14 @@
+/**
+ * Comment Tests
+ *
+ * This file contains tests for comment functionality including:
+ * - Comment creation
+ * - Comment retrieval
+ * - Comment updates
+ * - Comment deletion
+ * - Comment threading and relationships
+ */
+
 import { AppDataSource } from "../data-source";
 import { User } from "../entity/User";
 import { Course } from "../entity/Course";
@@ -111,7 +122,10 @@ describe("Comment Entity Integration", () => {
     expect(fetched?.comment).toBe("Great candidate for the role!");
 
     // Cleanup: delete created entities to keep the database clean for other tests
-    await commentRepo.delete({ lecturerId: lecturer.id, applicationId: application.id });
+    await commentRepo.delete({
+      lecturerId: lecturer.id,
+      applicationId: application.id,
+    });
     await appRepo.delete(application.id);
     await availabilityRepo.delete(availability.id);
     await roleRepo.delete(role.id);
