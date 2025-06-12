@@ -10,6 +10,7 @@ import { Skill } from "./entities/Skill";
 import { Availability } from "./entities/Availability";
 import { Admin } from "./entities/Admin";
 import { Ranking } from "./entities/Ranking";
+import { Comment } from "./entities/Comment";
 
 export const AppDataSource = new DataSource({
   type: "mysql",
@@ -33,4 +34,6 @@ export const AppDataSource = new DataSource({
     Comment,
     Ranking,
   ],
+  migrations: ["src/migrations/*.ts"],
+  migrationsTableName: "migrations",
 });
