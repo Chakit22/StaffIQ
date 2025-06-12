@@ -5,23 +5,6 @@ import { AppDataSource } from "../../data-source";
 @Resolver()
 export class UserResolver {
   @Query(() => [User])
-  async getAllUsers(): Promise<User[]> {
-    const userRepository = AppDataSource.getRepository(User);
-    return await userRepository.find({
-      relations: ["applications", "experiences", "courses"],
-    });
-  }
-
-  @Query(() => [User])
-  async getAllCandidates(): Promise<User[]> {
-    const userRepository = AppDataSource.getRepository(User);
-    return await userRepository.find({
-      where: { role: "candidate" },
-      relations: ["applications", "experiences"],
-    });
-  }
-
-  @Query(() => [User])
   async getAllLecturers(): Promise<User[]> {
     const userRepository = AppDataSource.getRepository(User);
     return await userRepository.find({

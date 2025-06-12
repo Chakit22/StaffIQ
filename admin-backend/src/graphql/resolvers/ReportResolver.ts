@@ -93,47 +93,20 @@ export class ReportResolver {
   async getCandidatesNotChosenForAnyCourse(): Promise<UnselectedCandidate[]> {
     const userRepository = AppDataSource.getRepository(User);
 
-    // Get all candidates
-    const allCandidates = await userRepository.find({
-      where: { role: "candidate" },
-      relations: ["applications"],
-    });
+    // Query candidates left joining to applications and rankings
+    const candidates = await userRepository
+      .createQueryBuilder("user")
+      .leftJoinAndSelect("user.applications", "application")
+      .leftJoin("application.ranking", "ranking")
+      .where("user.role = :role", { role: "candidate" })
+      .andWhere("ranking.id IS NULL") // No ranking means candidate NOT chosen
+      .getMany();
 
-    const result: UnselectedCandidate[] = [];
-
-    for (const candidate of allCandidates) {
-      // A candidate is "not chosen" if they have 0 applications
-      const applicationCount = candidate.applications.length;
-
-      if (applicationCount === 0) {
-        result.push({
-          candidate,
-          applicationCount,
-        });
-      }
-    }
+    // Now calculate applicationCount per candidate (applications.length)
+    const result: UnselectedCandidate[] = candidates.map((candidate) => ({
+      candidate,
+    }));
 
     return result;
-  }
-
-  // Lecturers with course assignments
-  @Query(() => [User])
-  async getAllLecturersWithCourseAssignments(): Promise<User[]> {
-    const userRepository = AppDataSource.getRepository(User);
-
-    return await userRepository.find({
-      where: { role: "lecturer" },
-      relations: ["courses"],
-    });
-  }
-
-  // All applications
-  @Query(() => [Application])
-  async getAllApplications(): Promise<Application[]> {
-    const applicationRepository = AppDataSource.getRepository(Application);
-
-    return await applicationRepository.find({
-      relations: ["user", "course", "role", "availability", "skills"],
-    });
   }
 }

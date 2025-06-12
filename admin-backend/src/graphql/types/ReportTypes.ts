@@ -30,7 +30,4 @@ export class CandidateWithCourseCount {
 export class UnselectedCandidate {
   @Field(() => User)
   candidate: User;
-
-  @Field()
-  applicationCount: number;
 }
