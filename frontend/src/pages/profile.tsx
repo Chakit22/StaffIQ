@@ -38,7 +38,8 @@ export default function ProfilePage() {
     if (!userLoading && !user) {
       router.replace("/signin");
     } else if (user) {
-      setSelectedAvatar(user.avatarUrl || "");
+      // Use avatar.url if available, fall back to avatarUrl for backward compatibility
+      setSelectedAvatar(user.avatar?.url || user.avatarUrl || "");
       setEmail(user.email);
     }
   }, [user, userLoading, router]);
@@ -65,15 +66,18 @@ export default function ProfilePage() {
     return <p className="text-center mt-10">Loading...</p>;
   }
 
+  // Current avatar URL - either from avatar object or legacy avatarUrl
+  const currentAvatarUrl = user.avatar?.url || user.avatarUrl || "";
+
   return (
     <div className="min-h-screen flex justify-center items-center bg-gray-50">
       <Card className="w-full max-w-md p-6 shadow-md">
         <h2 className="text-2xl font-bold mb-4 text-center">Profile</h2>
 
-        {selectedAvatar && (
+        {currentAvatarUrl && (
           <div className="flex justify-center">
             <img
-              src={selectedAvatar}
+              src={currentAvatarUrl}
               alt="Avatar"
               className="w-24 h-24 rounded-full mb-4"
             />

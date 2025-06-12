@@ -10,6 +10,7 @@ import { Experience } from "./entity/Experience";
 import { Role } from "./entity/Role";
 import { Skill } from "./entity/Skill";
 import { Availability } from "./entity/Availability";
+import { Avatar } from "./entity/Avatar";
 
 export const AppDataSource = new DataSource({
   type: "mysql",
@@ -31,6 +32,7 @@ export const AppDataSource = new DataSource({
     Role,
     Skill,
     Availability,
+    Avatar,
   ],
   migrations: ["src/migration/*.ts"],
   migrationsRun: false,

@@ -26,6 +26,7 @@ export class UserController {
       const userId = req.params.userId;
       const user = await this.userRepository.findOne({
         where: { id: userId },
+        relations: ["avatar"],
       });
 
       if (!user) {

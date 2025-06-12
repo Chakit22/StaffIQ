@@ -5,6 +5,12 @@ import { Course } from "./Course";
 
 export type UserRole = "candidate" | "lecturer";
 
+// Define an Avatar interface
+export interface Avatar {
+  id: string;
+  url: string;
+}
+
 export interface User {
   id: string;
   name: string;
@@ -14,7 +20,8 @@ export interface User {
   role: UserRole;
   dateOfJoining: Date;
   access?: boolean;
-  avatarUrl?: string;
+  avatar?: Avatar; // Add the avatar relation
+  avatarUrl?: string; // Keep for backward compatibility
   applications: Application[];
   experiences: Experience[];
   courses: Course[];

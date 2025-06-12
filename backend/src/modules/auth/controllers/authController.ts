@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response, RequestHandler } from "express";
 import { AppDataSource } from "../../../data-source";
 import { User } from "../../../entity/User";
+import { Avatar } from "../../../entity/Avatar";
 import bcrypt from "bcrypt";
 import { ApiError } from "../../../shared/middleware/error-handler";
 import { AuthService } from "../services/auth.service";
@@ -10,6 +11,7 @@ import * as cookie from "cookie";
 export class AuthController {
   // User repository
   private userRepository = AppDataSource.getRepository(User);
+  private avatarRepository = AppDataSource.getRepository(Avatar);
   private authService = new AuthService();
 
   // REGISTER
@@ -26,6 +28,16 @@ export class AuthController {
         const error = new Error("User already exists") as ApiError;
         error.statusCode = 409;
         throw error;
+      }
+
+      // Get all available avatars from the database
+      const avatars = await this.avatarRepository.find();
+
+      // If there are avatars available, assign a random one to the user
+      if (avatars.length > 0) {
+        // Select a random avatar from the available ones
+        const randomIndex = Math.floor(Math.random() * avatars.length);
+        user.avatar = avatars[randomIndex];
       }
 
       const hashedPassword = await bcrypt.hash(user.password, 10);
@@ -66,7 +78,7 @@ export class AuthController {
     try {
       const user = await this.userRepository.findOne({
         where: { email },
-        relations: ["experiences"],
+        relations: ["experiences", "avatar"],
       });
 
       if (!user) {

@@ -6,10 +6,13 @@ import {
   ManyToMany,
   JoinTable,
   CreateDateColumn,
+  OneToOne,
+  ManyToOne,
 } from "typeorm";
 import { Application } from "./Application";
 import { Experience } from "./Experience";
 import { Course } from "./Course";
+import { Avatar } from "./Avatar";
 
 @Entity()
 export class User {
@@ -40,8 +43,9 @@ export class User {
   @Column({ default: true })
   access?: boolean;
 
-  @Column({ default: "defaultUrl" })
-  avatarUrl?: string;
+  // A user can have only one avatar but an avatar can have many users
+  @ManyToOne(() => Avatar, (avatar) => avatar.users, { nullable: true })
+  avatar: Avatar;
 
   // A user can have many applications
   @OneToMany(() => Application, (application) => application.user)
