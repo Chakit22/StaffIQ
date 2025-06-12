@@ -27,26 +27,6 @@ export class CourseResolver {
     }
   }
 
-  // Get a course by id
-  @Query(() => CourseResponse)
-  async getCourse(@Arg("id", () => ID) id: string): Promise<CourseResponse> {
-    try {
-      const courseRepository = AppDataSource.getRepository(Course);
-      const course = await courseRepository.findOne({
-        where: { id },
-        relations: ["users", "applications"],
-      });
-
-      if (!course) {
-        return { error: "Course not found" };
-      }
-
-      return { course };
-    } catch (error) {
-      return { error: "Failed to fetch course" };
-    }
-  }
-
   // Create a course
   @Mutation(() => CourseResponse)
   async createCourse(
@@ -139,6 +119,8 @@ export class CourseResolver {
     @Arg("input") input: AssignLecturerInput
   ): Promise<CourseResponse> {
     try {
+      console.log("Assigning lecturer to courses");
+      console.log(input);
       const userRepository = AppDataSource.getRepository(User);
       const courseRepository = AppDataSource.getRepository(Course);
 
@@ -176,7 +158,7 @@ export class CourseResolver {
       lecturer.courses = [...lecturer.courses, ...courses];
       await userRepository.save(lecturer);
 
-      return { error: undefined };
+      return { course: courses[0], error: undefined };
     } catch (error) {
       return { error: "Failed to assign lecturer to courses" };
     }

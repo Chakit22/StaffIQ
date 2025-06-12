@@ -1,66 +1,96 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
+import { useMutation, useQuery } from "@apollo/client";
+import { GET_ALL_COURSES } from "../graphQL/queries";
+import {
+  CREATE_COURSE,
+  UPDATE_COURSE,
+  DELETE_COURSE,
+} from "../graphQL/mutations";
 
 interface Course {
   id: string;
   name: string;
-  code: string;
+  course_code: string;
 }
 
 const CourseManager = () => {
-  const [courses, setCourses] = useState<Course[]>([]);
   const [name, setName] = useState("");
-  const [code, setCode] = useState("");
+  const [courseCode, setCourseCode] = useState("");
   const [editId, setEditId] = useState<string | null>(null);
 
-  // Replace this with useQuery(GET_COURSES) later
-  useEffect(() => {
-    setCourses([
-      { id: "1", name: "Web Development", code: "COSC2758" },
-      { id: "2", name: "Database Systems", code: "COSC2472" },
-    ]);
-  }, []);
+  // Fetch courses
+  const { data, loading, error, refetch } = useQuery(GET_ALL_COURSES);
+
+  // Set up mutations
+  const [createCourse] = useMutation(CREATE_COURSE);
+  const [updateCourse] = useMutation(UPDATE_COURSE);
+  const [deleteCourse] = useMutation(DELETE_COURSE);
 
   const resetForm = () => {
     setName("");
-    setCode("");
+    setCourseCode("");
     setEditId(null);
   };
 
-  const handleAddOrUpdate = () => {
-    if (!name.trim() || !code.trim()) {
+  const handleAddOrUpdate = async () => {
+    if (!name.trim() || !courseCode.trim()) {
       alert("Please fill out both fields.");
       return;
     }
 
-    if (editId) {
-      // Later: call updateCourse mutation
-      setCourses((prev) =>
-        prev.map((c) => (c.id === editId ? { ...c, name, code } : c))
-      );
-    } else {
-      // Later: call addCourse mutation
-      const newCourse: Course = {
-        id: Date.now().toString(),
-        name,
-        code,
-      };
-      setCourses((prev) => [...prev, newCourse]);
+    try {
+      if (editId) {
+        // Update existing course
+        await updateCourse({
+          variables: {
+            input: {
+              id: editId,
+              name,
+              course_code: courseCode,
+            },
+          },
+        });
+      } else {
+        // Create new course
+        await createCourse({
+          variables: {
+            input: {
+              name,
+              course_code: courseCode,
+            },
+          },
+        });
+      }
+      resetForm();
+      refetch(); // Refresh the course list
+    } catch (err) {
+      console.error("Error saving course:", err);
+      alert("Failed to save course. Please try again.");
     }
-    resetForm();
   };
 
   const handleEdit = (course: Course) => {
     setName(course.name);
-    setCode(course.code);
+    setCourseCode(course.course_code);
     setEditId(course.id);
   };
 
-  const handleDelete = (id: string) => {
-    if (confirm("Are you sure you want to delete this course?")) {
-      // Later: call deleteCourse mutation
-      setCourses((prev) => prev.filter((c) => c.id !== id));
+  const handleDelete = async (id: string) => {
+    if (window.confirm("Are you sure you want to delete this course?")) {
+      try {
+        await deleteCourse({
+          variables: { id },
+        });
+        refetch(); // Refresh the course list
+      } catch (err) {
+        console.error("Error deleting course:", err);
+        alert("Failed to delete course. Please try again.");
+      }
     }
   };
+
+  // Extract courses from GraphQL response
+  const courses = data?.getAllCourses?.courses || [];
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -78,8 +108,8 @@ const CourseManager = () => {
           <input
             type="text"
             placeholder="Course Code"
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
+            value={courseCode}
+            onChange={(e) => setCourseCode(e.target.value)}
             className="border rounded p-2"
           />
           <button
@@ -90,6 +120,13 @@ const CourseManager = () => {
           </button>
         </div>
 
+        {loading && <div className="text-center py-4">Loading courses...</div>}
+        {error && (
+          <div className="text-red-500 text-center py-4">
+            Error loading courses: {error.message}
+          </div>
+        )}
+
         <table className="w-full text-left border">
           <thead className="bg-gray-100">
             <tr>
@@ -99,10 +136,10 @@ const CourseManager = () => {
             </tr>
           </thead>
           <tbody>
-            {courses.map((course) => (
+            {courses.map((course: Course) => (
               <tr key={course.id} className="hover:bg-gray-50">
                 <td className="border p-2">{course.name}</td>
-                <td className="border p-2">{course.code}</td>
+                <td className="border p-2">{course.course_code}</td>
                 <td className="border p-2 space-x-2">
                   <button
                     onClick={() => handleEdit(course)}
@@ -119,7 +156,7 @@ const CourseManager = () => {
                 </td>
               </tr>
             ))}
-            {courses.length === 0 && (
+            {!loading && courses.length === 0 && (
               <tr>
                 <td colSpan={3} className="text-center text-gray-500 p-4">
                   No courses available.

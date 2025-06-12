@@ -6,21 +6,7 @@ import React, {
   ReactNode,
 } from "react";
 import { useMutation, gql } from "@apollo/client";
-
-const ADMIN_LOGIN_MUTATION = gql`
-  mutation AdminLogin($email: String!, $password: String!) {
-    adminLogin(input: { email: $email, password: $password }) {
-      token
-      admin {
-        id
-        email
-        firstName
-        lastName
-        role
-      }
-    }
-  }
-`;
+import { ADMIN_LOGIN_MUTATION } from "../graphQL/mutations";
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -28,8 +14,6 @@ interface AuthContextType {
   user: {
     email: string;
     role: string;
-    firstName?: string;
-    lastName?: string;
     id?: string;
   } | null;
   login: (username: string, password: string) => Promise<boolean>;
@@ -44,8 +28,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<{
     email: string;
     role: string;
-    firstName?: string;
-    lastName?: string;
     id?: string;
   } | null>(null);
 
@@ -65,8 +47,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser({
         email: savedEmail,
         role: savedRole,
-        firstName: savedFirstName || undefined,
-        lastName: savedLastName || undefined,
         id: savedId || undefined,
       });
     }
@@ -77,61 +57,38 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     password: string
   ): Promise<boolean> => {
     try {
-      // Simple validation for "admin", "admin" credentials
-      if (username === "admin" && password === "admin") {
-        // Use these hardcoded values for now
-        const role = "admin";
-        const token = "mock-token";
+      // Call the GraphQL mutation to login the admin
+      const res = await loginMutation({
+        variables: {
+          input: {
+            username,
+            password,
+          },
+        },
+      });
+
+      if (res.data?.adminLogin?.token) {
+        const { token, admin } = res.data.adminLogin;
 
         localStorage.setItem("token", token);
-        localStorage.setItem("role", role);
-        localStorage.setItem("email", username);
+        localStorage.setItem("role", "admin"); // Admin role is fixed
+        localStorage.setItem("username", admin.username);
+
+        if (admin.id) localStorage.setItem("id", admin.id);
 
         setAuthenticated(true);
-        setRole(role);
-        setUser({ email: username, role });
-        return true;
-      }
-
-      // Use real GraphQL login as fallback if simple credentials don't match
-      try {
-        const res = await loginMutation({
-          variables: {
-            email: username,
-            password: password,
-          },
+        setRole("admin");
+        setUser({
+          email: admin.username, // Using username as email for UI consistency
+          role: "admin",
+          id: admin.id,
         });
 
-        if (res.data?.adminLogin?.token) {
-          const { token, admin } = res.data.adminLogin;
-
-          localStorage.setItem("token", token);
-          localStorage.setItem("role", admin.role);
-          localStorage.setItem("email", admin.email);
-
-          if (admin.firstName)
-            localStorage.setItem("firstName", admin.firstName);
-          if (admin.lastName) localStorage.setItem("lastName", admin.lastName);
-          if (admin.id) localStorage.setItem("id", admin.id);
-
-          setAuthenticated(true);
-          setRole(admin.role);
-          setUser({
-            email: admin.email,
-            role: admin.role,
-            firstName: admin.firstName,
-            lastName: admin.lastName,
-            id: admin.id,
-          });
-
-          return true;
-        }
-      } catch (graphqlError) {
-        console.error("GraphQL login error:", graphqlError);
+        return true;
+      } else {
+        console.error("Login failed: No token received");
+        return false;
       }
-
-      // fallback if incorrect credentials
-      return false;
     } catch (err) {
       console.error("Login error:", err);
       return false;

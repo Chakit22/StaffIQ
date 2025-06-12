@@ -1,35 +1,63 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
+import { useQuery, useMutation } from "@apollo/client";
+import { GET_ALL_LECTURERS } from "../graphQL/queries";
+import { BLOCK_USER, UNBLOCK_USER } from "../graphQL/mutations";
 
-// Candidate interface
-interface Candidate {
+// User interface to match the GraphQL response
+interface User {
   id: string;
   name: string;
   email: string;
-  isBlocked: boolean;
+  access: boolean;
+  role: string;
 }
 
 const BlockCandidate = () => {
-  const [candidates, setCandidates] = useState<Candidate[]>([]);
+  // Query to get all lecturers
+  const { data, loading, error, refetch } = useQuery(GET_ALL_LECTURERS);
 
-  // This should later be replaced by useQuery(GET_CANDIDATES)
-  useEffect(() => {
-    setCandidates([
-      { id: "u1", name: "Alice Zhang", email: "alice@example.com", isBlocked: false },
-      { id: "u2", name: "Brian Lee", email: "brian@example.com", isBlocked: true },
-    ]);
-  }, []);
+  // Mutations for blocking and unblocking users
+  const [blockUser] = useMutation(BLOCK_USER);
+  const [unblockUser] = useMutation(UNBLOCK_USER);
 
-  // Later replace with a mutation (BLOCK_CANDIDATE / UNBLOCK_CANDIDATE)
-  const toggleBlock = (id: string) => {
-    setCandidates((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, isBlocked: !c.isBlocked } : c))
-    );
+  // Toggle the block status of a user
+  const toggleBlock = async (userId: string, isBlocked: boolean) => {
+    try {
+      if (isBlocked) {
+        // If currently blocked, unblock the user
+        await unblockUser({
+          variables: { userId },
+        });
+      } else {
+        // If currently active, block the user
+        await blockUser({
+          variables: { userId },
+        });
+      }
+      // Refresh the lecturers list
+      refetch();
+    } catch (err) {
+      console.error("Error toggling user access:", err);
+      alert("Failed to update user access. Please try again.");
+    }
   };
+
+  // Get the lecturers from the query response
+  const candidates = data?.getAllLecturers || [];
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
       <div className="max-w-2xl mx-auto bg-white p-6 rounded shadow-md">
-        <h2 className="text-xl font-bold mb-4">Block / Unblock Candidates</h2>
+        <h2 className="text-xl font-bold mb-4">Block / Unblock Lecturers</h2>
+
+        {loading && (
+          <div className="text-center py-4">Loading lecturers...</div>
+        )}
+        {error && (
+          <div className="text-red-500 text-center py-4">
+            Error loading lecturers: {error.message}
+          </div>
+        )}
 
         <table className="w-full border text-left">
           <thead className="bg-gray-200">
@@ -41,32 +69,36 @@ const BlockCandidate = () => {
             </tr>
           </thead>
           <tbody>
-            {candidates.map((c) => (
+            {candidates.map((user: User) => (
               <tr
-                key={c.id}
-                className={c.isBlocked ? "bg-red-50 text-gray-400 line-through" : ""}
+                key={user.id}
+                className={
+                  !user.access ? "bg-red-50 text-gray-400 line-through" : ""
+                }
               >
-                <td className="p-2 border">{c.name}</td>
-                <td className="p-2 border">{c.email}</td>
-                <td className="p-2 border">{c.isBlocked ? "Blocked" : "Active"}</td>
+                <td className="p-2 border">{user.name}</td>
+                <td className="p-2 border">{user.email}</td>
+                <td className="p-2 border">
+                  {user.access ? "Active" : "Blocked"}
+                </td>
                 <td className="p-2 border">
                   <button
-                    onClick={() => toggleBlock(c.id)}
+                    onClick={() => toggleBlock(user.id, !user.access)}
                     className={`px-4 py-1 rounded text-white ${
-                      c.isBlocked
+                      !user.access
                         ? "bg-green-500 hover:bg-green-600"
                         : "bg-red-500 hover:bg-red-600"
                     }`}
                   >
-                    {c.isBlocked ? "Unblock" : "Block"}
+                    {!user.access ? "Unblock" : "Block"}
                   </button>
                 </td>
               </tr>
             ))}
-            {candidates.length === 0 && (
+            {!loading && candidates.length === 0 && (
               <tr>
                 <td colSpan={4} className="text-center text-gray-500 p-4">
-                  No candidates available.
+                  No lecturers available.
                 </td>
               </tr>
             )}

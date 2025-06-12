@@ -7,9 +7,7 @@ export const ME_QUERY = gql`
     me {
       admin {
         id
-        email
-        firstName
-        lastName
+        username
       }
       error
     }
@@ -27,15 +25,6 @@ export const GET_ALL_COURSES = gql`
         users {
           id
           name
-          email
-          role
-        }
-        applications {
-          id
-          user {
-            name
-            email
-          }
         }
       }
       error
@@ -43,51 +32,7 @@ export const GET_ALL_COURSES = gql`
   }
 `;
 
-// User Management Queries
-export const GET_ALL_USERS = gql`
-  query GetAllUsers {
-    getAllUsers {
-      id
-      name
-      email
-      role
-      access
-      dateOfJoining
-      applications {
-        id
-        course {
-          name
-        }
-      }
-      courses {
-        id
-        name
-      }
-    }
-  }
-`;
-
-export const GET_ALL_CANDIDATES = gql`
-  query GetAllCandidates {
-    getAllCandidates {
-      id
-      name
-      email
-      access
-      applications {
-        id
-        course {
-          name
-          course_code
-        }
-        role {
-          name
-        }
-      }
-    }
-  }
-`;
-
+// User Management Queries - Note: Check if this resolver exists
 export const GET_ALL_LECTURERS = gql`
   query GetAllLecturers {
     getAllLecturers {
@@ -99,6 +44,9 @@ export const GET_ALL_LECTURERS = gql`
         id
         name
         course_code
+      }
+      experiences {
+        id
       }
     }
   }
@@ -150,52 +98,6 @@ export const GET_CANDIDATES_NOT_CHOSEN_FOR_ANY_COURSE = gql`
         name
         email
         dateOfJoining
-      }
-      applicationCount
-    }
-  }
-`;
-
-export const GET_ALL_LECTURERS_WITH_COURSE_ASSIGNMENTS = gql`
-  query GetAllLecturersWithCourseAssignments {
-    getAllLecturersWithCourseAssignments {
-      id
-      name
-      email
-      courses {
-        id
-        name
-        course_code
-      }
-    }
-  }
-`;
-
-export const GET_ALL_APPLICATIONS = gql`
-  query GetAllApplications {
-    getAllApplications {
-      id
-      academic_creds
-      user {
-        id
-        name
-        email
-      }
-      course {
-        id
-        name
-        course_code
-      }
-      role {
-        id
-        name
-      }
-      availability {
-        id
-        availability
-      }
-      skills {
-        name
       }
     }
   }

@@ -19,7 +19,7 @@ export const AuthMiddleware: MiddlewareFn<Context> = async (
 
   const authService = new AuthService();
   try {
-    context.admin = await authService.validateToken(context.token);
+    context.admin = await authService.verifyToken(context.token);
     return next();
   } catch (error) {
     throw new GraphQLError("Not authenticated");

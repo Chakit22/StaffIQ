@@ -2,15 +2,12 @@ import { gql } from "@apollo/client";
 
 // Authentication
 export const ADMIN_LOGIN_MUTATION = gql`
-  mutation AdminLogin($email: String!, $password: String!) {
-    adminLogin(input: { email: $email, password: $password }) {
+  mutation AdminLogin($input: LoginInput!) {
+    adminLogin(input: $input) {
       token
       admin {
         id
-        email
-        firstName
-        lastName
-        role
+        username
       }
     }
   }
@@ -18,8 +15,8 @@ export const ADMIN_LOGIN_MUTATION = gql`
 
 // Course Management
 export const CREATE_COURSE = gql`
-  mutation CreateCourse($name: String!, $course_code: String!) {
-    createCourse(input: { name: $name, course_code: $course_code }) {
+  mutation CreateCourse($input: CreateCourseInput!) {
+    createCourse(input: $input) {
       course {
         id
         name
@@ -31,8 +28,8 @@ export const CREATE_COURSE = gql`
 `;
 
 export const UPDATE_COURSE = gql`
-  mutation UpdateCourse($id: ID!, $name: String!, $course_code: String!) {
-    updateCourse(input: { id: $id, name: $name, course_code: $course_code }) {
+  mutation UpdateCourse($input: UpdateCourseInput!) {
+    updateCourse(input: $input) {
       course {
         id
         name
@@ -49,17 +46,22 @@ export const DELETE_COURSE = gql`
       course {
         id
         name
+        course_code
       }
       error
     }
   }
 `;
 
+// Assign a lecturer to courses
 export const ASSIGN_LECTURER_TO_COURSES = gql`
-  mutation AssignLecturerToCourses($lecturerId: ID!, $courseIds: [ID!]!) {
-    assignLecturerToCourses(
-      input: { lecturerId: $lecturerId, courseIds: $courseIds }
-    ) {
+  mutation AssignLecturerToCourses($input: AssignLecturerInput!) {
+    assignLecturerToCourses(input: $input) {
+      course {
+        id
+        name
+        course_code
+      }
       error
     }
   }
@@ -72,7 +74,9 @@ export const BLOCK_USER = gql`
       id
       name
       email
+      role
       access
+      dateOfJoining
     }
   }
 `;
@@ -83,7 +87,9 @@ export const UNBLOCK_USER = gql`
       id
       name
       email
+      role
       access
+      dateOfJoining
     }
   }
 `;
