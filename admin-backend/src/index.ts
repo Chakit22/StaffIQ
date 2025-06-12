@@ -43,23 +43,22 @@ async function startServer() {
   await server.start();
 
   // Apply GraphQL middleware
-  app.use(
-    "/graphql",
+  app.use("/graphql", cors(), express.json(), (req, res, next) => {
     expressMiddleware(server, {
-      context: async ({ req, res }) => ({ req, res }),
-    })
-  );
+      context: async () => ({ req }),
+    })(req, res, next);
+  });
 
   // Health check endpoint
   app.get("/health", (req, res) => {
     res.json({ status: "OK", message: "Admin Backend API is running" });
   });
 
-  const PORT = process.env.PORT || 8000;
+  const PORT = process.env.PORT || 8001; // Using 8001 for admin backend
 
   app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
-    console.log(`📊 GraphQL endpoint: http://localhost:${PORT}/graphql`);
+    console.log(`🚀 Admin Server running on http://localhost:${PORT}`);
+    console.log(`📊 Admin GraphQL endpoint: http://localhost:${PORT}/graphql`);
   });
 }
 

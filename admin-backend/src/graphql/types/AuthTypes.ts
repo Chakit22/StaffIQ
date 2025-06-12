@@ -4,7 +4,7 @@ import { Admin } from "../../entities/Admin";
 @InputType()
 export class LoginInput {
   @Field()
-  email: string;
+  username: string;
 
   @Field()
   password: string;

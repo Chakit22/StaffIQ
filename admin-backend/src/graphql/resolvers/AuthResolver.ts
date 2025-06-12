@@ -1,6 +1,6 @@
 import { Resolver, Mutation, Arg, Query, Ctx } from "type-graphql";
 import { LoginInput, AuthResponse, AdminResponse } from "../types/AuthTypes";
-import { Admin, AdminRole } from "../../entities/Admin";
+import { Admin } from "../../entities/Admin";
 import { AuthService } from "../../services/auth.service";
 import { AppDataSource } from "../../data-source";
 
@@ -15,35 +15,35 @@ export class AuthResolver {
   @Mutation(() => AuthResponse)
   async adminLogin(@Arg("input") input: LoginInput): Promise<AuthResponse> {
     // Hardcoded admin credentials as per requirement
-    const ADMIN_EMAIL = "admin";
+    const ADMIN_USERNAME = "admin";
     const ADMIN_PASSWORD = "admin";
 
-    if (input.email !== ADMIN_EMAIL || input.password !== ADMIN_PASSWORD) {
+    if (
+      input.username !== ADMIN_USERNAME ||
+      input.password !== ADMIN_PASSWORD
+    ) {
       throw new Error("Invalid credentials");
     }
 
     // Get or create admin user
     const adminRepository = AppDataSource.getRepository(Admin);
     let admin = await adminRepository.findOne({
-      where: { email: ADMIN_EMAIL },
+      where: { username: ADMIN_USERNAME },
     });
 
     if (!admin) {
       // Create default admin if doesn't exist
       admin = adminRepository.create({
-        email: ADMIN_EMAIL,
+        username: ADMIN_USERNAME,
         password: ADMIN_PASSWORD, // In production, this should be hashed
-        role: AdminRole.ADMIN,
-        firstName: "System",
-        lastName: "Administrator",
       });
       admin = await adminRepository.save(admin);
     }
 
     const token = this.authService.generateAccessToken(
       admin.id.toString(),
-      admin.email,
-      admin.role
+      admin.username,
+      "ADMIN"
     );
 
     return {
