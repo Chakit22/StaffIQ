@@ -37,4 +37,5 @@ export const AppDataSource = new DataSource({
   migrations: ["src/migration/*.ts"],
   migrationsRun: false,
   migrationsTableName: "typeorm_migrations",
+  charset: "utf8mb4",
 });
