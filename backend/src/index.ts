@@ -17,6 +17,12 @@ const app = express();
 app.use(cors({ origin: "http://localhost:3001", credentials: true }));
 app.use(express.json());
 
+// Dummy test route
+app.get("/test/ping", (_req, res) => {
+  res.status(200).json({ message: "pong" });
+});
+
+
 //Mount the route
 
 // application routes
@@ -54,3 +60,5 @@ AppDataSource.initialize()
   .catch((err) => {
     console.error("DB connection failed. Server not started.", err);
   });
+export default app;
+
