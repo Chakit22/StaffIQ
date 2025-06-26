@@ -8,8 +8,6 @@ import { useQueryState } from "nuqs";
 import LoaderComponent from "./Loading";
 import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
-import { Button } from "./ui/button";
-import { ArrowUp, ArrowDown } from "lucide-react";
 import z from "zod";
 import { useAuthContext } from "@/context/UserProvider";
 import useUser from "@/hooks/useUser";
@@ -60,7 +58,8 @@ export default function LecturerComponent() {
     getLecturerRankings,
     deleteRanking,
   } = useApplication();
-  const [applications, setApplications] = useState<Application[]>([]);
+
+  // Filtered applications
   const [filteredApplications, setFilteredApplications] = useState<
     Application[]
   >([]);
@@ -72,16 +71,11 @@ export default function LecturerComponent() {
   const [rankedApplications, setRankedApplications] = useState<Application[]>(
     []
   );
-  const [isLoadingRankings, setIsLoadingRankings] = useState<boolean>(false);
   const [showRankingEditor, setShowRankingEditor] = useState<boolean>(false);
 
-  // Active filters
-  const [activeFilters, setActiveFilters] = useState<{
-    courses?: string[];
-    roles?: string[];
-    availabilities?: string[];
-    skills?: string[];
-  }>({});
+  // Active filters (Same as GetAllApplicationsSchema) (Can be undefined as the whole object is optional)
+  const [activeFilters, setActiveFilters] =
+    useState<GetAllApplicationsSchema>(undefined);
 
   // Check is there is an id in the url
   useEffect(() => {
@@ -138,7 +132,6 @@ export default function LecturerComponent() {
       const response = await getAllApplications();
       if (response.success) {
         const apps = response.body as Application[];
-        setApplications(apps);
         setFilteredApplications(apps);
       } else {
         toast.error(response.message);
@@ -160,7 +153,6 @@ export default function LecturerComponent() {
   // Fetch lecturer rankings
   const fetchLecturerRankings = async (lecturerId: string) => {
     try {
-      setIsLoadingRankings(true);
       const response = await getLecturerRankings(lecturerId);
 
       if (response.success && Array.isArray(response.body)) {
@@ -204,55 +196,7 @@ export default function LecturerComponent() {
     } catch (error) {
       console.error("Error fetching rankings:", error);
       toast.error("An error occurred while fetching rankings");
-    } finally {
-      setIsLoadingRankings(false);
     }
-  };
-
-  // Handle filter applications
-  const handleApplyFilters = (appliedFilters: {
-    courses?: string[];
-    roles?: string[];
-    availabilities?: string[];
-    skills?: string[];
-  }) => {
-    setActiveFilters(appliedFilters);
-
-    // Apply filters to applications
-    let filtered = [...applications];
-
-    // Filter by courses
-    if (appliedFilters.courses && appliedFilters.courses.length > 0) {
-      filtered = filtered.filter((app) =>
-        appliedFilters.courses?.includes(app.course.id)
-      );
-    }
-
-    // Filter by roles
-    if (appliedFilters.roles && appliedFilters.roles.length > 0) {
-      filtered = filtered.filter((app) =>
-        appliedFilters.roles?.includes(app.role.id)
-      );
-    }
-
-    // Filter by availabilities
-    if (
-      appliedFilters.availabilities &&
-      appliedFilters.availabilities.length > 0
-    ) {
-      filtered = filtered.filter((app) =>
-        appliedFilters.availabilities?.includes(app.availability.id)
-      );
-    }
-
-    // Filter by skills
-    if (appliedFilters.skills && appliedFilters.skills.length > 0) {
-      filtered = filtered.filter((app) =>
-        app.skills.some((skill) => appliedFilters.skills?.includes(skill.name))
-      );
-    }
-
-    setFilteredApplications(filtered);
   };
 
   // Show loading overlay while authentication is loading
@@ -334,21 +278,22 @@ export default function LecturerComponent() {
 
   // Count active filters
   const activeFilterCount =
-    (activeFilters.courses?.length || 0) +
-    (activeFilters.roles?.length || 0) +
-    (activeFilters.availabilities?.length || 0) +
-    (activeFilters.skills?.length || 0);
+    (activeFilters?.courses?.length || 0) +
+    (activeFilters?.roles?.length || 0) +
+    (activeFilters?.availabilities?.length || 0) +
+    (activeFilters?.skills?.length || 0);
 
   return (
     <div className="flex flex-col md:flex-row gap-8 p-4">
       {/* Sidebar with filters */}
       <div className="w-full md:w-1/4">
         <FilterSidebar
+          activeFilters={activeFilters}
+          setActiveFilters={setActiveFilters}
           courses={coursesAssigned}
           roles={roles}
           availabilities={availabilities}
           skills={skills}
-          onApplyFilters={handleApplyFilters}
         />
       </div>
 

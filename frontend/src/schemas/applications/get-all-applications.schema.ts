@@ -1,15 +1,11 @@
 import { z } from "zod";
 
-const SkillSchema = z.object({
-  name: z.string(),
-});
-
 export const GetAllApplicationsSchema = z
   .object({
     courses: z.array(z.string().uuid()).optional(),
     roles: z.array(z.string().uuid()).optional(),
     availabilities: z.array(z.string().uuid()).optional(),
-    skills: z.array(SkillSchema).optional(),
+    skills: z.array(z.string().uuid()).optional(),
     search: z.string().optional(),
     sortBy: z
       .enum([

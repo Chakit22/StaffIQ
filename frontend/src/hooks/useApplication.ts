@@ -39,6 +39,7 @@ export default function useApplication() {
         // Validate the query with Zod using safeParse
         const validationResult = GetAllApplicationsSchema.safeParse(query);
 
+        // If the query is not valid, return an error
         if (!validationResult.success) {
           // Handle validation errors
           console.error("Validation errors:", validationResult.error.issues);

@@ -4,30 +4,28 @@ import { useState } from "react";
 import { Checkbox } from "./ui/checkbox";
 import { Button } from "./ui/button";
 import { ChevronDown, ChevronUp, Filter } from "lucide-react";
-import { Course } from "@/types/Course";
-import { Role } from "@/types/Role";
+import { GetAllApplicationsSchema } from "@/schemas/applications/get-all-applications.schema";
 import { Availability } from "@/types/Availability";
+import { Role } from "@/types/Role";
 import { Skill } from "@/types/Skill";
+import { Course } from "@/types/Course";
 
 type FilterSidebarProps = {
+  activeFilters: GetAllApplicationsSchema;
+  setActiveFilters: (filters: GetAllApplicationsSchema) => void;
   courses: Course[];
   roles: Role[];
   availabilities: Availability[];
   skills: Skill[];
-  onApplyFilters: (filters: {
-    courses?: string[];
-    roles?: string[];
-    availabilities?: string[];
-    skills?: string[];
-  }) => void;
 };
 
 const FilterSidebar = ({
+  activeFilters,
+  setActiveFilters,
   courses,
   roles,
   availabilities,
   skills,
-  onApplyFilters,
 }: FilterSidebarProps) => {
   // State for tracking which sections are expanded
   const [expandedSections, setExpandedSections] = useState<{
@@ -64,6 +62,9 @@ const FilterSidebar = ({
   };
 
   // Handle checkbox change
+  /**
+   * Basically it updates the field like courses, skills or any other fileds to the values checked.
+   */
   const handleCheckboxChange = (
     type: keyof typeof selectedFilters,
     id: string,
@@ -84,20 +85,39 @@ const FilterSidebar = ({
 
   // Handle apply filters
   const handleApplyFilters = () => {
-    onApplyFilters({
-      courses:
-        selectedFilters.courses.length > 0
-          ? selectedFilters.courses
-          : undefined,
-      roles:
-        selectedFilters.roles.length > 0 ? selectedFilters.roles : undefined,
-      availabilities:
-        selectedFilters.availabilities.length > 0
-          ? selectedFilters.availabilities
-          : undefined,
-      skills:
-        selectedFilters.skills.length > 0 ? selectedFilters.skills : undefined,
-    });
+    const newFilters: GetAllApplicationsSchema = {
+      ...activeFilters,
+    };
+
+    // if courses are selected, add them to the new filters else delete them
+    if (selectedFilters.courses.length > 0) {
+      newFilters.courses = selectedFilters.courses;
+    } else {
+      delete newFilters.courses;
+    }
+
+    // if roles are selected, add them to the new filters else delete them
+    if (selectedFilters.roles.length > 0) {
+      newFilters.roles = selectedFilters.roles;
+    } else {
+      delete newFilters.roles;
+    }
+
+    // if availabilities are selected, add them to the new filters else delete them
+    if (selectedFilters.availabilities.length > 0) {
+      newFilters.availabilities = selectedFilters.availabilities;
+    } else {
+      delete newFilters.availabilities;
+    }
+
+    // if skills are selected, add them to the new filters else delete them
+    if (selectedFilters.skills.length > 0) {
+      newFilters.skills = selectedFilters.skills;
+    } else {
+      delete newFilters.skills;
+    }
+
+    setActiveFilters(newFilters);
   };
 
   return (
