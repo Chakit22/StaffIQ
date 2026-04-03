@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuth } from "@/context/UserProvider";
+import { useAuthContext } from "@/context/UserProvider";
 import { RankingProvider } from "@/context/RankingProvider";
 import { courses } from "@/utils/courses";
 import { useRouter } from "next/navigation";
@@ -49,7 +49,7 @@ const tooltipStyle = {
 };
 
 export default function GraphPage() {
-  const { user, userLoading } = useAuth();
+  const { user, loading: userLoading } = useAuthContext();
   const router = useRouter();
 
   //redirect to signin if not logged in

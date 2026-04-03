@@ -88,23 +88,29 @@ export function ApplicationRankingEditor({
       if (response.success && response.body?.suggestions) {
         const suggestions = response.body.suggestions;
 
-        const suggestionMap = new Map(
-          suggestions.map((s: any) => [s.applicationId, s]),
+        interface SuggestionItem {
+          applicationId: string;
+          suggestedRank: number;
+          reason: string;
+        }
+
+        const suggestionMap = new Map<string, SuggestionItem>(
+          suggestions.map((s) => [s.applicationId, s]),
         );
 
         const reordered = [...rankingData]
           .sort((a, b) => {
             const rankA =
-              (suggestionMap.get(a.id) as any)?.suggestedRank ?? Infinity;
+              suggestionMap.get(a.id)?.suggestedRank ?? Infinity;
             const rankB =
-              (suggestionMap.get(b.id) as any)?.suggestedRank ?? Infinity;
+              suggestionMap.get(b.id)?.suggestedRank ?? Infinity;
             return rankA - rankB;
           })
           .map((item, index) => ({
             ...item,
             rank: index + 1,
             aiReason:
-              (suggestionMap.get(item.id) as any)?.reason || undefined,
+              suggestionMap.get(item.id)?.reason || undefined,
           }));
 
         setRankingData(reordered);

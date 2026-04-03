@@ -19,6 +19,16 @@ export interface Application {
   skills: Skill[];
 }
 
+export interface Applicant {
+  id: number;
+  firstname?: string;
+  lastname?: string;
+  email?: string;
+  role: string;
+  availability: string;
+  skills: string;
+}
+
 export interface MyApplication extends Application {
   rankings: { rank: number; lecturerName: string }[];
   rankingCount: number;

@@ -10,6 +10,9 @@ import {
 import { GripVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
+import CommentDialog from "./CommentDialog";
+
 interface Applicant {
   id: number;
   firstname?: string;
@@ -17,11 +20,6 @@ interface Applicant {
   role: string;
   availability?: string;
 }
-import { toast } from "sonner";
-import { useRanking } from "@/context/RankingProvider";
-import { useAuth } from "@/context/UserProvider";
-import { useRouter } from "next/navigation";
-import CommentDialog from "./CommentDialog";
 
 interface RankingEditorProps {
   course_code: string;
@@ -29,6 +27,7 @@ interface RankingEditorProps {
   selectedApplicants: Applicant[];
   applicants: number[];
   onCommentClick?: (applicantId: number) => void;
+  onSave?: (courseCode: string, role: string, userId: string, ids: number[]) => void;
 }
 
 type ApplicantWithRanking = Applicant & {
@@ -39,11 +38,9 @@ export function RankingEditor({
   course_code,
   role,
   selectedApplicants,
+  onSave,
 }: RankingEditorProps) {
   const [rankingData, setRankingData] = useState<ApplicantWithRanking[]>([]);
-  const { saveRanking } = useRanking();
-  const { user, userLoading } = useAuth();
-  const router = useRouter();
 
   useEffect(() => {
     setRankingData(
@@ -51,11 +48,7 @@ export function RankingEditor({
         return { ...selectedApplicant, rank: index + 1 };
       }),
     );
-
-    if (!user && !userLoading) {
-      router.replace("/");
-    }
-  }, [selectedApplicants, user, userLoading, router]);
+  }, [selectedApplicants]);
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
@@ -78,12 +71,14 @@ export function RankingEditor({
   };
 
   const handleSaveRankingData = () => {
-    saveRanking(
-      course_code,
-      role,
-      user!.id,
-      rankingData.map((app) => app.id),
-    );
+    if (onSave) {
+      onSave(
+        course_code,
+        role,
+        "",
+        rankingData.map((app) => app.id),
+      );
+    }
     toast.success("Preferences saved successfully!");
   };
 

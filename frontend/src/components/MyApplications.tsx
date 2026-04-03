@@ -113,7 +113,7 @@ export default function MyApplications({ userId }: MyApplicationsProps) {
 
               {/* Availability */}
               <div>
-                <div className="text-xs text-gray-400 uppercase tracking-wide">
+                <div className="text-xs text-muted-foreground uppercase tracking-wide">
                   Availability
                 </div>
                 <div className="text-sm">{app.availability.availability}</div>
@@ -121,7 +121,7 @@ export default function MyApplications({ userId }: MyApplicationsProps) {
 
               {/* Skills */}
               <div>
-                <div className="text-xs text-gray-400 uppercase tracking-wide">
+                <div className="text-xs text-muted-foreground uppercase tracking-wide">
                   Skills
                 </div>
                 <div className="flex flex-wrap gap-1.5 mt-1">
@@ -135,7 +135,7 @@ export default function MyApplications({ userId }: MyApplicationsProps) {
 
               {/* Academic Credentials */}
               <div>
-                <div className="text-xs text-gray-400 uppercase tracking-wide">
+                <div className="text-xs text-muted-foreground uppercase tracking-wide">
                   Academic Credentials
                 </div>
                 <div className="text-sm">{app.academic_creds}</div>
@@ -144,7 +144,7 @@ export default function MyApplications({ userId }: MyApplicationsProps) {
               {/* Cover Letter */}
               {app.cover_letter && (
                 <div>
-                  <div className="text-xs text-gray-400 uppercase tracking-wide">
+                  <div className="text-xs text-muted-foreground uppercase tracking-wide">
                     Cover Letter
                   </div>
                   <div className="text-sm whitespace-pre-wrap">
@@ -157,7 +157,7 @@ export default function MyApplications({ userId }: MyApplicationsProps) {
                   {app.cover_letter.length > 150 && (
                     <button
                       onClick={() => toggleExpand(app.id)}
-                      className="text-xs text-blue-500 hover:underline mt-1 flex items-center gap-0.5"
+                      className="text-xs text-primary hover:underline mt-1 flex items-center gap-0.5"
                     >
                       {isExpanded ? (
                         <>

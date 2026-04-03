@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuth } from "@/context/UserProvider";
+import { useAuthContext } from "@/context/UserProvider";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
@@ -30,7 +30,7 @@ const avatarOptions = [
 ];
 
 export default function ProfilePage() {
-  const { user, userLoading } = useAuth();
+  const { user, loading: userLoading } = useAuthContext();
   const router = useRouter();
   const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
   const [email, setEmail] = useState<string>("");
