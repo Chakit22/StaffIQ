@@ -8,8 +8,7 @@ import { useQueryState } from "nuqs";
 import LoaderComponent from "./Loading";
 import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
-import { Button } from "./ui/button";
-import { ArrowUp, ArrowDown, ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import z from "zod";
 import { useAuthContext } from "@/context/UserProvider";
 import useUser from "@/hooks/useUser";
@@ -25,7 +24,8 @@ import { toast } from "sonner";
 import useApplication from "@/hooks/useApplication";
 import FilterSidebar from "./FilterSidebar";
 import { ApplicationRankingEditor } from "./ApplicationRankingEditor";
-import { GetAllApplicationsSchema } from "@/schemas/applications/get-all-applications.schema";
+import { motion } from "framer-motion";
+import { staggerContainer, staggerItem, scaleOnHover } from "@/lib/animations";
 
 export default function LecturerComponent() {
   const router = useRouter();
@@ -72,6 +72,7 @@ export default function LecturerComponent() {
   const [rankedApplications, setRankedApplications] = useState<Application[]>(
     []
   );
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isLoadingRankings, setIsLoadingRankings] = useState<boolean>(false);
   const [showRankingEditor, setShowRankingEditor] = useState<boolean>(false);
 
@@ -179,6 +180,7 @@ export default function LecturerComponent() {
         const rankedApps: Application[] = [];
 
         // Process each ranking
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         rankings.forEach((ranking: any) => {
           if (ranking.application) {
             selectedIds.add(ranking.application.id);
@@ -189,8 +191,10 @@ export default function LecturerComponent() {
         // Sort by rank
         rankedApps.sort((a, b) => {
           const rankA =
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             rankings.find((r: any) => r.application.id === a.id)?.rank || 0;
           const rankB =
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             rankings.find((r: any) => r.application.id === b.id)?.rank || 0;
           return rankA - rankB;
         });
@@ -375,7 +379,7 @@ export default function LecturerComponent() {
         <div className="flex justify-between items-center">
           <Link
             href="/lecturer/stats"
-            className="text-blue-500 underline text-sm self-start"
+            className="text-primary hover:text-accent transition-colors text-sm self-start"
           >
             📊 View Course Statistics
           </Link>
@@ -399,9 +403,15 @@ export default function LecturerComponent() {
 
         {/* Applications */}
         {filteredApplications.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <motion.div
+            variants={staggerContainer}
+            initial="initial"
+            animate="animate"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+          >
             {filteredApplications.map((application: Application) => (
-              <Card key={application.id} className="hover:shadow-xl p-6">
+              <motion.div key={application.id} variants={staggerItem} {...scaleOnHover}>
+              <Card className="hover:shadow-xl hover:shadow-primary/5 p-6 border-border bg-card transition-shadow">
                 <div className="flex justify-between items-center">
                   <div className="text-md font-bold">
                     {application.user.name}
@@ -410,17 +420,17 @@ export default function LecturerComponent() {
                 </div>
                 {/* Role */}
                 <div>
-                  <div className="text-gray-400">Role</div>
+                  <div className="text-muted-foreground">Role</div>
                   {application.role.name.toUpperCase()}
                 </div>
                 {/* Availability */}
                 <div>
-                  <div className="text-gray-400">Availability</div>
+                  <div className="text-muted-foreground">Availability</div>
                   {application.availability.availability.toUpperCase()}
                 </div>
                 {/* Skills */}
                 <div>
-                  <div className="text-gray-400">Skills</div>
+                  <div className="text-muted-foreground">Skills</div>
                   {/* Separate skills by badge */}
                   <div className="flex flex-wrap justify-start items-center gap-2">
                     {application.skills.map((skill, i) => (
@@ -430,7 +440,7 @@ export default function LecturerComponent() {
                 </div>
                 {/* Academic credentials */}
                 <div>
-                  <div className="text-gray-400">Academic Credentials</div>
+                  <div className="text-muted-foreground">Academic Credentials</div>
                   {application.academic_creds}
                 </div>
                 {/* Cover Letter */}
@@ -480,10 +490,11 @@ export default function LecturerComponent() {
                   </label>
                 </div>
               </Card>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         ) : (
-          <div className="text-center p-8 bg-gray-50 rounded-md">
+          <div className="text-center p-8 bg-card/50 rounded-md text-muted-foreground border border-border">
             No applicants found matching the selected filters
           </div>
         )}

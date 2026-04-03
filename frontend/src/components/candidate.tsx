@@ -32,6 +32,8 @@ import { useQueryState, parseAsString } from "nuqs";
 import LoaderComponent from "./Loading";
 import MyApplications from "./MyApplications";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { motion } from "framer-motion";
+import { staggerContainer, staggerItem } from "@/lib/animations";
 
 // API Hooks
 import useApplication from "@/hooks/useApplication";
@@ -322,9 +324,15 @@ export default function CandidateComponent() {
 
       {/* Apply Tab */}
       {activeTab === "apply" && (
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 justify-items-center">
+      <motion.div
+        variants={staggerContainer}
+        initial="initial"
+        animate="animate"
+        className="grid grid-cols-1 lg:grid-cols-2 gap-8 justify-items-center"
+      >
       {/* Application Form */}
-      <Card className="py-8 shadow-2xl bg-blue-50 w-full max-w-2xl">
+      <motion.div variants={staggerItem} className="w-full max-w-2xl">
+      <Card className="py-8 shadow-2xl bg-card border-border w-full max-w-2xl">
         <div className="text-2xl font-bold px-6">Apply for Roles</div>
         <div className="text-sm text-muted-foreground px-6">
           Apply for tutor and lab-assistant roles for the current semester
@@ -460,11 +468,11 @@ export default function CandidateComponent() {
 
                   {/* Skills Dropdown */}
                   {showSkillDropdown && (
-                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-40 overflow-y-auto">
+                    <div className="absolute z-10 w-full mt-1 bg-card border border-border rounded-md shadow-lg max-h-40 overflow-y-auto">
                       {filteredSkills.map((skill) => (
                         <div
                           key={skill.name}
-                          className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                          className="px-3 py-2 hover:bg-accent/20 cursor-pointer"
                           onClick={() => handleSkillSelect(skill.name)}
                         >
                           {skill.name}
@@ -536,9 +544,11 @@ export default function CandidateComponent() {
           </Form>
         </CardContent>
       </Card>
+      </motion.div>
 
       {/* Previous Experience */}
-      <Card className="py-8 rounded-lg shadow-2xl bg-blue-50 w-full max-w-2xl">
+      <motion.div variants={staggerItem} className="w-full max-w-2xl">
+      <Card className="py-8 rounded-lg shadow-2xl bg-card border-border w-full max-w-2xl">
         <div className="text-2xl font-bold px-6">Work Experience</div>
         <div className="text-sm text-muted-foreground px-6">
           Your professional work experience history
@@ -574,7 +584,8 @@ export default function CandidateComponent() {
           </div>
         </CardContent>
       </Card>
-      </div>
+      </motion.div>
+      </motion.div>
       )}
     </div>
   );

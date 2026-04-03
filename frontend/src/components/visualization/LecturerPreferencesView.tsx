@@ -23,12 +23,12 @@ export function LecturerPreferencesView({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-blue-700">
+        <h3 className="text-lg font-semibold text-primary">
           My Preferences {courseName && `for ${courseName}`}
         </h3>
         <Badge
           variant="outline"
-          className="bg-blue-100 text-blue-700 border-blue-200"
+          className="bg-primary/20 text-primary border-primary/30"
         >
           {preferences.length} ranked candidate
           {preferences.length !== 1 ? "s" : ""}
@@ -36,7 +36,7 @@ export function LecturerPreferencesView({
       </div>
 
       {preferences.length === 0 ? (
-        <Card className="p-6 text-center text-gray-500">{emptyMessage}</Card>
+        <Card className="p-6 text-center text-muted-foreground">{emptyMessage}</Card>
       ) : (
         <div className="space-y-3">
           {preferences
@@ -44,26 +44,26 @@ export function LecturerPreferencesView({
             .map((preference) => (
               <Card
                 key={`${preference.application.id}-${preference.rank}`}
-                className="p-4 border-l-4 border-l-blue-500"
+                className="p-4 border-l-4 border-l-primary"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
                     <div className="flex-shrink-0">
-                      <div className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold text-sm">
+                      <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold text-sm">
                         {preference.rank}
                       </div>
                     </div>
 
                     <div className="flex-1">
-                      <h4 className="font-medium text-gray-900">
+                      <h4 className="font-medium text-foreground">
                         {preference.application.user.name}
                       </h4>
                       <div className="flex flex-wrap gap-2 mt-1">
-                        <span className="text-sm text-gray-600">
+                        <span className="text-sm text-muted-foreground">
                           {preference.application.role.name}
                         </span>
-                        <span className="text-sm text-gray-400">•</span>
-                        <span className="text-sm text-gray-600">
+                        <span className="text-sm text-muted-foreground/50">•</span>
+                        <span className="text-sm text-muted-foreground">
                           {preference.application.availability.availability}
                         </span>
                       </div>

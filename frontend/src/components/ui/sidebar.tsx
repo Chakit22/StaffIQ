@@ -52,6 +52,7 @@ function useSidebar() {
 }
 
 function SidebarProvider({
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   defaultOpen = false,
   open: openProp,
   onOpenChange: setOpenProp,

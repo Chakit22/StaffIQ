@@ -108,12 +108,12 @@ export function ApplicationRankingEditor({
   if (rankingData.length === 0) {
     return (
       <div className="border rounded-xl shadow-sm">
-        <div className="bg-blue-500 p-4 rounded-t-xl">
+        <div className="bg-primary p-4 rounded-t-xl">
           <div className="text-2xl font-bold text-center text-primary-foreground">
             Selected Candidates
           </div>
         </div>
-        <div className="flex justify-center items-center p-6 text-gray-500">
+        <div className="flex justify-center items-center p-6 text-muted-foreground">
           No candidates selected yet. Select candidates from the list to rank
           them.
         </div>
@@ -123,7 +123,7 @@ export function ApplicationRankingEditor({
 
   return (
     <div className="border rounded-xl shadow-sm">
-      <div className="bg-blue-500 p-4 rounded-t-xl">
+      <div className="bg-primary p-4 rounded-t-xl">
         <div className="text-2xl font-bold text-center text-primary-foreground">
           Selected Candidates
         </div>
@@ -132,14 +132,14 @@ export function ApplicationRankingEditor({
         {rankingData.map((application, index) => (
           <div
             key={application.id}
-            className="flex sm:flex-row flex-col p-3 border border-blue-200 rounded-md bg-white gap-4 w-full"
+            className="flex sm:flex-row flex-col p-3 border border-border rounded-md bg-card gap-4 w-full"
           >
             <div className="flex items-center gap-3 flex-1">
               <div className="flex flex-col">
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-6 w-6 text-blue-500"
+                  className="h-6 w-6 text-primary"
                   onClick={() => handleRankMove(application.id, "up")}
                   disabled={index === 0}
                   aria-label="Move up"
@@ -149,7 +149,7 @@ export function ApplicationRankingEditor({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-6 w-6 text-blue-500"
+                  className="h-6 w-6 text-primary"
                   onClick={() => handleRankMove(application.id, "down")}
                   disabled={index === rankingData.length - 1}
                   aria-label="Move down"
@@ -158,24 +158,24 @@ export function ApplicationRankingEditor({
                 </Button>
               </div>
               <div className="flex-1">
-                <p className="font-medium text-blue-700">
+                <p className="font-medium text-foreground">
                   {application.user.name}
                 </p>
                 <div className="flex flex-wrap gap-2 mt-1">
-                  <p className="text-sm text-blue-600">
+                  <p className="text-sm text-muted-foreground">
                     {application.course.name}
                   </p>
-                  <p className="text-sm text-blue-600">
+                  <p className="text-sm text-muted-foreground">
                     {application.role.name}
                   </p>
-                  <p className="text-sm text-blue-600">
+                  <p className="text-sm text-muted-foreground">
                     {application.availability.availability}
                   </p>
                 </div>
               </div>
             </div>
             <div className="flex justify-end items-center gap-3">
-              <Badge className="bg-blue-500 p-2">{`Rank: ${application.rank}`}</Badge>
+              <Badge className="bg-primary p-2">{`Rank: ${application.rank}`}</Badge>
               <CommentDialog
                 handleSaveComment={(comment) =>
                   handleSaveComment(comment, application.id)

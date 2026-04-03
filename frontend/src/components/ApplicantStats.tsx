@@ -12,8 +12,12 @@ import {
   LabelList,
 } from "recharts";
 
-//Importing the Applicant type to ensure correct props
-import { Applicant } from "@/types/Application";
+interface Applicant {
+  id: number;
+  firstname?: string;
+  lastname?: string;
+  role: string;
+}
 
 //Props type: this component receives a list of applicants
 interface Props {
@@ -40,15 +44,15 @@ export default function ApplicantStats({ applicants }: Props) {
   }));
 
   return (
-    <div className="p-6 bg-white border rounded-lg shadow">
+    <div className="p-6 bg-card border border-border rounded-lg shadow">
       {/*Title*/}
       <h2 className="text-xl font-semibold mb-4">
-        📊 Applicant Selection Stats
+        Applicant Selection Stats
       </h2>
 
       {/*Show message if no applicants are available*/}
       {data.length === 0 ? (
-        <p>No applicants to visualize.</p>
+        <p className="text-muted-foreground">No applicants to visualize.</p>
       ) : (
         //Responsive chart container
         <ResponsiveContainer width="100%" height={300}>
@@ -59,18 +63,25 @@ export default function ApplicantStats({ applicants }: Props) {
             margin={{ top: 20, right: 30, left: 30, bottom: 5 }}
           >
             {/*X-axis shows selection count*/}
-            <XAxis type="number" />
+            <XAxis type="number" tick={{ fill: "#64748b" }} stroke="#2d2d44" />
 
             {/*Y-axis shows applicant names*/}
-            <YAxis dataKey="name" type="category" width={200} />
+            <YAxis dataKey="name" type="category" width={200} tick={{ fill: "#64748b" }} stroke="#2d2d44" />
 
             {/*Tooltip on hover*/}
-            <Tooltip />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: "#1a1a2e",
+                border: "1px solid #2d2d44",
+                borderRadius: "8px",
+                color: "#e2e8f0",
+              }}
+            />
 
             {/*Bar for each applicant*/}
-            <Bar dataKey="selections" fill="#3b82f6">
+            <Bar dataKey="selections" fill="#8b5cf6" radius={[0, 4, 4, 0]}>
               {/*Show number next to each bar*/}
-              <LabelList dataKey="selections" position="right" />
+              <LabelList dataKey="selections" position="right" fill="#e2e8f0" />
             </Bar>
           </BarChart>
         </ResponsiveContainer>

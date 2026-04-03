@@ -4,7 +4,13 @@ import { useState, useEffect } from "react";
 import { ArrowUp, ArrowDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Applicant } from "@/types/Application";
+interface Applicant {
+  id: number;
+  firstname?: string;
+  lastname?: string;
+  role: string;
+  availability?: string;
+}
 import { toast } from "sonner";
 import { useRanking } from "@/context/RankingProvider";
 import { useAuth } from "@/context/UserProvider";
@@ -86,7 +92,7 @@ export function RankingEditor({
 
   return (
     <div className="border rounded-xl shadow-sm">
-      <div className="bg-blue-500 p-4 rounded-t-xl">
+      <div className="bg-primary p-4 rounded-t-xl">
         <div className="text-2xl font-bold text-center text-primary-foreground">
           {role.toUpperCase()}
         </div>
@@ -96,14 +102,14 @@ export function RankingEditor({
           {rankingData.map((applicant, index) => (
             <div
               key={applicant.id}
-              className="flex sm:flex-row flex-col p-3 border border-blue-200 rounded-md bg-white gap-4"
+              className="flex sm:flex-row flex-col p-3 border border-border rounded-md bg-card gap-4"
             >
               <div className="flex items-center gap-3">
                 <div className="flex flex-col">
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-6 w-6 text-blue-500"
+                    className="h-6 w-6 text-primary"
                     onClick={() => handleRankMove(applicant.id, "up")}
                     disabled={index === 0}
                   >
@@ -113,7 +119,7 @@ export function RankingEditor({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-6 w-6 text-blue-500"
+                    className="h-6 w-6 text-primary"
                     onClick={() => handleRankMove(applicant.id, "down")}
                     disabled={index === rankingData.length - 1}
                   >
@@ -122,16 +128,16 @@ export function RankingEditor({
                   </Button>
                 </div>
                 <div>
-                  <p className="font-medium text-blue-700">
+                  <p className="font-medium text-foreground">
                     {applicant.firstname}
                   </p>
-                  <p className="text-sm text-blue-600">
+                  <p className="text-sm text-muted-foreground">
                     {applicant.availability}
                   </p>
                 </div>
               </div>
               <div className="flex justify-center items-center gap-3">
-                <Badge className="bg-blue-500 p-2">{`Rank: ${applicant.rank}`}</Badge>
+                <Badge className="bg-primary p-2">{`Rank: ${applicant.rank}`}</Badge>
                 <CommentDialog handleSaveComment={handleSaveComment} />
               </div>
             </div>

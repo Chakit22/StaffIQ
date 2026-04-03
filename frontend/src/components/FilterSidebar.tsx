@@ -101,7 +101,7 @@ const FilterSidebar = ({
   };
 
   return (
-    <div className="w-full bg-white rounded-md shadow-sm p-4 flex flex-col gap-4">
+    <div className="w-full bg-card border border-border rounded-md shadow-sm p-4 flex flex-col gap-4">
       <div className="text-lg font-semibold flex items-center gap-2">
         <Filter size={18} />
         Filters

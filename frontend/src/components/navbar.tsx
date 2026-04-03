@@ -25,19 +25,19 @@ export default function Navbar() {
 
   return (
     <>
-      <div className="h-20 border-2 flex justify-between items-center p-6">
+      <div className="h-20 border-b border-border bg-card/60 backdrop-blur-md flex justify-between items-center px-6">
         <div className="flex justify-center items-center gap-2">
           <SidebarTrigger className="md:hidden" />
-          <Link className="text-2xl text-bold text-foreground" href="/">
+          <Link className="text-2xl font-bold text-primary tracking-tight" href="/">
             TeachTeam
           </Link>
         </div>
-        <div className="hidden md:flex gap-4">
-          <Button onClick={() => router.push("/")} variant="outline">
+        <div className="hidden md:flex gap-3">
+          <Button onClick={() => router.push("/")} variant="outline" className="border-border hover:border-primary/50 hover:bg-primary/10">
             <Home size={18} />
             Home
           </Button>
-          <Button onClick={handleLogout}>
+          <Button onClick={handleLogout} className="glow-purple-sm">
             <LogOut />
             Logout
           </Button>

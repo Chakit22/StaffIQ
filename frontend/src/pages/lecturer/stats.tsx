@@ -50,6 +50,8 @@ import {
   Legend,
 } from "recharts";
 
+const CHART_COLORS = ["#8b5cf6", "#c084fc", "#a78bfa", "#7c3aed"];
+
 export default function StatsPage() {
   const { user, loading: userLoading } = useAuthContext();
   const router = useRouter();
@@ -172,15 +174,15 @@ function StatsContent() {
   );
 
   return (
-    <div className="bg-gray-50 text-blue-900 flex flex-col gap-6 min-h-screen">
+    <div className="bg-background text-foreground flex flex-col gap-6 min-h-screen">
       {/* Header */}
-      <div className="bg-white shadow-sm p-6">
+      <div className="bg-card/50 shadow-sm p-6 border-b border-border">
         <div className="flex flex-col gap-2 items-center">
-          <h1 className="text-3xl font-bold text-blue-900">
-            📊 Course Statistics
+          <h1 className="text-3xl font-bold text-foreground">
+            Course Statistics
           </h1>
           <div
-            className="text-sm underline cursor-pointer text-blue-600 hover:text-blue-800"
+            className="text-sm cursor-pointer text-primary hover:text-accent transition-colors"
             onClick={() => router.push("/lecturer")}
           >
             ← Back to Lecturer Dashboard
@@ -239,30 +241,30 @@ function StatsContent() {
           {/* Course Statistics Section */}
           {courseStats && (
             <div className="space-y-6">
-              {/* Summary Stats from existing graph implementation */}
+              {/* Summary Stats */}
               <Card className="p-6">
                 <CardTitle className="text-center">Summary Stats</CardTitle>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-                  <div className="bg-blue-100 p-4 rounded">
+                  <div className="bg-primary/20 text-primary p-4 rounded-lg border border-primary/20">
                     Total:{" "}
                     {courseStats.mostChosenCandidates.length +
                       courseStats.leastChosenCandidates.length +
                       courseStats.unchosenCandidates.length}
                   </div>
-                  <div className="bg-green-100 p-4 rounded">
+                  <div className="bg-green-900/20 text-green-400 p-4 rounded-lg border border-green-800/30">
                     Most Chosen: {courseStats.mostChosenCandidates.length}
                   </div>
-                  <div className="bg-yellow-100 p-4 rounded">
+                  <div className="bg-yellow-900/20 text-yellow-400 p-4 rounded-lg border border-yellow-800/30">
                     Least Chosen: {courseStats.leastChosenCandidates.length}
                   </div>
                 </div>
               </Card>
 
-              {/* Distribution Charts from existing graph implementation */}
+              {/* Distribution Charts */}
               <Card className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Role Distribution */}
-                  <div className="bg-white p-6 rounded-lg shadow overflow-hidden">
+                  <div className="bg-card p-6 rounded-lg border border-border overflow-hidden">
                     <h2 className="text-lg font-semibold mb-4 text-center">
                       Role Distribution
                     </h2>
@@ -306,27 +308,29 @@ function StatsContent() {
                               return Object.entries(roleMap).map((_, index) => (
                                 <Cell
                                   key={`role-cell-${index}`}
-                                  fill={
-                                    [
-                                      "#3b82f6",
-                                      "#10b981",
-                                      "#f59e0b",
-                                      "#ef4444",
-                                    ][index % 4]
-                                  }
+                                  fill={CHART_COLORS[index % CHART_COLORS.length]}
                                 />
                               ));
                             })()}
                           </Pie>
-                          <Tooltip />
-                          <Legend />
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: "#1a1a2e",
+                              border: "1px solid #2d2d44",
+                              borderRadius: "8px",
+                              color: "#e2e8f0",
+                            }}
+                          />
+                          <Legend
+                            wrapperStyle={{ color: "#e2e8f0" }}
+                          />
                         </PieChart>
                       </ResponsiveContainer>
                     </div>
                   </div>
 
                   {/* Availability Distribution */}
-                  <div className="bg-white p-6 rounded-lg shadow overflow-hidden">
+                  <div className="bg-card p-6 rounded-lg border border-border overflow-hidden">
                     <h2 className="text-lg font-semibold mb-4 text-center">
                       Availability Distribution
                     </h2>
@@ -379,21 +383,23 @@ function StatsContent() {
                                 (_, index) => (
                                   <Cell
                                     key={`availability-cell-${index}`}
-                                    fill={
-                                      [
-                                        "#3b82f6",
-                                        "#10b981",
-                                        "#f59e0b",
-                                        "#ef4444",
-                                      ][index % 4]
-                                    }
+                                    fill={CHART_COLORS[index % CHART_COLORS.length]}
                                   />
                                 )
                               );
                             })()}
                           </Pie>
-                          <Tooltip />
-                          <Legend />
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: "#1a1a2e",
+                              border: "1px solid #2d2d44",
+                              borderRadius: "8px",
+                              color: "#e2e8f0",
+                            }}
+                          />
+                          <Legend
+                            wrapperStyle={{ color: "#e2e8f0" }}
+                          />
                         </PieChart>
                       </ResponsiveContainer>
                     </div>
@@ -442,10 +448,10 @@ function StatsContent() {
       {!loading && courses.length === 0 && (
         <div className="container mx-auto px-4">
           <Card className="p-12 text-center">
-            <h3 className="text-xl font-semibold text-gray-700 mb-2">
+            <h3 className="text-xl font-semibold text-foreground mb-2">
               No Courses Assigned
             </h3>
-            <p className="text-gray-500">
+            <p className="text-muted-foreground">
               You don&apos;t have any courses assigned yet. Contact the
               administrator to get course assignments.
             </p>

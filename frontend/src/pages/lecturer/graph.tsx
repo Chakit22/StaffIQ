@@ -39,7 +39,14 @@ import {
 import useGraphStats from "@/hooks/useGraphStats";
 
 //color palette for charts
-const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444"];
+const COLORS = ["#8b5cf6", "#c084fc", "#a78bfa", "#7c3aed"];
+
+const tooltipStyle = {
+  backgroundColor: "#1a1a2e",
+  border: "1px solid #2d2d44",
+  borderRadius: "8px",
+  color: "#e2e8f0",
+};
 
 export default function GraphPage() {
   const { user, userLoading } = useAuth();
@@ -81,11 +88,11 @@ function GraphContent() {
   });
 
   return (
-    <div className="bg-gray-50 text-blue-900 flex flex-col gap-4">
+    <div className="bg-background text-foreground flex flex-col gap-4">
       <div className="flex flex-col gap-2 items-center">
-        <h1 className="text-2xl font-bold">📊 Applicant Analytics</h1>
+        <h1 className="text-2xl font-bold">Applicant Analytics</h1>
         <div
-          className="text-sm underline cursor-pointer"
+          className="text-sm cursor-pointer text-primary hover:text-accent transition-colors"
           onClick={() => router.push("/lecturer")}
         >
           ← Back to Lecturer Dashboard
@@ -127,13 +134,13 @@ function GraphContent() {
       <Card className="p-6">
         <CardTitle className="text-center">Summary Stats</CardTitle>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-          <div className="bg-blue-100 p-4 rounded">
+          <div className="bg-primary/20 text-primary p-4 rounded-lg border border-primary/20">
             Total: {filteredApplicants.length}
           </div>
-          <div className="bg-green-100 p-4 rounded">
+          <div className="bg-green-900/20 text-green-400 p-4 rounded-lg border border-green-800/30">
             Tutors: {summaryStats["tutor"]}
           </div>
-          <div className="bg-yellow-100 p-4 rounded">
+          <div className="bg-yellow-900/20 text-yellow-400 p-4 rounded-lg border border-yellow-800/30">
             Lab Assistants: {summaryStats["lab assistant"]}
           </div>
         </div>
@@ -153,30 +160,32 @@ function GraphContent() {
                   angle={-20}
                   interval={0}
                   textAnchor="end"
-                  tick={{ fontSize: 12 }}
+                  tick={{ fontSize: 12, fill: "#64748b" }}
                   tickFormatter={(value) => {
-                    // On smaller screens, truncate long names
                     return value.length > 15
                       ? `${value.substring(0, 15)}...`
                       : value;
                   }}
                   height={60}
+                  stroke="#2d2d44"
                 />
-                <YAxis allowDecimals={false} />
+                <YAxis allowDecimals={false} tick={{ fill: "#64748b" }} stroke="#2d2d44" />
                 <Tooltip
                   formatter={(value) => [`${value} selections`, "Selections"]}
                   labelFormatter={(label, payload) => {
                     const item = payload[0]?.payload;
                     return `Applicant: ${item?.name}\n${item?.role} (${item?.course})`;
                   }}
+                  contentStyle={tooltipStyle}
                 />
-                <Legend />
+                <Legend wrapperStyle={{ color: "#e2e8f0" }} />
                 <Line
                   type="monotone"
                   dataKey="count"
-                  stroke="#3b82f6"
-                  activeDot={{ r: 8 }}
+                  stroke="#8b5cf6"
+                  activeDot={{ r: 8, fill: "#a78bfa" }}
                   name="Selections"
+                  strokeWidth={2}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -187,7 +196,7 @@ function GraphContent() {
       {/*table showing course-wise applicant stats*/}
       <Card className="p-6">
         <CardTitle className="text-center">
-          📋 Course-wise Applicant Summary
+          Course-wise Applicant Summary
         </CardTitle>
         {courses.map((course) => {
           const result = countMaxMinUnchosen(course.code);
@@ -197,17 +206,17 @@ function GraphContent() {
 
           return (
             <div key={course.code} className="flex flex-col gap-2 mb-6">
-              <h3 className="text-md font-semibold text-blue-700">
+              <h3 className="text-md font-semibold text-primary">
                 {course.code} - {course.label}
               </h3>
-              <div className="border rounded overflow-x-auto">
+              <div className="border border-border rounded overflow-x-auto">
                 <Table>
-                  <TableHeader className="bg-gray-100 text-gray-700 border-b">
+                  <TableHeader className="bg-muted border-b border-border">
                     <TableRow>
-                      <TableHead className="px-4 py-2">Name</TableHead>
-                      <TableHead className="px-4 py-2">Role</TableHead>
-                      <TableHead className="px-4 py-2">Selections</TableHead>
-                      <TableHead className="px-4 py-2">Category</TableHead>
+                      <TableHead className="px-4 py-2 text-muted-foreground">Name</TableHead>
+                      <TableHead className="px-4 py-2 text-muted-foreground">Role</TableHead>
+                      <TableHead className="px-4 py-2 text-muted-foreground">Selections</TableHead>
+                      <TableHead className="px-4 py-2 text-muted-foreground">Category</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -221,7 +230,7 @@ function GraphContent() {
                       return (
                         <TableRow
                           key={`${course.code}-${a.id}-${a.role}`}
-                          className="border-b last:border-none"
+                          className="border-b border-border last:border-none"
                         >
                           <TableCell className="px-4 py-2 capitalize">
                             {a.name}
@@ -234,10 +243,10 @@ function GraphContent() {
                             <span
                               className={`px-2 py-1 rounded font-medium ${
                                 category === "Most Chosen"
-                                  ? "bg-green-100 text-green-700"
+                                  ? "bg-green-900/30 text-green-400"
                                   : category === "Least Chosen"
-                                  ? "bg-yellow-100 text-yellow-700"
-                                  : "bg-gray-100 text-gray-600"
+                                  ? "bg-yellow-900/30 text-yellow-400"
+                                  : "bg-muted text-muted-foreground"
                               }`}
                             >
                               {category}
@@ -258,7 +267,7 @@ function GraphContent() {
       <Card className="p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/*availability pie chart*/}
-          <div className="bg-white p-6 rounded-lg shadow overflow-hidden">
+          <div className="bg-card p-6 rounded-lg border border-border overflow-hidden">
             <h2 className="text-lg font-semibold mb-4 text-center">
               Availability Distribution
             </h2>
@@ -281,7 +290,7 @@ function GraphContent() {
                       />
                     ))}
                   </Pie>
-                  <Tooltip />
+                  <Tooltip contentStyle={tooltipStyle} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
