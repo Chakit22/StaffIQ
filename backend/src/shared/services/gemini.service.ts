@@ -4,18 +4,22 @@ import dotenv from "dotenv";
 dotenv.config();
 
 export class GeminiService {
-  private genAI: GoogleGenerativeAI;
+  private genAI: GoogleGenerativeAI | null = null;
   private model: string = "gemini-2.5-flash-lite";
 
   constructor() {
     const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      throw new Error("GEMINI_API_KEY environment variable is required");
+    if (apiKey) {
+      this.genAI = new GoogleGenerativeAI(apiKey);
     }
-    this.genAI = new GoogleGenerativeAI(apiKey);
   }
 
   async generateContent(prompt: string): Promise<string> {
+    if (!this.genAI) {
+      throw new Error(
+        "GEMINI_API_KEY environment variable is required. Add it to your .env file.",
+      );
+    }
     const model = this.genAI.getGenerativeModel({ model: this.model });
 
     const maxRetries = 3;
