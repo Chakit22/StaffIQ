@@ -21,6 +21,9 @@ export class Application {
   @Column()
   academic_creds: string;
 
+  @Column({ type: "text", nullable: true })
+  cover_letter: string | null;
+
   // Define foreign keys as a seperate columns for easy query access
   @Column()
   userId: string;

@@ -30,6 +30,7 @@ import { Input } from "@/components/ui/input";
 import { X } from "lucide-react";
 import { useQueryState, parseAsString } from "nuqs";
 import LoaderComponent from "./Loading";
+import MyApplications from "./MyApplications";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 // API Hooks
@@ -75,6 +76,9 @@ export default function CandidateComponent() {
   const [showSkillDropdown, setShowSkillDropdown] = useState(false);
   const [filteredSkills, setFilteredSkills] = useState<Skill[]>([]);
 
+  // Tab state
+  const [activeTab, setActiveTab] = useState<"apply" | "my-applications">("apply");
+
   // Loading states
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(true);
@@ -86,6 +90,7 @@ export default function CandidateComponent() {
     resolver: zodResolver(CreateApplicationSchema),
     defaultValues: {
       academic_creds: "",
+      cover_letter: "",
       userId: "",
       courseId: "",
       roleId: "",
@@ -260,6 +265,7 @@ export default function CandidateComponent() {
         setSkills([]);
         form.reset({
           academic_creds: "",
+          cover_letter: "",
           userId: user.id,
           courseId: "",
           roleId: "",
@@ -289,7 +295,34 @@ export default function CandidateComponent() {
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 justify-items-center p-4">
+    <div className="flex flex-col gap-6 p-4">
+      {/* Tab Navigation */}
+      <div className="flex gap-2 justify-center">
+        <Button
+          variant={activeTab === "apply" ? "default" : "outline"}
+          onClick={() => setActiveTab("apply")}
+        >
+          Apply for Roles
+        </Button>
+        <Button
+          variant={activeTab === "my-applications" ? "default" : "outline"}
+          onClick={() => setActiveTab("my-applications")}
+        >
+          My Applications
+        </Button>
+      </div>
+
+      {/* My Applications Tab */}
+      {activeTab === "my-applications" && user && (
+        <div className="max-w-5xl mx-auto w-full">
+          <h2 className="text-2xl font-bold mb-4">My Applications</h2>
+          <MyApplications userId={user.id} />
+        </div>
+      )}
+
+      {/* Apply Tab */}
+      {activeTab === "apply" && (
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 justify-items-center">
       {/* Application Form */}
       <Card className="py-8 shadow-2xl bg-blue-50 w-full max-w-2xl">
         <div className="text-2xl font-bold px-6">Apply for Roles</div>
@@ -477,6 +510,25 @@ export default function CandidateComponent() {
                 )}
               />
 
+              {/* Cover Letter */}
+              <FormField
+                control={form.control}
+                name="cover_letter"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Cover Letter (Optional)</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Write a cover letter to support your application..."
+                        className="min-h-[120px]"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting ? "Submitting..." : "Submit Application"}
               </Button>
@@ -522,6 +574,8 @@ export default function CandidateComponent() {
           </div>
         </CardContent>
       </Card>
+      </div>
+      )}
     </div>
   );
 }

@@ -9,7 +9,7 @@ import LoaderComponent from "./Loading";
 import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
-import { ArrowUp, ArrowDown } from "lucide-react";
+import { ArrowUp, ArrowDown, ChevronDown, ChevronUp } from "lucide-react";
 import z from "zod";
 import { useAuthContext } from "@/context/UserProvider";
 import useUser from "@/hooks/useUser";
@@ -74,6 +74,11 @@ export default function LecturerComponent() {
   );
   const [isLoadingRankings, setIsLoadingRankings] = useState<boolean>(false);
   const [showRankingEditor, setShowRankingEditor] = useState<boolean>(false);
+
+  // Expanded cover letters
+  const [expandedCoverLetters, setExpandedCoverLetters] = useState<Set<string>>(
+    new Set()
+  );
 
   // Active filters
   const [activeFilters, setActiveFilters] = useState<{
@@ -332,6 +337,18 @@ export default function LecturerComponent() {
     }
   };
 
+  const toggleCoverLetter = (id: string) => {
+    setExpandedCoverLetters((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
   // Count active filters
   const activeFilterCount =
     (activeFilters.courses?.length || 0) +
@@ -416,6 +433,35 @@ export default function LecturerComponent() {
                   <div className="text-gray-400">Academic Credentials</div>
                   {application.academic_creds}
                 </div>
+                {/* Cover Letter */}
+                {application.cover_letter && (
+                  <div>
+                    <div className="text-gray-400">Cover Letter</div>
+                    <div className="text-sm whitespace-pre-wrap">
+                      {expandedCoverLetters.has(application.id)
+                        ? application.cover_letter
+                        : application.cover_letter.length > 100
+                          ? `${application.cover_letter.substring(0, 100)}...`
+                          : application.cover_letter}
+                    </div>
+                    {application.cover_letter.length > 100 && (
+                      <button
+                        onClick={() => toggleCoverLetter(application.id)}
+                        className="text-xs text-blue-500 hover:underline mt-1 flex items-center gap-0.5"
+                      >
+                        {expandedCoverLetters.has(application.id) ? (
+                          <>
+                            Show less <ChevronUp className="h-3 w-3" />
+                          </>
+                        ) : (
+                          <>
+                            Show more <ChevronDown className="h-3 w-3" />
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
+                )}
                 <hr className="my-3" />
                 {/* Select candidate */}
                 <div className="flex justify-start items-center gap-2">

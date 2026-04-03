@@ -144,6 +144,49 @@ export class ApplicationController {
     }
   };
 
+  // Get all applications for the authenticated candidate
+  getMyApplications = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const currentUser = (req as AuthRequest).user;
+
+      const applications = await this.applicationRepository.find({
+        where: { userId: currentUser.id },
+        relations: ["course", "role", "availability", "skills"],
+        order: { id: "DESC" },
+      });
+
+      // Fetch rankings for each application
+      const applicationsWithRankings = await Promise.all(
+        applications.map(async (app) => {
+          const rankings = await this.rankingRepository.find({
+            where: { applicationId: app.id },
+            relations: ["lecturer"],
+          });
+          return {
+            ...app,
+            rankings: rankings.map((r) => ({
+              rank: r.rank,
+              lecturerName: r.lecturer?.name || "Unknown",
+            })),
+            rankingCount: rankings.length,
+          };
+        })
+      );
+
+      res.status(200).json({
+        success: true,
+        body: applicationsWithRankings,
+        message: "Applications fetched successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
   // Get all applications
   /**
    * query params in this are comma separated string of UUIds

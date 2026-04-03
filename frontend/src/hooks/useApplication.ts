@@ -162,11 +162,27 @@ export default function useApplication() {
     }
   };
 
+  // Hook to get all applications for the authenticated candidate
+  const getMyApplications = async (): Promise<ApiResponse> => {
+    try {
+      const response = await apiClient.get("/api/applications/my");
+      return {
+        success: response.data.success,
+        message: response.data.message,
+        body: response.data.body,
+      };
+    } catch (error: unknown) {
+      console.error("Error getting my applications", error);
+      return handleApiError(error);
+    }
+  };
+
   return {
     createNewApplication,
     selectCandidate,
     updateComment,
     getAllApplications,
+    getMyApplications,
     getLecturerRankings,
     deleteRanking,
   };

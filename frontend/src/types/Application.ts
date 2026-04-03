@@ -7,6 +7,7 @@ import { Availability } from "./Availability";
 export interface Application {
   id: string;
   academic_creds: string;
+  cover_letter?: string | null;
   userId: string;
   courseId: string;
   roleId: string;
@@ -16,6 +17,11 @@ export interface Application {
   role: Role;
   availability: Availability;
   skills: Skill[];
+}
+
+export interface MyApplication extends Application {
+  rankings: { rank: number; lecturerName: string }[];
+  rankingCount: number;
 }
 
 // DTO for creating an application

@@ -6,6 +6,7 @@ const SkillSchema = z.object({
 
 export const CreateApplicationSchema = z.object({
   academic_creds: z.string(),
+  cover_letter: z.string().optional(),
   userId: z.string().uuid(),
   courseId: z.string().uuid(),
   roleId: z.string().uuid(),

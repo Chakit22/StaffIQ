@@ -11,6 +11,7 @@ import {
   requireCandidate,
 } from "../../shared/middleware/role.middleware";
 
+
 const router = Router();
 
 // All the routes are protected by the authenticateToken middleware
@@ -24,6 +25,13 @@ router.post(
   requireCandidate,
   validateSchema(CreateApplicationSchema),
   applicationController.createApplication
+);
+
+// Get all applications for the authenticated candidate
+router.get(
+  "/my",
+  requireCandidate,
+  applicationController.getMyApplications
 );
 
 // Get all applications - Both lecturers and candidates can view (filtered by controller logic)
