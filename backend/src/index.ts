@@ -10,6 +10,7 @@ import userRoutes from "./modules/users/user.routes";
 import roleRoutes from "./modules/roles/role.routes";
 import skillRoutes from "./modules/skills/skill.routes";
 import availabilityRoutes from "./modules/availability/availability.routes";
+import aiRoutes from "./modules/ai/ai.routes";
 dotenv.config();
 
 const app = express();
@@ -40,6 +41,9 @@ app.use("/api/skills", skillRoutes);
 
 // availability routes
 app.use("/api/availabilities", availabilityRoutes);
+
+// ai routes
+app.use("/api/ai", aiRoutes);
 
 // Error handling middleware
 app.use(errorHandler);

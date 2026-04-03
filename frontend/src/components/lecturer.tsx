@@ -9,7 +9,7 @@ import LoaderComponent from "./Loading";
 import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
-import { ArrowUp, ArrowDown } from "lucide-react";
+import { Sparkles, Loader2, X } from "lucide-react";
 import z from "zod";
 import { useAuthContext } from "@/context/UserProvider";
 import useUser from "@/hooks/useUser";
@@ -26,6 +26,7 @@ import useApplication from "@/hooks/useApplication";
 import FilterSidebar from "./FilterSidebar";
 import { ApplicationRankingEditor } from "./ApplicationRankingEditor";
 import { GetAllApplicationsSchema } from "@/schemas/applications/get-all-applications.schema";
+import useAI from "@/hooks/useAI";
 
 export default function LecturerComponent() {
   const router = useRouter();
@@ -74,6 +75,41 @@ export default function LecturerComponent() {
   );
   const [isLoadingRankings, setIsLoadingRankings] = useState<boolean>(false);
   const [showRankingEditor, setShowRankingEditor] = useState<boolean>(false);
+
+  // AI Insights
+  const { getCandidateSummary } = useAI();
+  const [aiSummaries, setAiSummaries] = useState<Record<string, string>>({});
+  const [loadingAI, setLoadingAI] = useState<Record<string, boolean>>({});
+  const [showAISummary, setShowAISummary] = useState<string | null>(null);
+
+  const handleAIInsights = async (applicationId: string) => {
+    // If already loaded, just toggle display
+    if (aiSummaries[applicationId]) {
+      setShowAISummary(
+        showAISummary === applicationId ? null : applicationId,
+      );
+      return;
+    }
+
+    setLoadingAI((prev) => ({ ...prev, [applicationId]: true }));
+    try {
+      const response = await getCandidateSummary(applicationId);
+      if (response.success && response.body?.summary) {
+        setAiSummaries((prev) => ({
+          ...prev,
+          [applicationId]: response.body!.summary,
+        }));
+        setShowAISummary(applicationId);
+      } else {
+        toast.error(response.message || "Failed to get AI insights");
+      }
+    } catch (error) {
+      console.error("Error getting AI insights:", error);
+      toast.error("An error occurred while getting AI insights");
+    } finally {
+      setLoadingAI((prev) => ({ ...prev, [applicationId]: false }));
+    }
+  };
 
   // Active filters
   const [activeFilters, setActiveFilters] = useState<{
@@ -417,22 +453,57 @@ export default function LecturerComponent() {
                   {application.academic_creds}
                 </div>
                 <hr className="my-3" />
-                {/* Select candidate */}
-                <div className="flex justify-start items-center gap-2">
-                  <Checkbox
-                    id={`select-${application.id}`}
-                    checked={selectedApplications.has(application.id)}
-                    onCheckedChange={(checked) =>
-                      handleCandidateSelection(application, !!checked)
-                    }
-                  />
-                  <label
-                    htmlFor={`select-${application.id}`}
-                    className="text-sm"
+                {/* AI Insights & Select candidate */}
+                <div className="flex justify-between items-center">
+                  <div className="flex justify-start items-center gap-2">
+                    <Checkbox
+                      id={`select-${application.id}`}
+                      checked={selectedApplications.has(application.id)}
+                      onCheckedChange={(checked) =>
+                        handleCandidateSelection(application, !!checked)
+                      }
+                    />
+                    <label
+                      htmlFor={`select-${application.id}`}
+                      className="text-sm"
+                    >
+                      Select Candidate
+                    </label>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleAIInsights(application.id)}
+                    disabled={loadingAI[application.id]}
+                    className="flex items-center gap-1 text-purple-600 border-purple-200 hover:bg-purple-50"
                   >
-                    Select Candidate
-                  </label>
+                    {loadingAI[application.id] ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-3 w-3" />
+                    )}
+                    AI Insights
+                  </Button>
                 </div>
+                {/* AI Summary Display */}
+                {showAISummary === application.id &&
+                  aiSummaries[application.id] && (
+                    <div className="mt-3 p-3 bg-purple-50 border border-purple-200 rounded-md relative">
+                      <button
+                        onClick={() => setShowAISummary(null)}
+                        className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                      <p className="text-xs font-semibold text-purple-700 mb-1 flex items-center gap-1">
+                        <Sparkles className="h-3 w-3" />
+                        AI Assessment
+                      </p>
+                      <p className="text-sm text-gray-700">
+                        {aiSummaries[application.id]}
+                      </p>
+                    </div>
+                  )}
               </Card>
             ))}
           </div>
