@@ -11,10 +11,14 @@ export default function useAuth() {
 
   // Hook to register a user
   const registerUser = async (
-    userData: RegisterUserSchema
+    userData: RegisterUserSchema,
+    captchaToken: string,
   ): Promise<ApiResponse> => {
     try {
-      const response = await apiClient.post("/api/auth/register", userData);
+      const response = await apiClient.post("/api/auth/register", {
+        ...userData,
+        captchaToken,
+      });
 
       return {
         success: response.data.success,
@@ -28,9 +32,15 @@ export default function useAuth() {
   };
 
   // Hook to login a user
-  const loginUser = async (userData: LoginUserSchema): Promise<ApiResponse> => {
+  const loginUser = async (
+    userData: LoginUserSchema,
+    captchaToken: string,
+  ): Promise<ApiResponse> => {
     try {
-      const response = await apiClient.post("/api/auth/login", userData);
+      const response = await apiClient.post("/api/auth/login", {
+        ...userData,
+        captchaToken,
+      });
       // Update context with the user data
       setUser(response.data.body.user);
       return {

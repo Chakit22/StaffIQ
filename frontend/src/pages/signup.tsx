@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/form";
 import Link from "next/link";
 import useAuth from "@/hooks/useAuth";
+import Captcha from "@/components/captcha";
 import { toast } from "sonner";
 import LoaderComponent from "@/components/Loading";
 import { useAuthContext } from "@/context/UserProvider";
@@ -31,6 +32,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 export default function SignUpForm() {
   const [showPassword, setShowPassword] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const { registerUser } = useAuth();
   const { loading, user } = useAuthContext();
   console.log("user", user);
@@ -48,7 +50,11 @@ export default function SignUpForm() {
   } = form;
 
   const onSubmit = async (data: RegisterUserSchema) => {
-    const response = await registerUser(data);
+    if (!captchaToken) {
+      toast.error("Please complete CAPTCHA before registering.");
+      return;
+    }
+    const response = await registerUser(data, captchaToken);
     if (response.success) {
       toast.success(response.message);
       // Redirect to login page
@@ -161,6 +167,8 @@ export default function SignUpForm() {
                 </FormItem>
               )}
             />
+
+            <Captcha onChange={setCaptchaToken} />
 
             <Button type="submit" className="w-full">
               Register

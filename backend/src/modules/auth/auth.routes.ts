@@ -4,6 +4,7 @@ import { validateSchema } from "../../shared/middleware/validate";
 import { RegisterUserSchema } from "./schemas/register.schema";
 import { LoginUserSchema } from "./schemas/login.schema";
 import { authenticateToken } from "../../shared/middleware/auth.middleware";
+import { verifyCaptcha } from "../../shared/middleware/captcha.middleware";
 
 const router = Router();
 const authController = new AuthController();
@@ -11,15 +12,17 @@ const authController = new AuthController();
 // Register route
 router.post(
   "/register",
+  verifyCaptcha,
   validateSchema(RegisterUserSchema),
-  authController.registerUser
+  authController.registerUser,
 );
 
 // Login route
 router.post(
   "/login",
+  verifyCaptcha,
   validateSchema(LoginUserSchema),
-  authController.loginUser
+  authController.loginUser,
 );
 
 // Get current user route

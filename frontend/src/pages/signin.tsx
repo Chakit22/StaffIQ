@@ -18,7 +18,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 export default function SignInForm() {
   const [showPassword, setShowPassword] = useState<boolean>(true);
   const router = useRouter();
-  const [isVerified, setIsVerified] = useState<boolean>(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const { loading, user } = useAuthContext();
   const { loginUser } = useAuth();
 
@@ -32,12 +32,12 @@ export default function SignInForm() {
 
   // Async login with backend API
   const onSubmit = async (data: LoginUserSchema) => {
-    if (!isVerified) {
+    if (!captchaToken) {
       toast.error("Please complete CAPTCHA before logging in.");
       return;
     }
 
-    const response = await loginUser(data);
+    const response = await loginUser(data, captchaToken);
     if (response.success) {
       toast.success(response.message);
       // router.replace(`/${user.role}?id=${user.id}`);
@@ -108,7 +108,7 @@ export default function SignInForm() {
           </div>
 
           {/* Captcha */}
-          {!isVerified && <Captcha setIsVerified={setIsVerified} />}
+          <Captcha onChange={setCaptchaToken} />
 
           {/* Submit */}
           <Button type="submit" className="rounded-sm text-md">
