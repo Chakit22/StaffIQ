@@ -1,12 +1,25 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ArrowUp, ArrowDown } from "lucide-react";
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  DropResult,
+} from "@hello-pangea/dnd";
+import { GripVertical, Sparkles, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Application } from "@/types/Application";
 import { toast } from "sonner";
 import useApplication from "@/hooks/useApplication";
+import useAI from "@/hooks/useAI";
 import CommentDialog from "./CommentDialog";
 
 interface ApplicationRankingEditorProps {
@@ -17,6 +30,7 @@ interface ApplicationRankingEditorProps {
 
 type ApplicationWithRanking = Application & {
   rank: number;
+  aiReason?: string;
 };
 
 export function ApplicationRankingEditor({
@@ -25,41 +39,89 @@ export function ApplicationRankingEditor({
   onRankingsChanged,
 }: ApplicationRankingEditorProps) {
   const [rankingData, setRankingData] = useState<ApplicationWithRanking[]>([]);
+  const [isAISuggesting, setIsAISuggesting] = useState(false);
   const { selectCandidate, updateComment } = useApplication();
+  const { getRankingSuggestion } = useAI();
 
   useEffect(() => {
-    // Set up rankings based on the provided applications
     setRankingData(
       rankedApplications.map((app, index) => ({
         ...app,
         rank: index + 1,
-      }))
+      })),
     );
   }, [rankedApplications]);
 
-  const handleRankMove = (id: string, direction: "up" | "down") => {
-    const index = rankingData.findIndex((app) => app.id === id);
-    if (index === -1) return;
+  const handleDragEnd = (result: DropResult) => {
+    if (!result.destination) return;
 
-    const newIndex = direction === "up" ? index - 1 : index + 1;
-    if (newIndex < 0 || newIndex >= rankingData.length) return;
+    const sourceIndex = result.source.index;
+    const destIndex = result.destination.index;
 
-    // Create a copy of rankingData and swap ranks
-    const updatedRankings = [...rankingData];
-    const temp = updatedRankings[index].rank;
-    updatedRankings[index].rank = updatedRankings[newIndex].rank;
-    updatedRankings[newIndex].rank = temp;
+    if (sourceIndex === destIndex) return;
 
-    // Sort by rank to ensure correct order
-    updatedRankings.sort((a, b) => a.rank - b.rank);
+    const items = Array.from(rankingData);
+    const [reorderedItem] = items.splice(sourceIndex, 1);
+    items.splice(destIndex, 0, reorderedItem);
 
-    // Update local state
-    setRankingData(updatedRankings);
+    const updatedItems = items.map((item, index) => ({
+      ...item,
+      rank: index + 1,
+    }));
+
+    setRankingData(updatedItems);
+  };
+
+  const handleAISuggestRankings = async () => {
+    if (rankingData.length < 2) {
+      toast.error("Need at least 2 candidates for AI ranking suggestions");
+      return;
+    }
+
+    setIsAISuggesting(true);
+    try {
+      const courseId = rankingData[0].courseId;
+      const applicationIds = rankingData.map((app) => app.id);
+
+      const response = await getRankingSuggestion(courseId, applicationIds);
+
+      if (response.success && response.body?.suggestions) {
+        const suggestions = response.body.suggestions;
+
+        const suggestionMap = new Map(
+          suggestions.map((s: any) => [s.applicationId, s]),
+        );
+
+        const reordered = [...rankingData]
+          .sort((a, b) => {
+            const rankA =
+              (suggestionMap.get(a.id) as any)?.suggestedRank ?? Infinity;
+            const rankB =
+              (suggestionMap.get(b.id) as any)?.suggestedRank ?? Infinity;
+            return rankA - rankB;
+          })
+          .map((item, index) => ({
+            ...item,
+            rank: index + 1,
+            aiReason:
+              (suggestionMap.get(item.id) as any)?.reason || undefined,
+          }));
+
+        setRankingData(reordered);
+        toast.success("AI ranking suggestions applied! Drag to adjust.");
+      } else {
+        toast.error(response.message || "Failed to get AI suggestions");
+      }
+    } catch (error) {
+      console.error("Error getting AI suggestions:", error);
+      toast.error("An error occurred while getting AI suggestions");
+    } finally {
+      setIsAISuggesting(false);
+    }
   };
 
   const handleSaveRankingData = async () => {
     try {
-      // Format rankings for the API
       const rankingsToUpdate = {
         rankings: rankingData.map((app) => ({
           lecturerId,
@@ -68,7 +130,6 @@ export function ApplicationRankingEditor({
         })),
       };
 
-      // Save the updated ranking data
       const response = await selectCandidate(rankingsToUpdate);
 
       if (response.success) {
@@ -85,7 +146,6 @@ export function ApplicationRankingEditor({
 
   const handleSaveComment = async (comment: string, applicationId: string) => {
     try {
-      // Save comment for the applicant
       const commentData = {
         lecturerId,
         applicationId,
@@ -123,67 +183,108 @@ export function ApplicationRankingEditor({
 
   return (
     <div className="border rounded-xl shadow-sm">
-      <div className="bg-primary p-4 rounded-t-xl">
-        <div className="text-2xl font-bold text-center text-primary-foreground">
+      <div className="bg-primary p-4 rounded-t-xl flex items-center justify-between">
+        <div className="text-2xl font-bold text-primary-foreground flex-1 text-center">
           Selected Candidates
         </div>
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={handleAISuggestRankings}
+          disabled={isAISuggesting}
+          className="flex items-center gap-2"
+        >
+          {isAISuggesting ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Sparkles className="h-4 w-4" />
+          )}
+          {isAISuggesting ? "Suggesting..." : "AI Suggest Rankings"}
+        </Button>
       </div>
       <div className="flex flex-col gap-4 p-4 justify-center items-center">
-        {rankingData.map((application, index) => (
-          <div
-            key={application.id}
-            className="flex sm:flex-row flex-col p-3 border border-border rounded-md bg-card gap-4 w-full"
-          >
-            <div className="flex items-center gap-3 flex-1">
-              <div className="flex flex-col">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6 text-primary"
-                  onClick={() => handleRankMove(application.id, "up")}
-                  disabled={index === 0}
-                  aria-label="Move up"
-                >
-                  <ArrowUp className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6 text-primary"
-                  onClick={() => handleRankMove(application.id, "down")}
-                  disabled={index === rankingData.length - 1}
-                  aria-label="Move down"
-                >
-                  <ArrowDown className="h-4 w-4" />
-                </Button>
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <Droppable droppableId="ranking-list">
+            {(provided, snapshot) => (
+              <div
+                ref={provided.innerRef}
+                {...provided.droppableProps}
+                className={`flex flex-col gap-3 w-full transition-colors duration-200 ${
+                  snapshot.isDraggingOver ? "bg-secondary/50 rounded-lg p-2" : ""
+                }`}
+              >
+                {rankingData.map((application, index) => (
+                  <Draggable
+                    key={application.id}
+                    draggableId={application.id}
+                    index={index}
+                  >
+                    {(provided, snapshot) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        className={`flex sm:flex-row flex-col p-3 border rounded-md gap-4 w-full transition-shadow duration-200 ${
+                          snapshot.isDragging
+                            ? "shadow-lg border-accent bg-secondary"
+                            : "border-border bg-card"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3 flex-1">
+                          <div
+                            {...provided.dragHandleProps}
+                            className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-primary transition-colors"
+                          >
+                            <GripVertical className="h-5 w-5" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-medium text-foreground">
+                              {application.user.name}
+                            </p>
+                            <div className="flex flex-wrap gap-2 mt-1">
+                              <p className="text-sm text-muted-foreground">
+                                {application.course.name}
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                {application.role.name}
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                {application.availability.availability}
+                              </p>
+                            </div>
+                            {application.aiReason && (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <p className="text-xs text-accent mt-1 flex items-center gap-1 cursor-help">
+                                      <Sparkles className="h-3 w-3" />
+                                      AI: {application.aiReason}
+                                    </p>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>{application.aiReason}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex justify-end items-center gap-3">
+                          <Badge className="bg-primary p-2">{`Rank: ${application.rank}`}</Badge>
+                          <CommentDialog
+                            handleSaveComment={(comment) =>
+                              handleSaveComment(comment, application.id)
+                            }
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </Draggable>
+                ))}
+                {provided.placeholder}
               </div>
-              <div className="flex-1">
-                <p className="font-medium text-foreground">
-                  {application.user.name}
-                </p>
-                <div className="flex flex-wrap gap-2 mt-1">
-                  <p className="text-sm text-muted-foreground">
-                    {application.course.name}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {application.role.name}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {application.availability.availability}
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="flex justify-end items-center gap-3">
-              <Badge className="bg-primary p-2">{`Rank: ${application.rank}`}</Badge>
-              <CommentDialog
-                handleSaveComment={(comment) =>
-                  handleSaveComment(comment, application.id)
-                }
-              />
-            </div>
-          </div>
-        ))}
+            )}
+          </Droppable>
+        </DragDropContext>
         <Button onClick={handleSaveRankingData} className="mt-2">
           Save Rankings
         </Button>

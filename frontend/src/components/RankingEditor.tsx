@@ -1,7 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ArrowUp, ArrowDown } from "lucide-react";
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  DropResult,
+} from "@hello-pangea/dnd";
+import { GripVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 interface Applicant {
@@ -40,52 +46,48 @@ export function RankingEditor({
   const router = useRouter();
 
   useEffect(() => {
-    //Updated rankingData and sorted by normal order
     setRankingData(
       selectedApplicants.map((selectedApplicant, index) => {
         return { ...selectedApplicant, rank: index + 1 };
-      })
+      }),
     );
 
-    //Redirect if user is not logged in
     if (!user && !userLoading) {
       router.replace("/");
     }
   }, [selectedApplicants, user, userLoading, router]);
 
-  const handleRankMove = (id: number, direction: "up" | "down") => {
-    const index = rankingData.findIndex((applicant) => applicant.id === id);
-    if (index === -1) return;
+  const handleDragEnd = (result: DropResult) => {
+    if (!result.destination) return;
 
-    const newIndex = direction === "up" ? index - 1 : index + 1;
-    if (newIndex < 0 || newIndex >= rankingData.length) return;
+    const sourceIndex = result.source.index;
+    const destIndex = result.destination.index;
 
-    //Create a copy of rankingData and swap ranks
-    const updatedRankings = [...rankingData];
-    const temp = updatedRankings[index].rank;
-    updatedRankings[index].rank = updatedRankings[newIndex].rank;
-    updatedRankings[newIndex].rank = temp;
+    if (sourceIndex === destIndex) return;
 
-    //Sort by rank to ensure correct order
-    updatedRankings.sort((a, b) => a.rank - b.rank);
+    const items = Array.from(rankingData);
+    const [reorderedItem] = items.splice(sourceIndex, 1);
+    items.splice(destIndex, 0, reorderedItem);
 
-    //Update local state
-    setRankingData(updatedRankings);
+    const updatedItems = items.map((item, index) => ({
+      ...item,
+      rank: index + 1,
+    }));
+
+    setRankingData(updatedItems);
   };
 
   const handleSaveRankingData = () => {
-    //Save the updated ranking data
     saveRanking(
       course_code,
       role,
       user!.id,
-      rankingData.map((app) => app.id)
+      rankingData.map((app) => app.id),
     );
     toast.success("Preferences saved successfully!");
   };
 
   const handleSaveComment = (comment: string) => {
-    //Save comment for the applicant
     console.log("comment", comment);
     toast.success("Comment added successfully!");
   };
@@ -99,54 +101,68 @@ export function RankingEditor({
       </div>
       {rankingData.length > 0 && (
         <div className="flex flex-col gap-4 p-4 justify-center items-center">
-          {rankingData.map((applicant, index) => (
-            <div
-              key={applicant.id}
-              className="flex sm:flex-row flex-col p-3 border border-border rounded-md bg-card gap-4"
-            >
-              <div className="flex items-center gap-3">
-                <div className="flex flex-col">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6 text-primary"
-                    onClick={() => handleRankMove(applicant.id, "up")}
-                    disabled={index === 0}
-                  >
-                    <ArrowUp className="h-4 w-4" />
-                    <span className="sr-only">Move up</span>
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6 text-primary"
-                    onClick={() => handleRankMove(applicant.id, "down")}
-                    disabled={index === rankingData.length - 1}
-                  >
-                    <ArrowDown className="h-4 w-4" />
-                    <span className="sr-only">Move down</span>
-                  </Button>
+          <DragDropContext onDragEnd={handleDragEnd}>
+            <Droppable droppableId={`ranking-${course_code}-${role}`}>
+              {(provided, snapshot) => (
+                <div
+                  ref={provided.innerRef}
+                  {...provided.droppableProps}
+                  className={`flex flex-col gap-3 w-full transition-colors duration-200 ${
+                    snapshot.isDraggingOver ? "bg-secondary/50 rounded-lg p-2" : ""
+                  }`}
+                >
+                  {rankingData.map((applicant, index) => (
+                    <Draggable
+                      key={applicant.id}
+                      draggableId={String(applicant.id)}
+                      index={index}
+                    >
+                      {(provided, snapshot) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          className={`flex sm:flex-row flex-col p-3 border rounded-md gap-4 transition-shadow duration-200 ${
+                            snapshot.isDragging
+                              ? "shadow-lg border-accent bg-secondary"
+                              : "border-border bg-card"
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div
+                              {...provided.dragHandleProps}
+                              className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-primary transition-colors"
+                            >
+                              <GripVertical className="h-5 w-5" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-foreground">
+                                {applicant.firstname}
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                {applicant.availability}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex justify-center items-center gap-3">
+                            <Badge className="bg-primary p-2">{`Rank: ${applicant.rank}`}</Badge>
+                            <CommentDialog
+                              handleSaveComment={handleSaveComment}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
                 </div>
-                <div>
-                  <p className="font-medium text-foreground">
-                    {applicant.firstname}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {applicant.availability}
-                  </p>
-                </div>
-              </div>
-              <div className="flex justify-center items-center gap-3">
-                <Badge className="bg-primary p-2">{`Rank: ${applicant.rank}`}</Badge>
-                <CommentDialog handleSaveComment={handleSaveComment} />
-              </div>
-            </div>
-          ))}
+              )}
+            </Droppable>
+          </DragDropContext>
           <Button onClick={handleSaveRankingData}>Save Preferences</Button>
         </div>
       )}
       {rankingData.length === 0 && (
-        <div className="flex justify-center items-center p-4">
+        <div className="flex justify-center items-center p-4 text-muted-foreground">
           No Candidates Selected
         </div>
       )}
