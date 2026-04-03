@@ -73,7 +73,7 @@ export class AuthController {
   loginUser: RequestHandler = async (req, res, next) => {
     const { email, password } = req.body;
 
-    console.log("Incoming login request:", { email, password });
+    console.log("Incoming login request:", { email });
 
     try {
       const user = await this.userRepository.findOne({
