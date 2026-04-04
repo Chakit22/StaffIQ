@@ -27,7 +27,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { X } from "lucide-react";
+import { X, Upload, FileText } from "lucide-react";
 import { useQueryState, parseAsString } from "nuqs";
 import LoaderComponent from "./Loading";
 import MyApplications from "./MyApplications";
@@ -56,7 +56,7 @@ export default function CandidateComponent() {
   const router = useRouter();
 
   // API Hooks
-  const { createNewApplication } = useApplication();
+  const { createNewApplication, uploadResume } = useApplication();
   const { getAllCourses } = useCourse();
   const { getAllRoles } = useRole();
   const { getAllAvailabilities } = useAvailability();
@@ -77,6 +77,13 @@ export default function CandidateComponent() {
   const [skills, setSkills] = useState<string[]>([]);
   const [showSkillDropdown, setShowSkillDropdown] = useState(false);
   const [filteredSkills, setFilteredSkills] = useState<Skill[]>([]);
+
+  // Resume file state
+  const [resumeFile, setResumeFile] = useState<File | null>(null);
+
+  // Cover letter mode
+  const [coverLetterMode, setCoverLetterMode] = useState<"write" | "upload">("write");
+  const [coverLetterFile, setCoverLetterFile] = useState<File | null>(null);
 
   // Tab state
   const [activeTab, setActiveTab] = useState<"apply" | "my-applications">("apply");
@@ -261,10 +268,22 @@ export default function CandidateComponent() {
       const response = await createNewApplication(applicationData);
 
       if (response.success) {
+        // Upload resume if provided
+        const createdApp = response.body as { id?: string } | null;
+        if (resumeFile && createdApp?.id) {
+          const uploadRes = await uploadResume(createdApp.id, resumeFile);
+          if (!uploadRes.success) {
+            toast.error("Application created but resume upload failed. You can upload it later from My Applications.");
+          }
+        }
+
         toast.success("Application submitted successfully!");
 
         // Reset form and skills
         setSkills([]);
+        setResumeFile(null);
+        setCoverLetterFile(null);
+        setCoverLetterMode("write");
         form.reset({
           academic_creds: "",
           cover_letter: "",
@@ -488,13 +507,20 @@ export default function CandidateComponent() {
                     <Badge
                       key={index}
                       variant="secondary"
-                      className="flex items-center gap-1"
+                      className="flex items-center gap-1 pr-1"
                     >
                       {skill}
-                      <X
-                        className="h-3 w-3 cursor-pointer"
-                        onClick={() => handleRemoveSkill(skill)}
-                      />
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleRemoveSkill(skill);
+                        }}
+                        className="ml-1 rounded-full hover:bg-destructive/20 p-0.5"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
                     </Badge>
                   ))}
                 </div>
@@ -519,23 +545,147 @@ export default function CandidateComponent() {
               />
 
               {/* Cover Letter */}
-              <FormField
-                control={form.control}
-                name="cover_letter"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Cover Letter (Optional)</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Write a cover letter to support your application..."
-                        className="min-h-[120px]"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+              <div>
+                <FormLabel>Cover Letter (Optional)</FormLabel>
+                <div className="flex gap-2 mt-1 mb-2">
+                  <Button
+                    type="button"
+                    variant={coverLetterMode === "write" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setCoverLetterMode("write")}
+                  >
+                    Write
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={coverLetterMode === "upload" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setCoverLetterMode("upload")}
+                  >
+                    <Upload className="h-3 w-3 mr-1" />
+                    Upload
+                  </Button>
+                </div>
+                {coverLetterMode === "write" ? (
+                  <FormField
+                    control={form.control}
+                    name="cover_letter"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Write a cover letter to support your application..."
+                            className="min-h-[120px]"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                ) : (
+                  <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
+                    <input
+                      type="file"
+                      accept=".pdf,.txt,.doc,.docx"
+                      className="hidden"
+                      id="cover-letter-upload"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setCoverLetterFile(file);
+                          // Read text content for .txt files
+                          if (file.type === "text/plain") {
+                            const reader = new FileReader();
+                            reader.onload = (ev) => {
+                              form.setValue("cover_letter", ev.target?.result as string || "");
+                            };
+                            reader.readAsText(file);
+                          } else {
+                            form.setValue("cover_letter", `[Uploaded: ${file.name}]`);
+                          }
+                        }
+                      }}
+                    />
+                    <label htmlFor="cover-letter-upload" className="cursor-pointer">
+                      {coverLetterFile ? (
+                        <div className="flex items-center justify-center gap-2 text-primary">
+                          <FileText className="h-5 w-5" />
+                          <span className="text-sm">{coverLetterFile.name}</span>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setCoverLetterFile(null);
+                              form.setValue("cover_letter", "");
+                            }}
+                            className="ml-2"
+                          >
+                            <X className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="text-muted-foreground">
+                          <Upload className="h-8 w-8 mx-auto mb-2" />
+                          <p className="text-sm">Click to upload cover letter</p>
+                          <p className="text-xs mt-1">PDF, TXT, DOC, DOCX</p>
+                        </div>
+                      )}
+                    </label>
+                  </div>
                 )}
-              />
+              </div>
+
+              {/* Resume Upload */}
+              <div>
+                <FormLabel>Resume (Optional)</FormLabel>
+                <div className="border-2 border-dashed border-border rounded-lg p-6 text-center mt-1">
+                  <input
+                    type="file"
+                    accept=".pdf"
+                    className="hidden"
+                    id="resume-upload"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        if (file.type !== "application/pdf") {
+                          toast.error("Only PDF files are allowed for resumes");
+                          return;
+                        }
+                        if (file.size > 5 * 1024 * 1024) {
+                          toast.error("Resume must be under 5MB");
+                          return;
+                        }
+                        setResumeFile(file);
+                      }
+                    }}
+                  />
+                  <label htmlFor="resume-upload" className="cursor-pointer">
+                    {resumeFile ? (
+                      <div className="flex items-center justify-center gap-2 text-primary">
+                        <FileText className="h-5 w-5" />
+                        <span className="text-sm">{resumeFile.name}</span>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setResumeFile(null);
+                          }}
+                          className="ml-2"
+                        >
+                          <X className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="text-muted-foreground">
+                        <Upload className="h-8 w-8 mx-auto mb-2" />
+                        <p className="text-sm">Click to upload resume (PDF)</p>
+                        <p className="text-xs mt-1">Max 5MB</p>
+                      </div>
+                    )}
+                  </label>
+                </div>
+              </div>
 
               <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting ? "Submitting..." : "Submit Application"}

@@ -1,6 +1,6 @@
 "use client";
 
-import { LogOut, Home } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { Button } from "./ui/button";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -33,10 +33,6 @@ export default function Navbar() {
           </Link>
         </div>
         <div className="hidden md:flex gap-3">
-          <Button onClick={() => router.push("/")} variant="outline" className="border-border hover:border-primary/50 hover:bg-primary/10">
-            <Home size={18} />
-            Home
-          </Button>
           <Button onClick={handleLogout} className="glow-purple-sm">
             <LogOut />
             Logout

@@ -1,4 +1,4 @@
-import { Home, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
 
 import {
   Sidebar,
@@ -36,12 +36,6 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              <SidebarMenuItem key="Home">
-                <Button onClick={() => router.push("/")} variant="outline">
-                  <Home />
-                  <span>Home</span>
-                </Button>
-              </SidebarMenuItem>
               <SidebarMenuItem key="Logout">
                 <Button variant="outline" onClick={handleLogout}>
                   <LogOut />
