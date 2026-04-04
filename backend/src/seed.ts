@@ -128,6 +128,7 @@ async function seed() {
         ...d,
         password: hashedPassword,
         role: "lecturer",
+        is_verified: true,
         avatar: avatars[i % avatars.length],
       });
       user = await userRepo.save(user);
@@ -169,6 +170,7 @@ async function seed() {
         ...d,
         password: hashedPassword,
         role: "candidate",
+        is_verified: true,
         avatar: avatars[(i + 2) % avatars.length],
       });
       user = await userRepo.save(user);
