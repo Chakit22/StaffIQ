@@ -6,6 +6,7 @@ import bcrypt from "bcrypt";
 import { ApiError } from "../../../shared/middleware/error-handler";
 import { AuthService } from "../services/auth.service";
 import { AuthRequest } from "../../../shared/middleware/auth.middleware";
+import { SheerIdService } from "../../../shared/services/sheerid.service";
 import * as cookie from "cookie";
 
 export class AuthController {
@@ -13,6 +14,7 @@ export class AuthController {
   private userRepository = AppDataSource.getRepository(User);
   private avatarRepository = AppDataSource.getRepository(Avatar);
   private authService = new AuthService();
+  private sheerIdService = new SheerIdService();
 
   // REGISTER
   registerUser: RequestHandler = async (req, res, next) => {
@@ -41,9 +43,19 @@ export class AuthController {
       }
 
       const hashedPassword = await bcrypt.hash(user.password, 10);
+
+      // Auto-verify candidates when SKIP_VERIFICATION is enabled (dev mode)
+      const isVerified =
+        user.role === "candidate" && this.sheerIdService.shouldSkipVerification()
+          ? true
+          : user.role === "lecturer"
+            ? true
+            : false;
+
       const savedUser = await this.userRepository.save({
         ...user,
         password: hashedPassword,
+        is_verified: isVerified,
       });
 
       // Generate tokens
@@ -93,6 +105,15 @@ export class AuthController {
       if (!isMatch) {
         const error = new Error("Wrong password") as ApiError;
         error.statusCode = 401;
+        throw error;
+      }
+
+      // Check if candidate has completed student verification
+      if (user.role === "candidate" && !user.is_verified) {
+        const error = new Error(
+          "Please complete student verification.",
+        ) as ApiError;
+        error.statusCode = 403;
         throw error;
       }
 
@@ -190,6 +211,106 @@ export class AuthController {
         success: true,
         message: "You have access to this protected route",
         user,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  // VERIFY STUDENT — start SheerID verification
+  verifyStudent: RequestHandler = async (req, res, next) => {
+    try {
+      const { userId, firstName, lastName, email, birthDate, university, graduationYear } = req.body;
+
+      if (!userId) {
+        const error = new Error("userId is required") as ApiError;
+        error.statusCode = 400;
+        throw error;
+      }
+
+      const user = await this.userRepository.findOneBy({ id: userId });
+      if (!user) {
+        const error = new Error("User not found") as ApiError;
+        error.statusCode = 404;
+        throw error;
+      }
+
+      if (user.role !== "candidate") {
+        const error = new Error("Only candidates require student verification") as ApiError;
+        error.statusCode = 400;
+        throw error;
+      }
+
+      // Dev bypass: skip SheerID and mark as verified
+      if (this.sheerIdService.shouldSkipVerification()) {
+        user.is_verified = true;
+        await this.userRepository.save(user);
+        res.json({
+          success: true,
+          message: "Student verified (dev bypass)",
+          body: { verificationId: "dev-bypass", status: "success" },
+        });
+        return;
+      }
+
+      const result = await this.sheerIdService.startVerification({
+        firstName,
+        lastName,
+        email,
+        birthDate,
+        university,
+        graduationYear,
+      });
+
+      res.json({
+        success: true,
+        message: "Verification started",
+        body: {
+          verificationId: result.verificationId,
+          status: result.currentStep,
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  // GET VERIFICATION STATUS — poll SheerID for result
+  getVerificationStatus: RequestHandler = async (req, res, next) => {
+    try {
+      const { id } = req.params;
+
+      // Dev bypass
+      if (id === "dev-bypass") {
+        res.json({
+          success: true,
+          message: "Verification complete (dev bypass)",
+          body: { status: "success", currentStep: "success" },
+        });
+        return;
+      }
+
+      const result = await this.sheerIdService.getVerificationStatus(id);
+
+      // If verification succeeded, update the user
+      if (result.currentStep === "success") {
+        const { userId } = req.query;
+        if (userId && typeof userId === "string") {
+          const user = await this.userRepository.findOneBy({ id: userId });
+          if (user) {
+            user.is_verified = true;
+            await this.userRepository.save(user);
+          }
+        }
+      }
+
+      res.json({
+        success: true,
+        message: "Verification status retrieved",
+        body: {
+          status: result.currentStep,
+          verificationId: result.verificationId,
+        },
       });
     } catch (error) {
       next(error);

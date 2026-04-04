@@ -31,10 +31,16 @@ import { RegisterUserSchema } from "@/schemas/auth/register.schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "framer-motion";
 import { fadeInUp } from "@/lib/animations";
+import StudentVerification from "@/components/StudentVerification";
 
 export default function SignUpForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [verificationData, setVerificationData] = useState<{
+    userId: string;
+    email: string;
+    name: string;
+  } | null>(null);
   const { registerUser } = useAuth();
   const { loading, user } = useAuthContext();
   console.log("user", user);
@@ -59,7 +65,16 @@ export default function SignUpForm() {
     const response = await registerUser(data, captchaToken);
     if (response.success) {
       toast.success(response.message);
-      router.replace("/signin");
+      // If candidate, show verification step instead of redirecting
+      if (data.role === "candidate") {
+        setVerificationData({
+          userId: response.body.user.id,
+          email: data.email,
+          name: data.name,
+        });
+      } else {
+        router.replace("/signin");
+      }
     } else {
       toast.error(response.message);
     }
@@ -74,6 +89,24 @@ export default function SignUpForm() {
   if (user) {
     router.replace(`/${user.role}?id=${user.id}`);
     return;
+  }
+
+  // Show verification step for candidates after registration
+  if (verificationData) {
+    return (
+      <div className="min-h-screen flex justify-center items-center">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#0a0a0f] via-[#1a1a2e] to-[#0a0a0f]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(139,92,246,0.1)_0%,_transparent_60%)]" />
+        <div className="relative">
+          <StudentVerification
+            userId={verificationData.userId}
+            userEmail={verificationData.email}
+            userName={verificationData.name}
+            onVerified={() => router.replace("/signin")}
+          />
+        </div>
+      </div>
+    );
   }
 
   return (

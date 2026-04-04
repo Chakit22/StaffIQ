@@ -34,4 +34,8 @@ router.post("/refresh-token", authController.refreshToken);
 // Logout route
 router.post("/logout", authenticateToken, authController.logout);
 
+// SheerID student verification
+router.post("/verify-student", authController.verifyStudent);
+router.get("/verification-status/:id", authController.getVerificationStatus);
+
 export default router;

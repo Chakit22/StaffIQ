@@ -43,6 +43,10 @@ export class User {
   @Column({ default: true })
   access?: boolean;
 
+  // SheerID student verification status (candidates only)
+  @Column({ default: false })
+  is_verified: boolean;
+
   // A user can have only one avatar but an avatar can have many users
   @ManyToOne(() => Avatar, (avatar) => avatar.users, { nullable: true })
   avatar: Avatar;
