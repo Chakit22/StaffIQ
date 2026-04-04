@@ -7,10 +7,11 @@ interface CandidateSummaryBody {
 }
 
 interface ResumeInsightsBody {
-  score: number;
+  score: number | null;
   strengths: string[];
   gaps: string[];
   suggestions: string[];
+  noData?: boolean;
 }
 
 interface RankingSuggestionBody {

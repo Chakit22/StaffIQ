@@ -5,10 +5,11 @@ import { CheckCircle, AlertTriangle, Lightbulb } from "lucide-react";
 import { staggerContainer, staggerItem } from "@/lib/animations";
 
 interface ResumeInsightsProps {
-  score: number;
+  score: number | null;
   strengths: string[];
   gaps: string[];
   suggestions: string[];
+  noData?: boolean;
 }
 
 export default function ResumeInsights({
@@ -16,7 +17,17 @@ export default function ResumeInsights({
   strengths,
   gaps,
   suggestions,
+  noData,
 }: ResumeInsightsProps) {
+  if (noData) {
+    return (
+      <div className="text-center py-6 text-muted-foreground">
+        <AlertTriangle className="h-8 w-8 mx-auto mb-3 text-yellow-400" />
+        <p className="font-medium text-foreground mb-1">Not enough data yet</p>
+        <p className="text-sm">{suggestions[0] || "Check back later once lecturers have reviewed applications."}</p>
+      </div>
+    );
+  }
   const getScoreColor = (s: number) => {
     if (s >= 75) return "text-green-400";
     if (s >= 50) return "text-yellow-400";
@@ -37,37 +48,39 @@ export default function ResumeInsights({
       className="space-y-5"
     >
       {/* Score Circle */}
-      <motion.div variants={staggerItem} className="flex justify-center">
-        <div className="relative w-28 h-28">
-          <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
-            <circle
-              cx="50"
-              cy="50"
-              r="42"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="8"
-              className="text-border"
-            />
-            <circle
-              cx="50"
-              cy="50"
-              r="42"
-              fill="none"
-              strokeWidth="8"
-              strokeDasharray={`${(score / 100) * 264} 264`}
-              strokeLinecap="round"
-              className={getScoreRingColor(score)}
-            />
-          </svg>
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className={`text-2xl font-bold ${getScoreColor(score)}`}>
-              {score}
-            </span>
-            <span className="text-xs text-muted-foreground">Match</span>
+      {score !== null && (
+        <motion.div variants={staggerItem} className="flex justify-center">
+          <div className="relative w-28 h-28">
+            <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+              <circle
+                cx="50"
+                cy="50"
+                r="42"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="8"
+                className="text-border"
+              />
+              <circle
+                cx="50"
+                cy="50"
+                r="42"
+                fill="none"
+                strokeWidth="8"
+                strokeDasharray={`${(score / 100) * 264} 264`}
+                strokeLinecap="round"
+                className={getScoreRingColor(score)}
+              />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className={`text-2xl font-bold ${getScoreColor(score)}`}>
+                {score}
+              </span>
+              <span className="text-xs text-muted-foreground">Match</span>
+            </div>
           </div>
-        </div>
-      </motion.div>
+        </motion.div>
+      )}
 
       {/* Strengths */}
       <motion.div variants={staggerItem}>

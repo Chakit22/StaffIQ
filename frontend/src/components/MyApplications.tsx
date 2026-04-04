@@ -36,10 +36,11 @@ export default function MyApplications({ userId }: MyApplicationsProps) {
   const [uploadingFor, setUploadingFor] = useState<string | null>(null);
   const [insightsFor, setInsightsFor] = useState<string | null>(null);
   const [insightsData, setInsightsData] = useState<Record<string, {
-    score: number;
+    score: number | null;
     strengths: string[];
     gaps: string[];
     suggestions: string[];
+    noData?: boolean;
   }>>({});
   const [loadingInsights, setLoadingInsights] = useState<Record<string, boolean>>({});
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});

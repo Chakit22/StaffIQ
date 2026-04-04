@@ -294,7 +294,7 @@ Return ONLY a valid JSON array with no markdown formatting, no code blocks, no e
         throw error;
       }
 
-      // Find top-ranked applications for the same course
+      // Find top-ranked applications for the same course (exclude the candidate's own)
       const rankings = await this.rankingRepository.find({
         where: { application: { courseId: application.courseId } },
         relations: [
@@ -307,9 +307,32 @@ Return ONLY a valid JSON array with no markdown formatting, no code blocks, no e
         take: 10,
       });
 
+      // Filter out the candidate's own application from rankings
+      const otherRankings = rankings.filter(
+        (r) => r.application.userId !== application.userId,
+      );
+
+      // If no other candidates have been ranked, return early
+      if (otherRankings.length === 0) {
+        res.status(200).json({
+          success: true,
+          body: {
+            score: null,
+            strengths: [],
+            gaps: [],
+            suggestions: [
+              "No other candidates have been ranked for this course yet. Check back later once lecturers have reviewed applications — AI insights will compare your profile against top-ranked candidates.",
+            ],
+            noData: true,
+          },
+          message: "Not enough data for comparison yet",
+        });
+        return;
+      }
+
       // Build successful candidates' profiles
       const successfulProfiles = await Promise.all(
-        rankings.map(async (r) => {
+        otherRankings.map(async (r) => {
           const exp = await this.experienceRepository.find({
             where: { user: { id: r.application.userId } },
           });
