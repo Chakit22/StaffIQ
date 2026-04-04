@@ -30,6 +30,7 @@ import apiClient from "@/api/client";
 import { ApiResponse } from "@/types/Api";
 import { Application } from "@/types/Application";
 import { Course } from "@/types/Course";
+import { User } from "@/types/User";
 
 export interface StatsData {
   mostChosenCandidates: Application[];
@@ -37,13 +38,21 @@ export interface StatsData {
   unchosenCandidates: Application[];
 }
 
+export interface LecturerRanking {
+  rank: number;
+  lecturerId: string;
+  applicationId: string;
+  application: Application;
+}
+
 export interface LecturerPreferences {
-  rankings: Array<{
-    rank: number;
-    lecturerId: string;
-    applicationId: string;
-    application: Application;
-  }>;
+  rankings: LecturerRanking[];
+}
+
+export interface AllLecturerPreferences {
+  lecturerId: string;
+  lecturerName: string;
+  rankings: LecturerRanking[];
 }
 
 export class StatsDataService {
@@ -121,6 +130,81 @@ export class StatsDataService {
       return {
         success: false,
         message: "Failed to fetch lecturer courses",
+        body: [],
+      };
+    }
+  }
+
+  /**
+   * Fetches lecturers assigned to a specific course
+   */
+  async getCourseLecturers(courseId: string): Promise<ApiResponse<User[]>> {
+    try {
+      const response = await apiClient.get(
+        `/api/courses/${courseId}/lecturers`
+      );
+      return {
+        success: response.data.success,
+        message: response.data.message,
+        body: response.data.body as User[],
+      };
+    } catch {
+      // Fallback: try fetching course details which may include users
+      try {
+        const response = await apiClient.get(`/api/courses/${courseId}`);
+        const course = response.data.body as Course;
+        return {
+          success: true,
+          message: "Lecturers fetched from course details",
+          body: (course.users || []).filter((u) => u.role === "lecturer"),
+        };
+      } catch {
+        console.error("Error fetching course lecturers");
+        return {
+          success: false,
+          message: "Failed to fetch course lecturers",
+          body: [],
+        };
+      }
+    }
+  }
+
+  /**
+   * Fetches preferences for ALL lecturers on a course
+   * Loops getLecturerPreferences for each lecturer assigned to the course
+   */
+  async getAllLecturerPreferences(
+    courseId: string,
+    lecturerIds: string[],
+    lecturerNameMap: Map<string, string>,
+  ): Promise<ApiResponse<AllLecturerPreferences[]>> {
+    try {
+      const results: AllLecturerPreferences[] = [];
+
+      const promises = lecturerIds.map(async (lecturerId) => {
+        const response = await this.getLecturerPreferences(courseId, lecturerId);
+        return {
+          lecturerId,
+          lecturerName: lecturerNameMap.get(lecturerId) || "Unknown",
+          rankings: response.success
+            ? (response.body as LecturerPreferences).rankings
+            : [],
+        };
+      });
+
+      const settled = await Promise.all(promises);
+      results.push(...settled);
+
+      return {
+        success: true,
+        message: "All lecturer preferences fetched",
+        body: results,
+      };
+    } catch (error: unknown) {
+      console.error("Error fetching all lecturer preferences", error);
+      return {
+        success: false,
+        message: "Failed to fetch all lecturer preferences",
         body: [],
       };
     }

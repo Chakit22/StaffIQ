@@ -1,37 +1,21 @@
-/**
- * CONTAINER COMPONENT - Stats Page Coordinator
- *
- * This component implements the Container/Presentation Component pattern,
- * serving as the coordination layer between data services and visualization components.
- *
- * ARCHITECTURAL RESPONSIBILITIES:
- * 1. ORCHESTRATION: Coordinates data fetching through service layer
- * 2. STATE MANAGEMENT: Manages UI state (loading, selected course, error handling)
- * 3. DATA TRANSFORMATION: Adapts service layer data for visualization components
- * 4. USER INTERACTION: Handles course selection and filter changes
- *
- * This approach ensures that:
- * - Business logic stays in the service layer
- * - Presentation logic stays in visualization components
- * - This component only handles coordination and state management
- */
-
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 import { useAuthContext } from "@/context/UserProvider";
 import {
   statsDataService,
   StatsData,
   LecturerPreferences,
+  AllLecturerPreferences,
 } from "@/services/StatsDataService";
 import { Course } from "@/types/Course";
 import { toast } from "sonner";
 import Layout from "@/components/layout";
 import LoaderComponent from "@/components/Loading";
-import { Card } from "@/components/ui/card";
-import { CardTitle } from "@/components/ui/card";
+import { Card, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -42,21 +26,44 @@ import {
 import { CandidateStatsGrid } from "@/components/visualization/CandidateStatsGrid";
 import { LecturerPreferencesView } from "@/components/visualization/LecturerPreferencesView";
 import {
+  ConsensusTable,
+  ConsensusRow,
+  buildConsensusExportData,
+} from "@/components/visualization/ConsensusTable";
+import { ComparisonView } from "@/components/visualization/ComparisonView";
+import { exportConsensusCsv } from "@/utils/exportCsv";
+import {
+  fadeInUp,
+  staggerContainer,
+  staggerItem,
+} from "@/lib/animations";
+import {
   Tooltip,
   ResponsiveContainer,
   PieChart,
   Pie,
   Cell,
   Legend,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
 } from "recharts";
 
-const CHART_COLORS = ["#8b5cf6", "#c084fc", "#a78bfa", "#7c3aed"];
+const CHART_COLORS = ["#8b5cf6", "#c084fc", "#a78bfa", "#7c3aed", "#ddd6fe"];
+
+const TOOLTIP_STYLE = {
+  backgroundColor: "#1a1a2e",
+  border: "1px solid #2d2d44",
+  borderRadius: "8px",
+  color: "#e2e8f0",
+};
 
 export default function StatsPage() {
   const { user, loading: userLoading } = useAuthContext();
   const router = useRouter();
 
-  // Redirect to signin if not logged in
   useEffect(() => {
     if (!userLoading && !user) router.replace("/signin");
   }, [userLoading, user, router]);
@@ -72,50 +79,80 @@ export default function StatsPage() {
   );
 }
 
-/**
- * Main stats content component - handles data coordination
- * Separates data fetching logic from the page wrapper
- */
+// Animated stat card component
+function StatCard({
+  label,
+  value,
+  color,
+  delay = 0,
+}: {
+  label: string;
+  value: number;
+  color: string;
+  delay?: number;
+}) {
+  return (
+    <motion.div
+      variants={staggerItem}
+      className={`relative overflow-hidden rounded-xl border p-5 ${color}`}
+    >
+      <div className="relative z-10">
+        <motion.div
+          className="text-3xl font-bold"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: delay + 0.2, duration: 0.4 }}
+        >
+          {value}
+        </motion.div>
+        <div className="text-sm mt-1 opacity-80">{label}</div>
+      </div>
+      <div className="absolute -right-3 -bottom-3 text-6xl font-black opacity-[0.07]">
+        {value}
+      </div>
+    </motion.div>
+  );
+}
+
 function StatsContent() {
   const { user } = useAuthContext();
   const router = useRouter();
 
-  // UI State Management
   const [loading, setLoading] = useState(true);
   const [selectedCourseId, setSelectedCourseId] = useState<string>("");
-
-  // Data State - structured to match service layer outputs
   const [courses, setCourses] = useState<Course[]>([]);
   const [courseStats, setCourseStats] = useState<StatsData | null>(null);
   const [lecturerPreferences, setLecturerPreferences] =
     useState<LecturerPreferences | null>(null);
+  const [allLecturerPrefs, setAllLecturerPrefs] = useState<
+    AllLecturerPreferences[]
+  >([]);
 
-  // Data fetching effects - delegates to service layer
+  // Comparison state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [compareOpen, setCompareOpen] = useState(false);
+
+  // Fetch courses on mount
   useEffect(() => {
     if (!user?.id) return;
 
     const fetchInitialData = async () => {
       try {
         setLoading(true);
-
-        // Fetch courses assigned to lecturer using service layer
         const coursesResponse = await statsDataService.getLecturerCourses(
-          user.id
+          user.id,
         );
 
         if (coursesResponse.success) {
           const fetchedCourses = coursesResponse.body as Course[];
           setCourses(fetchedCourses);
-
-          // Auto-select first course if available
           if (fetchedCourses.length > 0) {
             setSelectedCourseId(fetchedCourses[0].id);
           }
         } else {
           toast.error(coursesResponse.message || "Failed to fetch courses");
         }
-      } catch (error) {
-        console.error("Error fetching initial data:", error);
+      } catch {
         toast.error("An error occurred while loading data");
       } finally {
         setLoading(false);
@@ -125,15 +162,16 @@ function StatsContent() {
     fetchInitialData();
   }, [user?.id]);
 
-  // Effect for fetching course-specific data when course selection changes
+  // Fetch course data when selection changes
   useEffect(() => {
     if (!user?.id || !selectedCourseId) return;
 
     const fetchCourseData = async () => {
       try {
         setLoading(true);
+        setSelectedIds(new Set());
 
-        // Fetch course stats and lecturer preferences in parallel
+        // Fetch stats and own preferences in parallel
         const [statsResponse, preferencesResponse] = await Promise.all([
           statsDataService.getCourseStats(selectedCourseId),
           statsDataService.getLecturerPreferences(selectedCourseId, user.id),
@@ -143,23 +181,40 @@ function StatsContent() {
           setCourseStats(statsResponse.body as StatsData);
         } else {
           toast.error(
-            statsResponse.message || "Failed to fetch course statistics"
+            statsResponse.message || "Failed to fetch course statistics",
           );
           setCourseStats(null);
         }
 
         if (preferencesResponse.success) {
           setLecturerPreferences(
-            preferencesResponse.body as LecturerPreferences
+            preferencesResponse.body as LecturerPreferences,
           );
         } else {
-          toast.error(
-            preferencesResponse.message || "Failed to fetch preferences"
-          );
           setLecturerPreferences(null);
         }
-      } catch (error) {
-        console.error("Error fetching course data:", error);
+
+        // Fetch all lecturers' preferences for consensus table
+        const lecturersResponse =
+          await statsDataService.getCourseLecturers(selectedCourseId);
+        if (lecturersResponse.success) {
+          const lecturers = lecturersResponse.body || [];
+          const nameMap = new Map(
+            lecturers.map((l) => [l.id, l.name]),
+          );
+          const lecturerIds = lecturers.map((l) => l.id);
+
+          const allPrefsResponse =
+            await statsDataService.getAllLecturerPreferences(
+              selectedCourseId,
+              lecturerIds,
+              nameMap,
+            );
+          if (allPrefsResponse.success) {
+            setAllLecturerPrefs(allPrefsResponse.body || []);
+          }
+        }
+      } catch {
         toast.error("An error occurred while loading course data");
       } finally {
         setLoading(false);
@@ -170,11 +225,125 @@ function StatsContent() {
   }, [selectedCourseId, user?.id]);
 
   const selectedCourse = courses.find(
-    (course) => course.id === selectedCourseId
+    (course) => course.id === selectedCourseId,
   );
 
+  // Combine all applications for consensus table
+  const allApplications = useMemo(() => {
+    if (!courseStats) return [];
+    return [
+      ...courseStats.mostChosenCandidates,
+      ...courseStats.leastChosenCandidates,
+      ...courseStats.unchosenCandidates,
+    ];
+  }, [courseStats]);
+
+  // Build chart data
+  const roleDistribution = useMemo(() => {
+    const map: Record<string, number> = {};
+    allApplications.forEach((c) => {
+      const role = c.role?.name || "Unknown";
+      map[role] = (map[role] || 0) + 1;
+    });
+    return Object.entries(map).map(([name, value]) => ({ name, value }));
+  }, [allApplications]);
+
+  const availabilityDistribution = useMemo(() => {
+    const map: Record<string, number> = {};
+    allApplications.forEach((c) => {
+      const avail = c.availability?.availability || "Unknown";
+      map[avail] = (map[avail] || 0) + 1;
+    });
+    return Object.entries(map).map(([name, value]) => ({ name, value }));
+  }, [allApplications]);
+
+  // Ranking distribution for horizontal bar chart
+  const rankingDistribution = useMemo(() => {
+    if (allLecturerPrefs.length === 0) return [];
+    const rankCounts: Record<number, number> = {};
+    allLecturerPrefs.forEach((lp) => {
+      lp.rankings.forEach((r) => {
+        rankCounts[r.rank] = (rankCounts[r.rank] || 0) + 1;
+      });
+    });
+    return Object.entries(rankCounts)
+      .map(([rank, count]) => ({
+        rank: `Rank ${rank}`,
+        count,
+      }))
+      .sort(
+        (a, b) =>
+          parseInt(a.rank.split(" ")[1]) - parseInt(b.rank.split(" ")[1]),
+      );
+  }, [allLecturerPrefs]);
+
+  // Comparison candidates
+  const comparisonCandidates = useMemo(() => {
+    return allApplications.filter((a) => selectedIds.has(a.id));
+  }, [allApplications, selectedIds]);
+
+  const handleCompare = useCallback(() => {
+    if (selectedIds.size >= 2) {
+      setCompareOpen(true);
+    }
+  }, [selectedIds]);
+
+  // CSV export
+  const handleExport = useCallback(() => {
+    if (!courseStats || allApplications.length === 0) return;
+
+    // Build consensus data from current state
+    const rows: ConsensusRow[] = allApplications.map((app) => {
+      const ranksByLecturer = new Map<string, number>();
+      allLecturerPrefs.forEach((lp) => {
+        const ranking = lp.rankings.find((r) => r.applicationId === app.id);
+        if (ranking) ranksByLecturer.set(lp.lecturerId, ranking.rank);
+      });
+      const ranks = Array.from(ranksByLecturer.values());
+      // Simplified consensus calc for export
+      let score = 0;
+      let label = "unranked";
+      if (ranks.length > 0) {
+        const mean = ranks.reduce((a, b) => a + b, 0) / ranks.length;
+        const variance =
+          ranks.reduce((sum, r) => sum + Math.pow(r - mean, 2), 0) /
+          ranks.length;
+        const stdDev = Math.sqrt(variance);
+        score = Math.max(0, 1 - stdDev / 5);
+        const coverage = ranks.length / allLecturerPrefs.length;
+        const adjusted = score * 0.7 + coverage * 0.3;
+        label =
+          adjusted >= 0.7
+            ? "agree"
+            : adjusted >= 0.4
+              ? "moderate"
+              : "disagree";
+        score = adjusted;
+      }
+      return {
+        application: app,
+        ranksByLecturer,
+        totalRanked: ranks.length,
+        consensusScore: score,
+        consensusLabel: label as ConsensusRow["consensusLabel"],
+      };
+    });
+
+    const { lecturerRankings, lecturerNames, consensusScores } =
+      buildConsensusExportData(rows, allLecturerPrefs);
+
+    exportConsensusCsv(
+      allApplications,
+      lecturerRankings,
+      lecturerNames,
+      consensusScores,
+      selectedCourse?.name || "Course",
+    );
+    toast.success("CSV exported successfully");
+  }, [courseStats, allApplications, allLecturerPrefs, selectedCourse]);
+
   return (
-    <div className="bg-background text-foreground flex flex-col gap-6 min-h-screen">
+    <div className="bg-background text-foreground flex flex-col gap-6 min-h-screen pb-12">
       {/* Header */}
       <div className="bg-card/50 shadow-sm p-6 border-b border-border">
         <div className="flex flex-col gap-2 items-center">
@@ -185,37 +354,48 @@ function StatsContent() {
             className="text-sm cursor-pointer text-primary hover:text-accent transition-colors"
             onClick={() => router.push("/lecturer")}
           >
-            ← Back to Lecturer Dashboard
+            &larr; Back to Lecturer Dashboard
           </div>
         </div>
       </div>
 
-      {/* Course Filter */}
+      {/* Course Filter + Export */}
       <div className="container mx-auto px-4">
         <Card className="p-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <h2 className="text-xl font-semibold">Course Selection</h2>
-            <Select
-              value={selectedCourseId}
-              onValueChange={setSelectedCourseId}
-              disabled={loading || courses.length === 0}
-            >
-              <SelectTrigger className="w-full sm:w-96">
-                <SelectValue placeholder="Select a course to view statistics" />
-              </SelectTrigger>
-              <SelectContent>
-                {courses.map((course) => (
-                  <SelectItem key={course.id} value={course.id}>
-                    {course.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex items-center gap-3">
+              <Select
+                value={selectedCourseId}
+                onValueChange={setSelectedCourseId}
+                disabled={loading || courses.length === 0}
+              >
+                <SelectTrigger className="w-full sm:w-96">
+                  <SelectValue placeholder="Select a course to view statistics" />
+                </SelectTrigger>
+                <SelectContent>
+                  {courses.map((course) => (
+                    <SelectItem key={course.id} value={course.id}>
+                      {course.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {!loading && allApplications.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleExport}
+                >
+                  Export CSV
+                </Button>
+              )}
+            </div>
           </div>
         </Card>
       </div>
 
-      {/* Loading State */}
+      {/* Loading */}
       {loading && (
         <div className="container mx-auto px-4">
           <LoaderComponent />
@@ -225,104 +405,123 @@ function StatsContent() {
       {/* Main Content */}
       {!loading && selectedCourseId && (
         <div className="container mx-auto px-4 space-y-8">
-          {/* Lecturer Preferences Section */}
-          {lecturerPreferences && (
-            <Card className="p-6">
-              <LecturerPreferencesView
-                preferences={lecturerPreferences.rankings.map((ranking) => ({
-                  rank: ranking.rank,
-                  application: ranking.application,
-                }))}
-                courseName={selectedCourse?.name}
+          {/* Animated Summary Stat Cards */}
+          {courseStats && (
+            <motion.div
+              variants={staggerContainer}
+              initial="initial"
+              animate="animate"
+              className="grid grid-cols-2 md:grid-cols-4 gap-4"
+            >
+              <StatCard
+                label="Total Candidates"
+                value={allApplications.length}
+                color="bg-primary/10 text-primary border-primary/20"
+                delay={0}
               />
-            </Card>
+              <StatCard
+                label="Most Chosen"
+                value={courseStats.mostChosenCandidates.length}
+                color="bg-green-900/20 text-green-400 border-green-800/30"
+                delay={0.1}
+              />
+              <StatCard
+                label="Least Chosen"
+                value={courseStats.leastChosenCandidates.length}
+                color="bg-yellow-900/20 text-yellow-400 border-yellow-800/30"
+                delay={0.2}
+              />
+              <StatCard
+                label="Unchosen"
+                value={courseStats.unchosenCandidates.length}
+                color="bg-muted text-muted-foreground border-border"
+                delay={0.3}
+              />
+            </motion.div>
           )}
 
-          {/* Course Statistics Section */}
-          {courseStats && (
-            <div className="space-y-6">
-              {/* Summary Stats */}
+          {/* Consensus Table */}
+          {courseStats && allLecturerPrefs.length > 0 && (
+            <motion.div variants={fadeInUp} initial="initial" animate="animate">
               <Card className="p-6">
-                <CardTitle className="text-center">Summary Stats</CardTitle>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-                  <div className="bg-primary/20 text-primary p-4 rounded-lg border border-primary/20">
-                    Total:{" "}
-                    {courseStats.mostChosenCandidates.length +
-                      courseStats.leastChosenCandidates.length +
-                      courseStats.unchosenCandidates.length}
-                  </div>
-                  <div className="bg-green-900/20 text-green-400 p-4 rounded-lg border border-green-800/30">
-                    Most Chosen: {courseStats.mostChosenCandidates.length}
-                  </div>
-                  <div className="bg-yellow-900/20 text-yellow-400 p-4 rounded-lg border border-yellow-800/30">
-                    Least Chosen: {courseStats.leastChosenCandidates.length}
-                  </div>
-                </div>
+                <ConsensusTable
+                  applications={allApplications}
+                  allPreferences={allLecturerPrefs}
+                  selectedIds={selectedIds}
+                  onSelectionChange={setSelectedIds}
+                  onCompare={handleCompare}
+                />
               </Card>
+            </motion.div>
+          )}
 
-              {/* Distribution Charts */}
+          {/* Comparison Modal */}
+          <ComparisonView
+            open={compareOpen}
+            onOpenChange={setCompareOpen}
+            applications={comparisonCandidates}
+            allPreferences={allLecturerPrefs}
+          />
+
+          {/* My Preferences */}
+          {lecturerPreferences && (
+            <motion.div variants={fadeInUp} initial="initial" animate="animate">
               <Card className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <LecturerPreferencesView
+                  preferences={lecturerPreferences.rankings.map(
+                    (ranking) => ({
+                      rank: ranking.rank,
+                      application: ranking.application,
+                    }),
+                  )}
+                  courseName={selectedCourse?.name}
+                />
+              </Card>
+            </motion.div>
+          )}
+
+          {/* Charts Section */}
+          {courseStats && (
+            <motion.div variants={fadeInUp} initial="initial" animate="animate">
+              <Card className="p-6">
+                <CardTitle className="text-center mb-6">
+                  Distribution Charts
+                </CardTitle>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   {/* Role Distribution */}
-                  <div className="bg-card p-6 rounded-lg border border-border overflow-hidden">
-                    <h2 className="text-lg font-semibold mb-4 text-center">
+                  <div className="bg-card p-4 rounded-lg border border-border">
+                    <h3 className="text-sm font-semibold mb-3 text-center text-muted-foreground">
                       Role Distribution
-                    </h2>
-                    <div style={{ minHeight: "250px" }}>
-                      <ResponsiveContainer width="100%" height={250}>
+                    </h3>
+                    <div style={{ minHeight: "220px" }}>
+                      <ResponsiveContainer width="100%" height={220}>
                         <PieChart>
                           <Pie
-                            data={(() => {
-                              const allCandidates = [
-                                ...courseStats.mostChosenCandidates,
-                                ...courseStats.leastChosenCandidates,
-                                ...courseStats.unchosenCandidates,
-                              ];
-                              const roleMap: Record<string, number> = {};
-                              allCandidates.forEach((candidate) => {
-                                const role = candidate.role?.name || "Unknown";
-                                roleMap[role] = (roleMap[role] || 0) + 1;
-                              });
-                              return Object.entries(roleMap).map(
-                                ([name, value]) => ({ name, value })
-                              );
-                            })()}
+                            data={roleDistribution}
                             dataKey="value"
                             nameKey="name"
                             cx="50%"
                             cy="50%"
-                            outerRadius={80}
+                            outerRadius={70}
                             label
                           >
-                            {(() => {
-                              const allCandidates = [
-                                ...courseStats.mostChosenCandidates,
-                                ...courseStats.leastChosenCandidates,
-                                ...courseStats.unchosenCandidates,
-                              ];
-                              const roleMap: Record<string, number> = {};
-                              allCandidates.forEach((candidate) => {
-                                const role = candidate.role?.name || "Unknown";
-                                roleMap[role] = (roleMap[role] || 0) + 1;
-                              });
-                              return Object.entries(roleMap).map((_, index) => (
-                                <Cell
-                                  key={`role-cell-${index}`}
-                                  fill={CHART_COLORS[index % CHART_COLORS.length]}
-                                />
-                              ));
-                            })()}
+                            {roleDistribution.map((_, index) => (
+                              <Cell
+                                key={`role-${index}`}
+                                fill={
+                                  CHART_COLORS[
+                                    index % CHART_COLORS.length
+                                  ]
+                                }
+                              />
+                            ))}
                           </Pie>
-                          <Tooltip
-                            contentStyle={{
-                              backgroundColor: "#1a1a2e",
-                              border: "1px solid #2d2d44",
-                              borderRadius: "8px",
-                              color: "#e2e8f0",
-                            }}
-                          />
+                          <Tooltip contentStyle={TOOLTIP_STYLE} />
                           <Legend
-                            wrapperStyle={{ color: "#e2e8f0" }}
+                            wrapperStyle={{
+                              color: "#e2e8f0",
+                              fontSize: "12px",
+                            }}
                           />
                         </PieChart>
                       </ResponsiveContainer>
@@ -330,107 +529,121 @@ function StatsContent() {
                   </div>
 
                   {/* Availability Distribution */}
-                  <div className="bg-card p-6 rounded-lg border border-border overflow-hidden">
-                    <h2 className="text-lg font-semibold mb-4 text-center">
+                  <div className="bg-card p-4 rounded-lg border border-border">
+                    <h3 className="text-sm font-semibold mb-3 text-center text-muted-foreground">
                       Availability Distribution
-                    </h2>
-                    <div style={{ minHeight: "250px" }}>
-                      <ResponsiveContainer width="100%" height={250}>
+                    </h3>
+                    <div style={{ minHeight: "220px" }}>
+                      <ResponsiveContainer width="100%" height={220}>
                         <PieChart>
                           <Pie
-                            data={(() => {
-                              const allCandidates = [
-                                ...courseStats.mostChosenCandidates,
-                                ...courseStats.leastChosenCandidates,
-                                ...courseStats.unchosenCandidates,
-                              ];
-                              const availabilityMap: Record<string, number> =
-                                {};
-                              allCandidates.forEach((candidate) => {
-                                const availability =
-                                  candidate.availability?.availability ||
-                                  "Unknown";
-                                availabilityMap[availability] =
-                                  (availabilityMap[availability] || 0) + 1;
-                              });
-                              return Object.entries(availabilityMap).map(
-                                ([name, value]) => ({ name, value })
-                              );
-                            })()}
+                            data={availabilityDistribution}
                             dataKey="value"
                             nameKey="name"
                             cx="50%"
                             cy="50%"
-                            outerRadius={80}
+                            outerRadius={70}
                             label
                           >
-                            {(() => {
-                              const allCandidates = [
-                                ...courseStats.mostChosenCandidates,
-                                ...courseStats.leastChosenCandidates,
-                                ...courseStats.unchosenCandidates,
-                              ];
-                              const availabilityMap: Record<string, number> =
-                                {};
-                              allCandidates.forEach((candidate) => {
-                                const availability =
-                                  candidate.availability?.availability ||
-                                  "Unknown";
-                                availabilityMap[availability] =
-                                  (availabilityMap[availability] || 0) + 1;
-                              });
-                              return Object.entries(availabilityMap).map(
-                                (_, index) => (
-                                  <Cell
-                                    key={`availability-cell-${index}`}
-                                    fill={CHART_COLORS[index % CHART_COLORS.length]}
-                                  />
-                                )
-                              );
-                            })()}
+                            {availabilityDistribution.map((_, index) => (
+                              <Cell
+                                key={`avail-${index}`}
+                                fill={
+                                  CHART_COLORS[
+                                    index % CHART_COLORS.length
+                                  ]
+                                }
+                              />
+                            ))}
                           </Pie>
-                          <Tooltip
-                            contentStyle={{
-                              backgroundColor: "#1a1a2e",
-                              border: "1px solid #2d2d44",
-                              borderRadius: "8px",
-                              color: "#e2e8f0",
-                            }}
-                          />
+                          <Tooltip contentStyle={TOOLTIP_STYLE} />
                           <Legend
-                            wrapperStyle={{ color: "#e2e8f0" }}
+                            wrapperStyle={{
+                              color: "#e2e8f0",
+                              fontSize: "12px",
+                            }}
                           />
                         </PieChart>
                       </ResponsiveContainer>
                     </div>
                   </div>
+
+                  {/* Ranking Distribution Bar Chart */}
+                  <div className="bg-card p-4 rounded-lg border border-border">
+                    <h3 className="text-sm font-semibold mb-3 text-center text-muted-foreground">
+                      Ranking Distribution
+                    </h3>
+                    <div style={{ minHeight: "220px" }}>
+                      {rankingDistribution.length > 0 ? (
+                        <ResponsiveContainer width="100%" height={220}>
+                          <BarChart
+                            data={rankingDistribution}
+                            layout="vertical"
+                            margin={{
+                              left: 10,
+                              right: 20,
+                              top: 5,
+                              bottom: 5,
+                            }}
+                          >
+                            <CartesianGrid
+                              strokeDasharray="3 3"
+                              stroke="#2d2d44"
+                              horizontal={false}
+                            />
+                            <XAxis
+                              type="number"
+                              tick={{ fill: "#e2e8f0", fontSize: 12 }}
+                              axisLine={{ stroke: "#2d2d44" }}
+                            />
+                            <YAxis
+                              type="category"
+                              dataKey="rank"
+                              tick={{ fill: "#e2e8f0", fontSize: 12 }}
+                              axisLine={{ stroke: "#2d2d44" }}
+                              width={60}
+                            />
+                            <Tooltip contentStyle={TOOLTIP_STYLE} />
+                            <Bar
+                              dataKey="count"
+                              fill="#8b5cf6"
+                              radius={[0, 4, 4, 0]}
+                              barSize={20}
+                            />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      ) : (
+                        <div className="h-full flex items-center justify-center text-muted-foreground text-sm">
+                          No rankings yet
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </Card>
+            </motion.div>
+          )}
 
-              {/* Detailed Grid Views */}
+          {/* Detailed Grid Views */}
+          {courseStats && (
+            <motion.div variants={fadeInUp} initial="initial" animate="animate">
               <Card className="p-6">
                 <CardTitle className="text-center mb-6">
                   Detailed Candidate Information
                 </CardTitle>
-
                 <div className="space-y-8">
-                  {/* Most Chosen Candidates */}
                   <CandidateStatsGrid
                     title="Most Chosen Candidates"
                     candidates={courseStats.mostChosenCandidates}
                     categoryColor="green"
                     emptyMessage="No candidates have been highly ranked yet"
                   />
-
-                  {/* Least Chosen Candidates */}
                   <CandidateStatsGrid
                     title="Least Chosen Candidates"
                     candidates={courseStats.leastChosenCandidates}
                     categoryColor="yellow"
                     emptyMessage="All candidates are equally preferred"
                   />
-
-                  {/* Unchosen Candidates */}
                   <CandidateStatsGrid
                     title="Unchosen Candidates"
                     candidates={courseStats.unchosenCandidates}
@@ -439,7 +652,7 @@ function StatsContent() {
                   />
                 </div>
               </Card>
-            </div>
+            </motion.div>
           )}
         </div>
       )}
