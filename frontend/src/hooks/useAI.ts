@@ -6,6 +6,13 @@ interface CandidateSummaryBody {
   summary: string;
 }
 
+interface ResumeInsightsBody {
+  score: number;
+  strengths: string[];
+  gaps: string[];
+  suggestions: string[];
+}
+
 interface RankingSuggestionBody {
   suggestions: Array<{
     applicationId: string;
@@ -53,8 +60,27 @@ export default function useAI() {
     }
   };
 
+  const getResumeInsights = async (
+    applicationId: string,
+  ): Promise<ApiResponse<ResumeInsightsBody>> => {
+    try {
+      const response = await apiClient.post("/api/ai/resume-insights", {
+        applicationId,
+      });
+      return {
+        success: response.data.success,
+        message: response.data.message,
+        body: response.data.body,
+      };
+    } catch (error: unknown) {
+      console.error("Error getting resume insights", error);
+      return handleApiError(error) as ApiResponse<ResumeInsightsBody>;
+    }
+  };
+
   return {
     getCandidateSummary,
     getRankingSuggestion,
+    getResumeInsights,
   };
 }

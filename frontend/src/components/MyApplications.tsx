@@ -1,23 +1,48 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import useApplication from "@/hooks/useApplication";
+import useAI from "@/hooks/useAI";
 import { MyApplication } from "@/types/Application";
 import { toast } from "sonner";
 import LoaderComponent from "./Loading";
-import { ClipboardList, Eye, Users, ChevronDown, ChevronUp } from "lucide-react";
+import ResumeInsights from "./ResumeInsights";
+import {
+  ClipboardList,
+  Eye,
+  Users,
+  ChevronDown,
+  ChevronUp,
+  Upload,
+  FileText,
+  Sparkles,
+  Loader2,
+  X,
+} from "lucide-react";
 
 interface MyApplicationsProps {
   userId: string;
 }
 
 export default function MyApplications({ userId }: MyApplicationsProps) {
-  const { getMyApplications } = useApplication();
+  const { getMyApplications, uploadResume } = useApplication();
+  const { getResumeInsights } = useAI();
   const [applications, setApplications] = useState<MyApplication[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
+  const [uploadingFor, setUploadingFor] = useState<string | null>(null);
+  const [insightsFor, setInsightsFor] = useState<string | null>(null);
+  const [insightsData, setInsightsData] = useState<Record<string, {
+    score: number;
+    strengths: string[];
+    gaps: string[];
+    suggestions: string[];
+  }>>({});
+  const [loadingInsights, setLoadingInsights] = useState<Record<string, boolean>>({});
+  const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   useEffect(() => {
     if (userId) {
@@ -52,6 +77,56 @@ export default function MyApplications({ userId }: MyApplicationsProps) {
       }
       return next;
     });
+  };
+
+  const handleUploadResume = async (appId: string, file: File) => {
+    if (file.type !== "application/pdf") {
+      toast.error("Only PDF files are allowed");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File size must be under 5MB");
+      return;
+    }
+
+    setUploadingFor(appId);
+    try {
+      const response = await uploadResume(appId, file);
+      if (response.success) {
+        toast.success("Resume uploaded successfully!");
+        await fetchApplications();
+      } else {
+        toast.error(response.message || "Failed to upload resume");
+      }
+    } catch (error) {
+      console.error("Error uploading resume:", error);
+      toast.error("An error occurred while uploading");
+    } finally {
+      setUploadingFor(null);
+    }
+  };
+
+  const handleGetInsights = async (appId: string) => {
+    if (insightsData[appId]) {
+      setInsightsFor(insightsFor === appId ? null : appId);
+      return;
+    }
+
+    setLoadingInsights((prev) => ({ ...prev, [appId]: true }));
+    try {
+      const response = await getResumeInsights(appId);
+      if (response.success && response.body) {
+        setInsightsData((prev) => ({ ...prev, [appId]: response.body! }));
+        setInsightsFor(appId);
+      } else {
+        toast.error(response.message || "Failed to get insights");
+      }
+    } catch (error) {
+      console.error("Error getting insights:", error);
+      toast.error("An error occurred while getting insights");
+    } finally {
+      setLoadingInsights((prev) => ({ ...prev, [appId]: false }));
+    }
   };
 
   const getStatusInfo = (app: MyApplication) => {
@@ -160,22 +235,89 @@ export default function MyApplications({ userId }: MyApplicationsProps) {
                       className="text-xs text-primary hover:underline mt-1 flex items-center gap-0.5"
                     >
                       {isExpanded ? (
-                        <>
-                          Show less <ChevronUp className="h-3 w-3" />
-                        </>
+                        <>Show less <ChevronUp className="h-3 w-3" /></>
                       ) : (
-                        <>
-                          Show more <ChevronDown className="h-3 w-3" />
-                        </>
+                        <>Show more <ChevronDown className="h-3 w-3" /></>
                       )}
                     </button>
                   )}
                 </div>
               )}
 
+              {/* Resume Section */}
+              <div className="border-t border-border pt-3 mt-1">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">
+                      {app.resume_path ? "Resume uploaded" : "No resume"}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {/* Upload button */}
+                    <input
+                      type="file"
+                      accept=".pdf"
+                      className="hidden"
+                      ref={(el) => { fileInputRefs.current[app.id] = el; }}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleUploadResume(app.id, file);
+                        e.target.value = "";
+                      }}
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => fileInputRefs.current[app.id]?.click()}
+                      disabled={uploadingFor === app.id}
+                      className="text-xs"
+                    >
+                      {uploadingFor === app.id ? (
+                        <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                      ) : (
+                        <Upload className="h-3 w-3 mr-1" />
+                      )}
+                      {app.resume_path ? "Replace" : "Upload"}
+                    </Button>
+
+                    {/* AI Insights button */}
+                    {(app.resume_path || app.cover_letter) && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleGetInsights(app.id)}
+                        disabled={loadingInsights[app.id]}
+                        className="text-xs text-accent border-accent/30 hover:bg-accent/10"
+                      >
+                        {loadingInsights[app.id] ? (
+                          <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                        ) : (
+                          <Sparkles className="h-3 w-3 mr-1" />
+                        )}
+                        AI Insights
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* AI Insights Display */}
+              {insightsFor === app.id && insightsData[app.id] && (
+                <div className="mt-2 p-4 bg-card border border-border rounded-lg relative">
+                  <button
+                    onClick={() => setInsightsFor(null)}
+                    className="absolute top-2 right-2 text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                  <ResumeInsights {...insightsData[app.id]} />
+                </div>
+              )}
+
               {/* Rankings Info */}
               {app.rankingCount > 0 && (
-                <div className="border-t pt-3 mt-1">
+                <div className="border-t border-border pt-3 mt-1">
                   <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                     <Users className="h-4 w-4" />
                     <span>

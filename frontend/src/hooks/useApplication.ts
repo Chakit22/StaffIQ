@@ -177,6 +177,31 @@ export default function useApplication() {
     }
   };
 
+  // Upload resume for an application
+  const uploadResume = async (
+    applicationId: string,
+    file: File,
+  ): Promise<ApiResponse> => {
+    try {
+      const formData = new FormData();
+      formData.append("resume", file);
+
+      const response = await apiClient.post(
+        `/api/applications/${applicationId}/resume`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } },
+      );
+      return {
+        success: response.data.success,
+        message: response.data.message,
+        body: response.data.body,
+      };
+    } catch (error: unknown) {
+      console.error("Error uploading resume", error);
+      return handleApiError(error);
+    }
+  };
+
   return {
     createNewApplication,
     selectCandidate,
@@ -185,5 +210,6 @@ export default function useApplication() {
     getMyApplications,
     getLecturerRankings,
     deleteRanking,
+    uploadResume,
   };
 }

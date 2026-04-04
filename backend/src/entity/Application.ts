@@ -24,6 +24,9 @@ export class Application {
   @Column({ type: "text", nullable: true })
   cover_letter: string | null;
 
+  @Column({ type: "varchar", length: 500, nullable: true })
+  resume_path: string | null;
+
   // Define foreign keys as a seperate columns for easy query access
   @Column()
   userId: string;

@@ -445,4 +445,78 @@ export class ApplicationController {
       return;
     }
   };
+
+  // Upload resume for an application
+  uploadResume = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params;
+      const authReq = req as AuthRequest;
+
+      const application = await this.applicationRepository.findOne({
+        where: { id },
+      });
+
+      if (!application) {
+        const error = new Error("Application not found") as ApiError;
+        error.statusCode = 404;
+        throw error;
+      }
+
+      // Verify ownership
+      if (application.userId !== authReq.user?.id) {
+        const error = new Error("Not authorized to upload resume for this application") as ApiError;
+        error.statusCode = 403;
+        throw error;
+      }
+
+      if (!req.file) {
+        const error = new Error("No file uploaded. Please upload a PDF file.") as ApiError;
+        error.statusCode = 400;
+        throw error;
+      }
+
+      application.resume_path = req.file.filename;
+      await this.applicationRepository.save(application);
+
+      res.status(200).json({
+        success: true,
+        body: { resume_path: req.file.filename },
+        message: "Resume uploaded successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  // Download resume for an application
+  downloadResume = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params;
+
+      const application = await this.applicationRepository.findOne({
+        where: { id },
+      });
+
+      if (!application || !application.resume_path) {
+        const error = new Error("Resume not found") as ApiError;
+        error.statusCode = 404;
+        throw error;
+      }
+
+      const path = require("path");
+      const filePath = path.join(
+        __dirname,
+        "../../../../uploads/resumes",
+        application.resume_path,
+      );
+
+      res.download(filePath, application.resume_path, (err) => {
+        if (err) {
+          next(err);
+        }
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
 }

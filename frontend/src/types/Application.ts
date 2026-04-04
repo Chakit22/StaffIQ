@@ -8,6 +8,7 @@ export interface Application {
   id: string;
   academic_creds: string;
   cover_letter?: string | null;
+  resume_path?: string | null;
   userId: string;
   courseId: string;
   roleId: string;

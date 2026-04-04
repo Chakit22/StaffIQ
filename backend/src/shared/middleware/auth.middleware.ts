@@ -13,16 +13,9 @@ export const authenticateToken = (
   next: NextFunction
 ): void => {
   try {
-    // Get the data from the cookies
     const cookies = cookie.parse(req.headers.cookie || "");
-    console.log("cookies ", cookies);
-
-    // Get the access token from the cookies
     const token = cookies.accessToken;
 
-    console.log("token ", token);
-
-    // Check if token exists and is not empty
     if (!token || token.trim() === "") {
       res.status(401).json({
         success: false,
@@ -32,19 +25,24 @@ export const authenticateToken = (
       return;
     }
 
-    // Verify the JWT token
     const decoded = jwt.verify(token, jwtConfig.secret);
     (req as AuthRequest).user = decoded;
-    console.log("decoded", decoded);
     next();
-  } catch (error) {
-    // Handle any other unexpected errors
+  } catch (error: any) {
+    if (error.name === "JsonWebTokenError" || error.name === "TokenExpiredError") {
+      res.status(401).json({
+        success: false,
+        message: "Invalid or expired authentication token",
+        body: null,
+      });
+      return;
+    }
+
     console.error("Auth middleware error:", error);
     res.status(500).json({
       success: false,
       message: "Authentication error",
       body: null,
     });
-    return;
   }
 };

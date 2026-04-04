@@ -2,12 +2,17 @@ import { Request, Response, NextFunction } from "express";
 import { AppDataSource } from "../../../data-source";
 import { Application } from "../../../entity/Application";
 import { Experience } from "../../../entity/Experience";
+import Ranking from "../../../entity/Ranking";
 import { GeminiService } from "../../../shared/services/gemini.service";
 import { ApiError } from "../../../shared/middleware/error-handler";
+import { AuthRequest } from "../../../shared/middleware/auth.middleware";
+import * as fs from "fs";
+import * as path from "path";
 
 export class AIController {
   private applicationRepository = AppDataSource.getRepository(Application);
   private experienceRepository = AppDataSource.getRepository(Experience);
+  private rankingRepository = AppDataSource.getRepository(Ranking);
   private geminiService = new GeminiService();
 
   /**
@@ -217,6 +222,162 @@ Return ONLY a valid JSON array with no markdown formatting, no code blocks, no e
         success: true,
         body: { suggestions },
         message: "Ranking suggestions generated successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
+   * POST /api/ai/resume-insights
+   * Analyzes a candidate's resume against successful candidates for the same course
+   */
+  getResumeInsights = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    try {
+      const { applicationId } = req.body;
+      const authReq = req as AuthRequest;
+
+      if (!applicationId) {
+        const error = new Error("applicationId is required") as ApiError;
+        error.statusCode = 400;
+        throw error;
+      }
+
+      // Fetch the candidate's application
+      const application = await this.applicationRepository.findOne({
+        where: { id: applicationId },
+        relations: ["user", "course", "role", "availability", "skills"],
+      });
+
+      if (!application) {
+        const error = new Error("Application not found") as ApiError;
+        error.statusCode = 404;
+        throw error;
+      }
+
+      // Verify ownership
+      if (application.userId !== authReq.user?.id) {
+        const error = new Error("Not authorized") as ApiError;
+        error.statusCode = 403;
+        throw error;
+      }
+
+      // Extract resume text if uploaded
+      let resumeText = "";
+      if (application.resume_path) {
+        const resumeFilePath = path.join(
+          __dirname,
+          "../../../../uploads/resumes",
+          application.resume_path,
+        );
+        if (fs.existsSync(resumeFilePath)) {
+          try {
+            const pdfParse = require("pdf-parse");
+            const pdfBuffer = fs.readFileSync(resumeFilePath);
+            const pdfData = await pdfParse(pdfBuffer);
+            resumeText = pdfData.text;
+          } catch {
+            resumeText = "[Could not parse PDF]";
+          }
+        }
+      }
+
+      if (!resumeText && !application.cover_letter) {
+        const error = new Error(
+          "No resume or cover letter found. Upload a resume first.",
+        ) as ApiError;
+        error.statusCode = 400;
+        throw error;
+      }
+
+      // Find top-ranked applications for the same course
+      const rankings = await this.rankingRepository.find({
+        where: { application: { courseId: application.courseId } },
+        relations: [
+          "application",
+          "application.user",
+          "application.skills",
+          "application.role",
+        ],
+        order: { rank: "ASC" },
+        take: 10,
+      });
+
+      // Build successful candidates' profiles
+      const successfulProfiles = await Promise.all(
+        rankings.map(async (r) => {
+          const exp = await this.experienceRepository.find({
+            where: { user: { id: r.application.userId } },
+          });
+          return {
+            name: r.application.user.name,
+            rank: r.rank,
+            role: r.application.role.name,
+            skills: r.application.skills.map((s) => s.name),
+            academicCreds: r.application.academic_creds,
+            experience: exp.map(
+              (e) => `${e.role} at ${e.company_name}: ${e.description}`,
+            ),
+          };
+        }),
+      );
+
+      const prompt = `You are a career advisor analyzing a candidate's resume against successful candidates for a teaching role.
+
+CANDIDATE'S APPLICATION:
+- Course: ${application.course.name}
+- Role applied: ${application.role.name}
+- Skills listed: ${application.skills.map((s) => s.name).join(", ") || "None"}
+- Academic Credentials: ${application.academic_creds}
+${resumeText ? `- Resume content:\n${resumeText.substring(0, 3000)}` : ""}
+${application.cover_letter ? `- Cover Letter:\n${application.cover_letter.substring(0, 1000)}` : ""}
+
+SUCCESSFUL CANDIDATES (ranked by lecturers for the same course):
+${
+  successfulProfiles.length > 0
+    ? successfulProfiles
+        .map(
+          (p) =>
+            `- ${p.name} (Rank #${p.rank}, ${p.role}): Skills: ${p.skills.join(", ")}. Creds: ${p.academicCreds}. Experience: ${p.experience.join("; ") || "None"}`,
+        )
+        .join("\n")
+    : "No candidates have been ranked yet for this course."
+}
+
+Provide your analysis as a JSON object with EXACTLY these fields (no markdown, no code blocks):
+{
+  "score": <number 0-100 representing how well this candidate matches>,
+  "strengths": [<array of 2-4 strings: things this candidate does well that match successful candidates>],
+  "gaps": [<array of 2-4 strings: skills/experience the successful candidates have that this candidate lacks>],
+  "suggestions": [<array of 2-4 strings: specific actionable improvements for the resume/application>]
+}`;
+
+      const responseText = await this.geminiService.generateContent(prompt);
+
+      let insights;
+      try {
+        const cleaned = responseText
+          .replace(/```json\n?/g, "")
+          .replace(/```\n?/g, "")
+          .trim();
+        insights = JSON.parse(cleaned);
+      } catch {
+        insights = {
+          score: 50,
+          strengths: ["Unable to parse detailed analysis"],
+          gaps: ["AI analysis format error — try again"],
+          suggestions: ["Ensure your resume is well-formatted and try again"],
+        };
+      }
+
+      res.status(200).json({
+        success: true,
+        body: insights,
+        message: "Resume insights generated successfully",
       });
     } catch (error) {
       next(error);

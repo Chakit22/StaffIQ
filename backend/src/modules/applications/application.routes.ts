@@ -10,6 +10,7 @@ import {
   requireLecturer,
   requireCandidate,
 } from "../../shared/middleware/role.middleware";
+import { uploadResume } from "../../shared/middleware/upload.middleware";
 
 
 const router = Router();
@@ -70,6 +71,20 @@ router.put(
   requireLecturer,
   validateSchema(UpdateApplicationCommentSchema),
   applicationController.updateAppComment
+);
+
+// Upload resume for an application
+router.post(
+  "/:id/resume",
+  requireCandidate,
+  uploadResume,
+  applicationController.uploadResume,
+);
+
+// Download resume for an application
+router.get(
+  "/:id/resume",
+  applicationController.downloadResume,
 );
 
 export default router;
