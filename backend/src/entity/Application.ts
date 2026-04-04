@@ -6,12 +6,14 @@ import {
   ManyToOne,
   JoinTable,
   ManyToMany,
+  CreateDateColumn,
 } from "typeorm";
 import { User } from "./User";
 import { Role } from "./Role";
 import { Course } from "./Course";
 import { Skill } from "./Skill";
 import { Availability } from "./Availability";
+import { Position } from "./Position";
 
 @Entity()
 export class Application {
@@ -26,6 +28,19 @@ export class Application {
 
   @Column({ type: "varchar", length: 500, nullable: true })
   resume_path: string | null;
+
+  @Column({
+    type: "enum",
+    enum: ["applied", "under_review", "shortlisted", "interview", "offered", "accepted", "rejected"],
+    default: "applied",
+  })
+  status: "applied" | "under_review" | "shortlisted" | "interview" | "offered" | "accepted" | "rejected";
+
+  @Column({ nullable: true })
+  positionId: string | null;
+
+  @CreateDateColumn()
+  applied_at: Date;
 
   // Define foreign keys as a seperate columns for easy query access
   @Column()
@@ -67,6 +82,14 @@ export class Application {
   @ManyToOne(() => Availability)
   @JoinColumn({ name: "availabilityId" })
   availability: Availability;
+
+  // Position (nullable for backward compat)
+  @ManyToOne(() => Position, (position) => position.applications, {
+    nullable: true,
+    onDelete: "SET NULL",
+  })
+  @JoinColumn({ name: "positionId" })
+  position: Position | null;
 
   // Owning side of the many-to-many relationship
   @ManyToMany(() => Skill)

@@ -12,6 +12,7 @@ export const CreateApplicationSchema = z.object({
   roleId: z.string().uuid(),
   availabilityId: z.string().uuid(),
   skills: z.array(SkillSchema),
+  positionId: z.string().uuid().optional(),
 });
 
 export type CreateApplicationSchema = z.infer<typeof CreateApplicationSchema>;
