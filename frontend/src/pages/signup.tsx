@@ -68,7 +68,7 @@ export default function SignUpForm() {
       // If candidate, show verification step instead of redirecting
       if (data.role === "candidate") {
         setVerificationData({
-          userId: response.body.user.id,
+          userId: (response.body as { user: { id: string } })?.user?.id,
           email: data.email,
           name: data.name,
         });
