@@ -252,6 +252,11 @@ export default function CandidateComponent() {
       return;
     }
 
+    if (!resumeFile) {
+      toast.error("Please upload your resume (PDF) before submitting.");
+      return;
+    }
+
     try {
       setIsSubmitting(true);
 
@@ -638,8 +643,8 @@ export default function CandidateComponent() {
 
               {/* Resume Upload */}
               <div>
-                <FormLabel>Resume (Optional)</FormLabel>
-                <div className="border-2 border-dashed border-border rounded-lg p-6 text-center mt-1">
+                <FormLabel>Resume <span className="text-destructive">*</span></FormLabel>
+                <div className={`border-2 border-dashed rounded-lg p-6 text-center mt-1 ${resumeFile ? "border-primary/50" : "border-border"}`}>
                   <input
                     type="file"
                     accept=".pdf"
