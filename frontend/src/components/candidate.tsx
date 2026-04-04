@@ -531,16 +531,20 @@ export default function CandidateComponent() {
                 </div>
               </div>
 
-              {/* Academic Credentials */}
+              {/* GPA */}
               <FormField
                 control={form.control}
                 name="academic_creds"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Academic Credentials</FormLabel>
+                    <FormLabel>GPA</FormLabel>
                     <FormControl>
-                      <Textarea
-                        placeholder="Your academic qualifications..."
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        max="4"
+                        placeholder="e.g. 3.75"
                         {...field}
                       />
                     </FormControl>
