@@ -12,7 +12,6 @@ import LoaderComponent from "./Loading";
 import ResumeInsights from "./ResumeInsights";
 import {
   ClipboardList,
-  Eye,
   Users,
   ChevronDown,
   ChevronUp,
@@ -22,6 +21,8 @@ import {
   Loader2,
   X,
 } from "lucide-react";
+import ApplicationProgress from "./ApplicationProgress";
+import { ApplicationStatus } from "@/types/Application";
 
 interface MyApplicationsProps {
   userId: string;
@@ -130,21 +131,6 @@ export default function MyApplications({ userId }: MyApplicationsProps) {
     }
   };
 
-  const getStatusInfo = (app: MyApplication) => {
-    if (app.rankingCount === 0) {
-      return {
-        label: "Pending",
-        variant: "secondary" as const,
-        icon: <ClipboardList className="h-3.5 w-3.5" />,
-      };
-    }
-    return {
-      label: "Under Review",
-      variant: "default" as const,
-      icon: <Eye className="h-3.5 w-3.5" />,
-    };
-  };
-
   if (isLoading) {
     return <LoaderComponent />;
   }
@@ -162,8 +148,8 @@ export default function MyApplications({ userId }: MyApplicationsProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {applications.map((app) => {
-        const status = getStatusInfo(app);
         const isExpanded = expandedCards.has(app.id);
+        const appStatus: ApplicationStatus = app.status || "applied";
 
         return (
           <Card
@@ -172,20 +158,17 @@ export default function MyApplications({ userId }: MyApplicationsProps) {
           >
             <CardContent className="p-5 flex flex-col gap-3">
               {/* Header */}
-              <div className="flex justify-between items-start">
-                <div>
-                  <div className="text-lg font-bold">
-                    {app.course.course_code} - {app.course.name}
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    {app.role.name}
-                  </div>
+              <div>
+                <div className="text-lg font-bold">
+                  {app.course.course_code} - {app.course.name}
                 </div>
-                <Badge variant={status.variant} className="flex items-center gap-1">
-                  {status.icon}
-                  {status.label}
-                </Badge>
+                <div className="text-sm text-muted-foreground">
+                  {app.role.name}
+                </div>
               </div>
+
+              {/* Progress Stepper */}
+              <ApplicationProgress status={appStatus} />
 
               {/* Availability */}
               <div>

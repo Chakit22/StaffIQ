@@ -4,11 +4,23 @@ import { Skill } from "./Skill";
 import { Course } from "./Course";
 import { Availability } from "./Availability";
 
+export type ApplicationStatus =
+  | "applied"
+  | "under_review"
+  | "shortlisted"
+  | "interview"
+  | "offered"
+  | "accepted"
+  | "rejected";
+
 export interface Application {
   id: string;
   academic_creds: string;
   cover_letter?: string | null;
   resume_path?: string | null;
+  status: ApplicationStatus;
+  positionId?: string | null;
+  applied_at?: string;
   userId: string;
   courseId: string;
   roleId: string;

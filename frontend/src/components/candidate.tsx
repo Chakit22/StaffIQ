@@ -94,6 +94,9 @@ export default function CandidateComponent() {
 
   // URL state
   const [, setId] = useQueryState("id", parseAsString.withDefault(""));
+  const [urlCourseId] = useQueryState("courseId", parseAsString.withDefault(""));
+  const [urlRoleId] = useQueryState("roleId", parseAsString.withDefault(""));
+  const [urlPositionId] = useQueryState("positionId", parseAsString.withDefault(""));
 
   const form = useForm<CreateApplicationSchema>({
     resolver: zodResolver(CreateApplicationSchema),
@@ -105,6 +108,7 @@ export default function CandidateComponent() {
       roleId: "",
       availabilityId: "",
       skills: [],
+      positionId: undefined,
     },
   });
 
@@ -118,6 +122,19 @@ export default function CandidateComponent() {
       router.replace("/signin");
     }
   }, [loading, user, router, setId, form]);
+
+  // Pre-fill from URL params (from positions page)
+  useEffect(() => {
+    if (urlCourseId) {
+      form.setValue("courseId", urlCourseId);
+    }
+    if (urlRoleId) {
+      form.setValue("roleId", urlRoleId);
+    }
+    if (urlPositionId) {
+      form.setValue("positionId", urlPositionId);
+    }
+  }, [urlCourseId, urlRoleId, urlPositionId, form]);
 
   // Filter skills based on input
   useEffect(() => {
@@ -335,6 +352,12 @@ export default function CandidateComponent() {
           onClick={() => setActiveTab("my-applications")}
         >
           My Applications
+        </Button>
+        <Button
+          variant="outline"
+          onClick={() => router.push("/positions")}
+        >
+          Open Positions
         </Button>
       </div>
 
