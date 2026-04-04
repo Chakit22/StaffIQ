@@ -18,6 +18,13 @@ import {
   SlidersHorizontal,
   ArrowUpDown,
   ListOrdered,
+  FileText,
+  Download,
+  GraduationCap,
+  Clock,
+  Briefcase,
+  MessageSquare,
+  Send,
 } from "lucide-react";
 import {
   Select,
@@ -48,9 +55,11 @@ import useSkill from "@/hooks/useSkill";
 import { Skill } from "@/types/Skill";
 import { toast } from "sonner";
 import useApplication from "@/hooks/useApplication";
-import { motion } from "framer-motion";
-import { staggerContainer, staggerItem, scaleOnHover } from "@/lib/animations";
+import { motion, AnimatePresence } from "framer-motion";
+import { staggerContainer, staggerItem } from "@/lib/animations";
 import useAI from "@/hooks/useAI";
+import { Textarea } from "./ui/textarea";
+import { Experience } from "@/types/Experience";
 
 export default function LecturerComponent() {
   const router = useRouter();
@@ -80,7 +89,7 @@ export default function LecturerComponent() {
     parseAsString.withDefault("name-asc"),
   );
 
-  const { getAllCoursesAssigned } = useUser();
+  const { getAllCoursesAssigned, getAllExperiences } = useUser();
   const [coursesAssigned, setCoursesAssigned] = useState<Course[]>([]);
 
   const { getAllRoles } = useRole();
@@ -97,6 +106,7 @@ export default function LecturerComponent() {
     selectCandidate,
     getLecturerRankings,
     deleteRanking,
+    updateComment,
   } = useApplication();
   const [applications, setApplications] = useState<Application[]>([]);
 
@@ -106,10 +116,17 @@ export default function LecturerComponent() {
   const [rankedApplications, setRankedApplications] = useState<Application[]>([]);
   const [, setIsLoadingRankings] = useState<boolean>(false);
 
-  // Expanded cover letters
-  const [expandedCoverLetters, setExpandedCoverLetters] = useState<Set<string>>(
-    new Set(),
-  );
+  // Expanded card detail view (only one at a time)
+  const [expandedCardId, setExpandedCardId] = useState<string | null>(null);
+
+  // Work experiences fetched on expand
+  const [experiences, setExperiences] = useState<Record<string, Experience[]>>({});
+  const [loadingExperiences, setLoadingExperiences] = useState<Record<string, boolean>>({});
+
+  // Comments
+  const [comments, setComments] = useState<Record<string, string>>({});
+  const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
+  const [savingComment, setSavingComment] = useState<Record<string, boolean>>({});
 
   // Filter sheet open state
   const [filterOpen, setFilterOpen] = useState(false);
@@ -311,16 +328,52 @@ export default function LecturerComponent() {
     }
   };
 
-  const toggleCoverLetter = (appId: string) => {
-    setExpandedCoverLetters((prev) => {
-      const next = new Set(prev);
-      if (next.has(appId)) {
-        next.delete(appId);
-      } else {
-        next.add(appId);
+  const toggleExpandCard = async (application: Application) => {
+    const appId = application.id;
+    if (expandedCardId === appId) {
+      setExpandedCardId(null);
+      return;
+    }
+    setExpandedCardId(appId);
+
+    // Fetch experiences if not already loaded
+    if (!experiences[appId] && !loadingExperiences[appId]) {
+      setLoadingExperiences((prev) => ({ ...prev, [appId]: true }));
+      try {
+        const res = await getAllExperiences(application.userId);
+        if (res.success && Array.isArray(res.body)) {
+          setExperiences((prev) => ({ ...prev, [appId]: res.body as Experience[] }));
+        }
+      } catch (error) {
+        console.error("Error fetching experiences:", error);
+      } finally {
+        setLoadingExperiences((prev) => ({ ...prev, [appId]: false }));
       }
-      return next;
-    });
+    }
+  };
+
+  const handleSaveComment = async (applicationId: string) => {
+    if (!user) return;
+    const draft = commentDrafts[applicationId] ?? "";
+    setSavingComment((prev) => ({ ...prev, [applicationId]: true }));
+    try {
+      const res = await updateComment({
+        lecturerId: user.id,
+        applicationId,
+        comment: draft,
+      });
+      if (res.success) {
+        setComments((prev) => ({ ...prev, [applicationId]: draft }));
+        toast.success("Comment saved");
+      } else {
+        toast.error(res.message || "Failed to save comment");
+      }
+    } catch (error) {
+      console.error("Error saving comment:", error);
+      toast.error("An error occurred while saving comment");
+    } finally {
+      setSavingComment((prev) => ({ ...prev, [applicationId]: false }));
+    }
   };
 
   const handleApplyFilters = () => {
@@ -548,106 +601,243 @@ export default function LecturerComponent() {
           variants={staggerContainer}
           initial="initial"
           animate="animate"
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+          className="flex flex-col gap-4"
         >
-          {filteredApplications.map((application: Application) => (
-            <motion.div key={application.id} variants={staggerItem} {...scaleOnHover}>
-              <Card className="hover:shadow-xl hover:shadow-primary/5 p-6 border-border bg-card transition-shadow">
-                <div className="flex justify-between items-center">
-                  <div className="text-md font-bold">{application.user.name}</div>
-                  <Badge variant="outline" className="text-xs">{application.course.course_code}</Badge>
-                </div>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  <Badge variant="secondary">{application.role.name}</Badge>
-                  <Badge variant="outline">{application.availability.availability}</Badge>
-                  {application.academic_creds && (
-                    <Badge variant="outline">GPA: {application.academic_creds}</Badge>
-                  )}
-                </div>
-                {/* Skills */}
-                {application.skills.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 mt-3">
-                    {application.skills.map((skill, i) => (
-                      <Badge key={i} variant="secondary" className="text-xs">
-                        {skill.name}
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-                {/* Cover Letter */}
-                {application.cover_letter && (
-                  <div className="mt-3">
-                    <div className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Cover Letter</div>
-                    <div className="text-sm whitespace-pre-wrap">
-                      {expandedCoverLetters.has(application.id)
-                        ? application.cover_letter
-                        : application.cover_letter.length > 100
-                          ? `${application.cover_letter.substring(0, 100)}...`
-                          : application.cover_letter}
+          {filteredApplications.map((application: Application) => {
+            const isExpanded = expandedCardId === application.id;
+            return (
+              <motion.div key={application.id} variants={staggerItem}>
+                <Card
+                  className={`p-6 border-border bg-card transition-shadow cursor-pointer ${
+                    isExpanded
+                      ? "shadow-xl shadow-primary/10 border-primary/30"
+                      : "hover:shadow-xl hover:shadow-primary/5"
+                  }`}
+                  onClick={() => toggleExpandCard(application)}
+                >
+                  {/* Collapsed Summary Row */}
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-3">
+                      <div className="text-md font-bold">{application.user.name}</div>
+                      <Badge variant="outline" className="text-xs">{application.course.course_code}</Badge>
                     </div>
-                    {application.cover_letter.length > 100 && (
-                      <button
-                        onClick={() => toggleCoverLetter(application.id)}
-                        className="text-xs text-primary hover:underline mt-1 flex items-center gap-0.5"
-                      >
-                        {expandedCoverLetters.has(application.id) ? (
-                          <>Show less <ChevronUp className="h-3 w-3" /></>
-                        ) : (
-                          <>Show more <ChevronDown className="h-3 w-3" /></>
+                    <div className="flex items-center gap-3">
+                      <div className="flex flex-wrap gap-2">
+                        <Badge variant="secondary">{application.role.name}</Badge>
+                        <Badge variant="outline">{application.availability.availability}</Badge>
+                        {application.academic_creds && (
+                          <Badge variant="outline">GPA: {application.academic_creds}</Badge>
                         )}
-                      </button>
+                      </div>
+                      <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                        <Checkbox
+                          id={`select-${application.id}`}
+                          checked={selectedApplications.has(application.id)}
+                          onCheckedChange={(checked) =>
+                            handleCandidateSelection(application, !!checked)
+                          }
+                        />
+                      </div>
+                      {isExpanded ? (
+                        <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Expanded Detail Section */}
+                  <AnimatePresence>
+                    {isExpanded && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1, transition: { duration: 0.3, ease: "easeOut" } }}
+                        exit={{ height: 0, opacity: 0, transition: { duration: 0.2, ease: "easeIn" } }}
+                        className="overflow-hidden"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <hr className="my-4 border-border" />
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          {/* Left Column */}
+                          <div className="flex flex-col gap-4">
+                            {/* Cover Letter */}
+                            {application.cover_letter && (
+                              <div>
+                                <div className="text-xs text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                                  <FileText className="h-3.5 w-3.5" />
+                                  Cover Letter
+                                </div>
+                                <div className="text-sm whitespace-pre-wrap bg-muted/30 rounded-md p-3">
+                                  {application.cover_letter}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Resume Download */}
+                            {application.resume_path && (
+                              <div>
+                                <div className="text-xs text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                                  <Download className="h-3.5 w-3.5" />
+                                  Resume
+                                </div>
+                                <a
+                                  href={`http://localhost:3000/api/applications/${application.id}/resume`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
+                                >
+                                  <Download className="h-4 w-4" />
+                                  Download Resume (PDF)
+                                </a>
+                              </div>
+                            )}
+
+                            {/* Skills */}
+                            {application.skills.length > 0 && (
+                              <div>
+                                <div className="text-xs text-muted-foreground uppercase tracking-wide mb-2">
+                                  Skills
+                                </div>
+                                <div className="flex flex-wrap gap-1.5">
+                                  {application.skills.map((skill, i) => (
+                                    <Badge key={i} variant="secondary" className="text-xs">
+                                      {skill.name}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* GPA & Availability */}
+                            <div className="flex gap-4">
+                              {application.academic_creds && (
+                                <div>
+                                  <div className="text-xs text-muted-foreground uppercase tracking-wide mb-1 flex items-center gap-1.5">
+                                    <GraduationCap className="h-3.5 w-3.5" />
+                                    GPA
+                                  </div>
+                                  <div className="text-sm font-medium">{application.academic_creds}</div>
+                                </div>
+                              )}
+                              <div>
+                                <div className="text-xs text-muted-foreground uppercase tracking-wide mb-1 flex items-center gap-1.5">
+                                  <Clock className="h-3.5 w-3.5" />
+                                  Availability
+                                </div>
+                                <div className="text-sm font-medium">{application.availability.availability}</div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Right Column */}
+                          <div className="flex flex-col gap-4">
+                            {/* Work Experience */}
+                            <div>
+                              <div className="text-xs text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                                <Briefcase className="h-3.5 w-3.5" />
+                                Work Experience
+                              </div>
+                              {loadingExperiences[application.id] ? (
+                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                  Loading experiences...
+                                </div>
+                              ) : experiences[application.id]?.length ? (
+                                <div className="space-y-3">
+                                  {experiences[application.id].map((exp) => (
+                                    <div key={exp.id} className="bg-muted/30 rounded-md p-3">
+                                      <div className="text-sm font-medium">{exp.role}</div>
+                                      <div className="text-xs text-muted-foreground">{exp.company_name}</div>
+                                      {exp.description && (
+                                        <div className="text-xs mt-1 text-foreground/80">{exp.description}</div>
+                                      )}
+                                      <div className="text-xs text-muted-foreground mt-1">
+                                        {new Date(exp.start_date).toLocaleDateString()} &mdash;{" "}
+                                        {exp.end_date ? new Date(exp.end_date).toLocaleDateString() : "Present"}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <div className="text-sm text-muted-foreground">No work experience listed</div>
+                              )}
+                            </div>
+
+                            {/* AI Insights */}
+                            <div>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleAIInsights(application.id)}
+                                disabled={loadingAI[application.id]}
+                                className="flex items-center gap-1 text-accent border-accent/30 hover:bg-accent/10"
+                              >
+                                {loadingAI[application.id] ? (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                ) : (
+                                  <Sparkles className="h-3 w-3" />
+                                )}
+                                AI Insights
+                              </Button>
+                              {showAISummary === application.id && aiSummaries[application.id] && (
+                                <div className="mt-3 p-3 bg-primary/10 border border-primary/20 rounded-md relative">
+                                  <button
+                                    onClick={() => setShowAISummary(null)}
+                                    className="absolute top-2 right-2 text-muted-foreground hover:text-foreground"
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </button>
+                                  <p className="text-xs font-semibold text-accent mb-1 flex items-center gap-1">
+                                    <Sparkles className="h-3 w-3" />
+                                    AI Assessment
+                                  </p>
+                                  <p className="text-sm text-foreground">{aiSummaries[application.id]}</p>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Comment Section */}
+                            <div>
+                              <div className="text-xs text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                                <MessageSquare className="h-3.5 w-3.5" />
+                                Comment
+                              </div>
+                              <div className="flex gap-2">
+                                <Textarea
+                                  value={commentDrafts[application.id] ?? comments[application.id] ?? ""}
+                                  onChange={(e) =>
+                                    setCommentDrafts((prev) => ({
+                                      ...prev,
+                                      [application.id]: e.target.value,
+                                    }))
+                                  }
+                                  placeholder="Add your comment about this candidate..."
+                                  className="min-h-[80px] text-sm"
+                                />
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleSaveComment(application.id)}
+                                  disabled={savingComment[application.id]}
+                                  className="self-end"
+                                >
+                                  {savingComment[application.id] ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <Send className="h-4 w-4" />
+                                  )}
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
                     )}
-                  </div>
-                )}
-                <hr className="my-3 border-border" />
-                {/* Actions */}
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-2">
-                    <Checkbox
-                      id={`select-${application.id}`}
-                      checked={selectedApplications.has(application.id)}
-                      onCheckedChange={(checked) =>
-                        handleCandidateSelection(application, !!checked)
-                      }
-                    />
-                    <label htmlFor={`select-${application.id}`} className="text-sm">
-                      Select
-                    </label>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleAIInsights(application.id)}
-                    disabled={loadingAI[application.id]}
-                    className="flex items-center gap-1 text-accent border-accent/30 hover:bg-accent/10"
-                  >
-                    {loadingAI[application.id] ? (
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                    ) : (
-                      <Sparkles className="h-3 w-3" />
-                    )}
-                    AI Insights
-                  </Button>
-                </div>
-                {/* AI Summary */}
-                {showAISummary === application.id && aiSummaries[application.id] && (
-                  <div className="mt-3 p-3 bg-primary/10 border border-primary/20 rounded-md relative">
-                    <button
-                      onClick={() => setShowAISummary(null)}
-                      className="absolute top-2 right-2 text-muted-foreground hover:text-foreground"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                    <p className="text-xs font-semibold text-accent mb-1 flex items-center gap-1">
-                      <Sparkles className="h-3 w-3" />
-                      AI Assessment
-                    </p>
-                    <p className="text-sm text-foreground">{aiSummaries[application.id]}</p>
-                  </div>
-                )}
-              </Card>
-            </motion.div>
-          ))}
+                  </AnimatePresence>
+                </Card>
+              </motion.div>
+            );
+          })}
         </motion.div>
       ) : (
         <div className="text-center p-12 bg-card/50 rounded-lg text-muted-foreground border border-border">
