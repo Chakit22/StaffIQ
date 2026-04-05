@@ -9,25 +9,25 @@ const dashboardCards = [
     label: "Manage Courses",
     path: "/admin/courses",
     icon: <Book className="w-6 h-6" />,
-    color: "bg-blue-500",
+    color: "bg-primary",
   },
   {
     label: "Assign Lecturer",
     path: "/admin/assign",
     icon: <Home className="w-6 h-6" />,
-    color: "bg-cyan-500",
+    color: "bg-accent",
   },
   {
     label: "Block Candidates",
     path: "/admin/block",
     icon: <UserX className="w-6 h-6" />,
-    color: "bg-red-500",
+    color: "bg-red-600",
   },
   {
     label: "Reports",
     path: "/admin/reports",
     icon: <BarChart3 className="w-6 h-6" />,
-    color: "bg-purple-500",
+    color: "bg-violet-600",
   },
 ];
 
@@ -40,9 +40,9 @@ const Dashboard = () => {
     <DashboardLayout>
       <div className="px-6 py-6 space-y-6">
         {/* Welcome Banner */}
-        <div className="bg-gradient-to-r from-indigo-500 to-indigo-700 text-white p-6 rounded-xl shadow-md">
+        <div className="bg-gradient-to-r from-primary to-violet-700 text-white p-6 rounded-xl shadow-lg">
           <h1 className="text-3xl font-bold mb-2">Welcome back, {user?.email || "Admin"}!</h1>
-          <p className="text-sm">Today is {today}. You have full access to manage candidates, courses, and lecturers.</p>
+          <p className="text-sm opacity-80">Today is {today}. You have full access to manage candidates, courses, and lecturers.</p>
         </div>
 
         {/* Navigation Cards */}
@@ -61,9 +61,9 @@ const Dashboard = () => {
         </div>
 
         {/* Info Box */}
-        <div className="flex items-center gap-4 bg-yellow-100 border-l-4 border-yellow-500 p-4 rounded-md">
-          <HelpCircle className="text-yellow-600 w-6 h-6" />
-          <p className="text-sm text-yellow-800">
+        <div className="flex items-center gap-4 bg-yellow-900/30 border-l-4 border-yellow-500 p-4 rounded-md">
+          <HelpCircle className="text-yellow-400 w-6 h-6" />
+          <p className="text-sm text-yellow-300">
             Reminder: Ensure all lecturers are assigned to courses before the semester starts.
           </p>
         </div>

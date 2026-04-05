@@ -9,6 +9,23 @@ import { AuthRequest } from "../../../shared/middleware/auth.middleware";
 import * as fs from "fs";
 import * as path from "path";
 
+/**
+ * Read a PDF file and return it as a Gemini-compatible inline data part.
+ * Gemini vision can read image-based and text-based PDFs.
+ */
+function getResumeParts(resumePath: string | null): { inlineData: { mimeType: string; data: string } }[] {
+  if (!resumePath) return [];
+  const filePath = path.join(__dirname, "../../../../uploads/resumes", resumePath);
+  if (!fs.existsSync(filePath)) return [];
+  const buffer = fs.readFileSync(filePath);
+  return [{
+    inlineData: {
+      mimeType: "application/pdf",
+      data: buffer.toString("base64"),
+    },
+  }];
+}
+
 export class AIController {
   private applicationRepository = AppDataSource.getRepository(Application);
   private experienceRepository = AppDataSource.getRepository(Experience);
@@ -51,50 +68,28 @@ export class AIController {
         throw error;
       }
 
-      // Fetch user experiences
-      const experiences = await this.experienceRepository.find({
-        where: { user: { id: application.userId } },
-      });
+      // Get resume PDF parts for Gemini vision
+      const resumeParts = getResumeParts(application.resume_path);
 
-      // Build candidate data for the prompt
-      const candidateData = {
-        name: application.user.name,
-        email: application.user.email,
-        course: application.course.name,
-        role: application.role.name,
-        availability: application.availability.availability,
-        academicCredentials: application.academic_creds,
-        skills: application.skills.map((s) => s.name),
-        experiences: experiences.map((exp) => ({
-          role: exp.role,
-          company: exp.company_name,
-          description: exp.description,
-          startDate: exp.start_date,
-          endDate: exp.end_date || "Present",
-        })),
-      };
+      const promptText = `You are evaluating a candidate for the role of "${application.role.name}" in the course "${application.course.name}".
 
-      const prompt = `Given this candidate's profile for the role of "${application.role.name}" in the course "${application.course.name}", write a concise 3-4 sentence assessment covering: relevant skills, experience fit, availability, and overall suitability.
+Write a concise 3-4 sentence professional assessment. Base your assessment PRIMARILY on the attached resume PDF (if provided). Only use the structured data below as supplementary context.
 
-Candidate Data:
-- Name: ${candidateData.name}
-- Academic Credentials: ${candidateData.academicCredentials}
-- Skills: ${candidateData.skills.join(", ") || "None listed"}
-- Availability: ${candidateData.availability}
-- Experience: ${
-        candidateData.experiences.length > 0
-          ? candidateData.experiences
-              .map(
-                (exp) =>
-                  `${exp.role} at ${exp.company} (${exp.startDate} - ${exp.endDate}): ${exp.description}`,
-              )
-              .join("; ")
-          : "No prior experience listed"
-      }
+Structured Data:
+- Name: ${application.user.name}
+- Academic Credentials: ${application.academic_creds}
+- Skills listed in application: ${application.skills.map((s) => s.name).join(", ") || "None listed"}
+- Availability: ${application.availability.availability}
+${application.cover_letter ? `- Cover Letter: ${application.cover_letter.substring(0, 500)}` : ""}
+${resumeParts.length > 0 ? "- Resume: [attached as PDF below — read it visually and base your assessment on its actual content]" : "- Resume: Not uploaded"}
 
-Provide a professional, objective assessment.`;
+Cover: relevant skills, experience fit, availability, and overall suitability. Be honest — if the resume is unrelated to the course, say so clearly.`;
 
-      const summary = await this.geminiService.generateContent(prompt);
+      const parts = [
+        { text: promptText },
+        ...resumeParts,
+      ];
+      const summary = await this.geminiService.generateWithParts(parts);
 
       res.status(200).json({
         success: true,
@@ -266,27 +261,10 @@ Return ONLY a valid JSON array with no markdown formatting, no code blocks, no e
         throw error;
       }
 
-      // Extract resume text if uploaded
-      let resumeText = "";
-      if (application.resume_path) {
-        const resumeFilePath = path.join(
-          __dirname,
-          "../../../../uploads/resumes",
-          application.resume_path,
-        );
-        if (fs.existsSync(resumeFilePath)) {
-          try {
-            const pdfParse = require("pdf-parse");
-            const pdfBuffer = fs.readFileSync(resumeFilePath);
-            const pdfData = await pdfParse(pdfBuffer);
-            resumeText = pdfData.text;
-          } catch {
-            resumeText = "[Could not parse PDF]";
-          }
-        }
-      }
+      // Get resume file parts for Gemini vision
+      const resumeParts = getResumeParts(application.resume_path);
 
-      if (!resumeText && !application.cover_letter) {
+      if (resumeParts.length === 0 && !application.cover_letter) {
         const error = new Error(
           "No resume or cover letter found. Upload a resume first.",
         ) as ApiError;
@@ -349,37 +327,52 @@ Return ONLY a valid JSON array with no markdown formatting, no code blocks, no e
         }),
       );
 
-      const prompt = `You are a career advisor analyzing a candidate's resume against successful candidates for a teaching role.
+      const successfulProfilesText = successfulProfiles.length > 0
+        ? successfulProfiles
+            .map(
+              (p) =>
+                `- ${p.name} (Rank #${p.rank}, ${p.role}): Skills: ${p.skills.join(", ")}. Creds: ${p.academicCreds}. Experience: ${p.experience.join("; ") || "None"}`,
+            )
+            .join("\n")
+        : "No candidates have been ranked yet for this course.";
+
+      const promptText = `You are a STRICT and critical career advisor. Your job is to honestly evaluate how well a candidate's resume matches the requirements for a teaching role. Do NOT inflate scores. Be brutally honest.
+
+SCORING RULES (follow exactly):
+- 0-20: Resume is completely unrelated to the course/role (e.g., a chef applying for a programming tutor role)
+- 21-40: Resume shows some generic transferable skills but lacks domain-specific knowledge for this course
+- 41-60: Resume has some relevant skills but significant gaps compared to successful candidates
+- 61-75: Resume is a decent match with most required skills but missing some key experience
+- 76-90: Strong match with most skills and relevant experience comparable to top candidates
+- 91-100: Exceptional match equal to or better than the top-ranked candidates
+
+If the resume/PDF is clearly unrelated to the course "${application.course.name}" or the role "${application.role.name}", the score MUST be below 30. Do not give benefit of the doubt.
 
 CANDIDATE'S APPLICATION:
 - Course: ${application.course.name}
 - Role applied: ${application.role.name}
 - Skills listed: ${application.skills.map((s) => s.name).join(", ") || "None"}
 - Academic Credentials: ${application.academic_creds}
-${resumeText ? `- Resume content:\n${resumeText.substring(0, 3000)}` : ""}
 ${application.cover_letter ? `- Cover Letter:\n${application.cover_letter.substring(0, 1000)}` : ""}
+${resumeParts.length > 0 ? "- Resume: [attached as PDF below — read it visually]" : "- Resume: Not uploaded"}
 
 SUCCESSFUL CANDIDATES (ranked by lecturers for the same course):
-${
-  successfulProfiles.length > 0
-    ? successfulProfiles
-        .map(
-          (p) =>
-            `- ${p.name} (Rank #${p.rank}, ${p.role}): Skills: ${p.skills.join(", ")}. Creds: ${p.academicCreds}. Experience: ${p.experience.join("; ") || "None"}`,
-        )
-        .join("\n")
-    : "No candidates have been ranked yet for this course."
-}
+${successfulProfilesText}
 
 Provide your analysis as a JSON object with EXACTLY these fields (no markdown, no code blocks):
 {
-  "score": <number 0-100 representing how well this candidate matches>,
-  "strengths": [<array of 2-4 strings: things this candidate does well that match successful candidates>],
-  "gaps": [<array of 2-4 strings: skills/experience the successful candidates have that this candidate lacks>],
-  "suggestions": [<array of 2-4 strings: specific actionable improvements for the resume/application>]
+  "score": <number 0-100 using the scoring rules above>,
+  "strengths": [<array of 2-4 strings: specific skills/experience that genuinely match. If nothing matches say "No relevant strengths identified">],
+  "gaps": [<array of 2-4 strings: specific skills/experience the successful candidates have that this candidate clearly lacks>],
+  "suggestions": [<array of 2-4 strings: specific actionable improvements, not generic advice>]
 }`;
 
-      const responseText = await this.geminiService.generateContent(prompt);
+      // Send prompt + PDF to Gemini vision
+      const parts = [
+        { text: promptText },
+        ...resumeParts,
+      ];
+      const responseText = await this.geminiService.generateWithParts(parts);
 
       let insights;
       try {

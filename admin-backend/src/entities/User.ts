@@ -51,8 +51,12 @@ export class User {
   access?: boolean;
 
   @Field()
-  @Column({ default: "defaultUrl" })
-  avatarUrl?: string;
+  @Column({ default: false })
+  is_verified: boolean;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  avatarId?: string;
 
   // A user can have many applications
   @Field(() => [Application])

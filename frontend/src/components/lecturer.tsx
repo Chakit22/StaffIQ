@@ -22,7 +22,6 @@ import {
   Download,
   GraduationCap,
   Clock,
-  Briefcase,
   MessageSquare,
   Send,
 } from "lucide-react";
@@ -59,7 +58,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { staggerContainer, staggerItem } from "@/lib/animations";
 import useAI from "@/hooks/useAI";
 import { Textarea } from "./ui/textarea";
-import { Experience } from "@/types/Experience";
 
 export default function LecturerComponent() {
   const router = useRouter();
@@ -89,7 +87,7 @@ export default function LecturerComponent() {
     parseAsString.withDefault("name-asc"),
   );
 
-  const { getAllCoursesAssigned, getAllExperiences } = useUser();
+  const { getAllCoursesAssigned } = useUser();
   const [coursesAssigned, setCoursesAssigned] = useState<Course[]>([]);
 
   const { getAllRoles } = useRole();
@@ -119,9 +117,6 @@ export default function LecturerComponent() {
   // Expanded card detail view (only one at a time)
   const [expandedCardId, setExpandedCardId] = useState<string | null>(null);
 
-  // Work experiences fetched on expand
-  const [experiences, setExperiences] = useState<Record<string, Experience[]>>({});
-  const [loadingExperiences, setLoadingExperiences] = useState<Record<string, boolean>>({});
 
   // Comments
   const [comments, setComments] = useState<Record<string, string>>({});
@@ -328,28 +323,13 @@ export default function LecturerComponent() {
     }
   };
 
-  const toggleExpandCard = async (application: Application) => {
+  const toggleExpandCard = (application: Application) => {
     const appId = application.id;
     if (expandedCardId === appId) {
       setExpandedCardId(null);
       return;
     }
     setExpandedCardId(appId);
-
-    // Fetch experiences if not already loaded
-    if (!experiences[appId] && !loadingExperiences[appId]) {
-      setLoadingExperiences((prev) => ({ ...prev, [appId]: true }));
-      try {
-        const res = await getAllExperiences(application.userId);
-        if (res.success && Array.isArray(res.body)) {
-          setExperiences((prev) => ({ ...prev, [appId]: res.body as Experience[] }));
-        }
-      } catch (error) {
-        console.error("Error fetching experiences:", error);
-      } finally {
-        setLoadingExperiences((prev) => ({ ...prev, [appId]: false }));
-      }
-    }
   };
 
   const handleSaveComment = async (applicationId: string) => {
@@ -732,38 +712,6 @@ export default function LecturerComponent() {
 
                           {/* Right Column */}
                           <div className="flex flex-col gap-4">
-                            {/* Work Experience */}
-                            <div>
-                              <div className="text-xs text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-1.5">
-                                <Briefcase className="h-3.5 w-3.5" />
-                                Work Experience
-                              </div>
-                              {loadingExperiences[application.id] ? (
-                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                  <Loader2 className="h-4 w-4 animate-spin" />
-                                  Loading experiences...
-                                </div>
-                              ) : experiences[application.id]?.length ? (
-                                <div className="space-y-3">
-                                  {experiences[application.id].map((exp) => (
-                                    <div key={exp.id} className="bg-muted/30 rounded-md p-3">
-                                      <div className="text-sm font-medium">{exp.role}</div>
-                                      <div className="text-xs text-muted-foreground">{exp.company_name}</div>
-                                      {exp.description && (
-                                        <div className="text-xs mt-1 text-foreground/80">{exp.description}</div>
-                                      )}
-                                      <div className="text-xs text-muted-foreground mt-1">
-                                        {new Date(exp.start_date).toLocaleDateString()} &mdash;{" "}
-                                        {exp.end_date ? new Date(exp.end_date).toLocaleDateString() : "Present"}
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              ) : (
-                                <div className="text-sm text-muted-foreground">No work experience listed</div>
-                              )}
-                            </div>
-
                             {/* AI Insights */}
                             <div>
                               <Button

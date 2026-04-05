@@ -96,6 +96,13 @@ export default function MyApplications({ userId }: MyApplicationsProps) {
       const response = await uploadResume(appId, file);
       if (response.success) {
         toast.success("Resume uploaded successfully!");
+        // Clear cached insights so next click re-fetches with new resume
+        setInsightsData((prev) => {
+          const next = { ...prev };
+          delete next[appId];
+          return next;
+        });
+        setInsightsFor(null);
         await fetchApplications();
       } else {
         toast.error(response.message || "Failed to upload resume");

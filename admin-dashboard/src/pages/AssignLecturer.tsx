@@ -22,18 +22,15 @@ const AssignLecturer = () => {
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState<"success" | "error" | "">("");
 
-  // Fetch lecturers and courses
   const { data: lecturersData, loading: lecturersLoading } =
     useQuery(GET_ALL_LECTURERS);
   const { data: coursesData, loading: coursesLoading } =
     useQuery(GET_ALL_COURSES);
 
-  // Set up assignment mutation
   const [assignLecturerMutation, { loading: assignLoading }] = useMutation(
     ASSIGN_LECTURER_TO_COURSES
   );
 
-  // Handle course selection
   const handleCourseSelection = (courseId: string) => {
     setSelectedCourses((prev) => {
       if (prev.includes(courseId)) {
@@ -61,8 +58,6 @@ const AssignLecturer = () => {
     }
 
     try {
-      console.log("lecturerId", selectedLecturer);
-      console.log("courseIds", selectedCourses);
       const response = await assignLecturerMutation({
         variables: {
           input: {
@@ -75,7 +70,6 @@ const AssignLecturer = () => {
       if (!response.data?.assignLecturerToCourses?.error) {
         setMessage("Lecturer successfully assigned to courses!");
         setMessageType("success");
-        // Reset selections
         setSelectedLecturer("");
         setSelectedCourses([]);
       } else {
@@ -91,15 +85,14 @@ const AssignLecturer = () => {
     }
   };
 
-  // Extract data from GraphQL responses
   const lecturers = lecturersData?.getAllLecturers || [];
   const courses = coursesData?.getAllCourses?.courses || [];
 
   return (
     <DashboardLayout>
       <div className="p-6">
-        <div className="max-w-xl mx-auto bg-white rounded-xl shadow-md p-6">
-          <h2 className="text-2xl font-semibold mb-6 text-center text-gray-700">
+        <div className="max-w-xl mx-auto bg-card rounded-xl shadow-lg border border-border p-6">
+          <h2 className="text-2xl font-semibold mb-6 text-center text-gray-200">
             Assign Lecturer to Courses
           </h2>
 
@@ -107,8 +100,8 @@ const AssignLecturer = () => {
             <p
               className={`text-center text-sm mb-4 ${
                 messageType === "success"
-                  ? "text-green-600 bg-green-50 border border-green-200"
-                  : "text-red-600 bg-red-50 border border-red-200"
+                  ? "text-green-400 bg-green-900/20 border border-green-800/30"
+                  : "text-red-400 bg-red-900/20 border border-red-800/30"
               } rounded p-2`}
             >
               {message}
@@ -116,16 +109,16 @@ const AssignLecturer = () => {
           )}
 
           <div className="mb-5">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-400 mb-1">
               Select Lecturer
             </label>
             {lecturersLoading ? (
-              <p className="text-sm text-gray-500">Loading lecturers...</p>
+              <p className="text-sm text-muted">Loading lecturers...</p>
             ) : (
               <select
                 value={selectedLecturer}
                 onChange={(e) => setSelectedLecturer(e.target.value)}
-                className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary"
                 disabled={assignLoading}
               >
                 <option value="">-- Choose a Lecturer --</option>
@@ -139,15 +132,15 @@ const AssignLecturer = () => {
           </div>
 
           <div className="mb-5">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-400 mb-2">
               Select Courses
             </label>
             {coursesLoading ? (
-              <p className="text-sm text-gray-500">Loading courses...</p>
+              <p className="text-sm text-muted">Loading courses...</p>
             ) : (
-              <div className="border border-gray-300 rounded p-3 max-h-60 overflow-y-auto">
+              <div className="border border-border rounded-lg p-3 max-h-60 overflow-y-auto">
                 {courses.length === 0 ? (
-                  <p className="text-gray-500 text-sm">No courses available</p>
+                  <p className="text-muted text-sm">No courses available</p>
                 ) : (
                   courses.map((course: Course) => (
                     <div key={course.id} className="mb-2">
@@ -157,13 +150,13 @@ const AssignLecturer = () => {
                           checked={selectedCourses.includes(course.id)}
                           onChange={() => handleCourseSelection(course.id)}
                           disabled={assignLoading}
-                          className="mt-1 h-4 w-4 text-blue-600 rounded"
+                          className="mt-1 h-4 w-4 accent-primary rounded"
                         />
                         <span className="ml-2">
-                          <span className="block text-sm font-medium">
+                          <span className="block text-sm font-medium text-gray-300">
                             {course.name}
                           </span>
-                          <span className="block text-xs text-gray-500">
+                          <span className="block text-xs text-muted">
                             {course.course_code}
                           </span>
                         </span>
@@ -173,7 +166,7 @@ const AssignLecturer = () => {
                 )}
               </div>
             )}
-            <div className="mt-1 text-xs text-gray-500">
+            <div className="mt-1 text-xs text-muted">
               {selectedCourses.length} course
               {selectedCourses.length !== 1 ? "s" : ""} selected
             </div>
@@ -183,8 +176,8 @@ const AssignLecturer = () => {
             onClick={handleAssign}
             disabled={assignLoading || lecturersLoading || coursesLoading}
             className={`w-full ${
-              assignLoading ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"
-            } text-white py-2 rounded transition`}
+              assignLoading ? "bg-gray-600" : "bg-primary hover:bg-primary-hover"
+            } text-white py-2 rounded-lg transition`}
           >
             {assignLoading ? "Assigning..." : "Assign to Courses"}
           </button>

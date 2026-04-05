@@ -5,6 +5,13 @@ export async function verifyCaptcha(
   res: Response,
   next: NextFunction,
 ): Promise<void> {
+  // Skip CAPTCHA in test/dev mode
+  if (process.env.SKIP_CAPTCHA === "true") {
+    delete req.body.captchaToken;
+    next();
+    return;
+  }
+
   const { captchaToken } = req.body;
 
   if (!captchaToken) {

@@ -27,6 +27,14 @@ export class Application {
   @Column()
   academic_creds: string;
 
+  @Field({ nullable: true })
+  @Column({ type: "text", nullable: true })
+  cover_letter: string | null;
+
+  @Field({ nullable: true })
+  @Column({ type: "varchar", length: 500, nullable: true })
+  resume_path: string | null;
+
   @Field()
   @Column({
     type: "enum",

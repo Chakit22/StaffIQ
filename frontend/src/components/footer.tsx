@@ -7,7 +7,7 @@ export default function Footer() {
       <div className="container mx-auto py-8 px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="space-y-3">
-            <h3 className="text-lg font-semibold text-primary">TeachTeam</h3>
+            <h3 className="text-lg font-semibold text-primary">StaffIQ</h3>
             <p className="text-muted-foreground text-sm">
               A comprehensive platform for managing tutor applications and
               selections efficiently.

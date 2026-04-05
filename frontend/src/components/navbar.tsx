@@ -29,7 +29,7 @@ export default function Navbar() {
         <div className="flex justify-center items-center gap-2">
           <SidebarTrigger className="md:hidden" />
           <Link className="text-2xl font-bold text-primary tracking-tight" href="/">
-            TeachTeam
+            StaffIQ
           </Link>
         </div>
         <div className="hidden md:flex gap-3">

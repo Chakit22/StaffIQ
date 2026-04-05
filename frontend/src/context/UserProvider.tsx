@@ -31,9 +31,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         if (response.data.success) {
           setUser(response.data.body);
         }
-      } catch (error) {
-        console.error("Error fetching current user:", error);
-        // User is not authenticated or there was an error
+      } catch {
+        // Expected 401 when not logged in — silently ignore
       } finally {
         setLoading(false);
       }

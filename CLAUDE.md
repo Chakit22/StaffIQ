@@ -1,12 +1,12 @@
-# TeachTeam — Project Guidelines
+# StaffIQ — Project Guidelines
 
 ## Project Overview
-TeachTeam is a tutor/teaching assistant assignment platform for RMIT University. Candidates (students) apply for tutoring roles, lecturers rank and review applications, and admins manage courses and users.
+StaffIQ is a tutor/teaching assistant assignment platform for RMIT University. Candidates (students) apply for tutoring roles, lecturers rank and review applications, and admins manage courses and users.
 
 ## Architecture
 
 ```
-TeachTeam/
+StaffIQ/
 ├── frontend/          # Next.js 15 (Pages Router) — candidate + lecturer UI
 ├── backend/           # Express 5 REST API — main application logic
 ├── admin-backend/     # Express + Apollo Server (GraphQL) — admin operations

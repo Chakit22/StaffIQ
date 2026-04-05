@@ -22,9 +22,9 @@ const Sidebar = () => {
   };
 
   return (
-    <aside className="w-64 h-full bg-white shadow-lg border-r flex flex-col">
-      <div className="p-6 border-b">
-        <h2 className="text-2xl font-bold text-blue-600 tracking-tight">
+    <aside className="w-64 h-full bg-card border-r border-border flex flex-col">
+      <div className="p-6 border-b border-border">
+        <h2 className="text-2xl font-bold text-primary tracking-tight">
           Admin Panel
         </h2>
       </div>
@@ -35,10 +35,10 @@ const Sidebar = () => {
             <Link
               key={path}
               to={path}
-              className={`rounded px-3 py-2 text-sm font-medium transition ${
+              className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
                 isActive
-                  ? "bg-blue-100 text-blue-800"
-                  : "text-gray-700 hover:bg-gray-100 hover:text-blue-600"
+                  ? "bg-primary/20 text-primary"
+                  : "text-gray-400 hover:bg-primary/10 hover:text-primary"
               }`}
               aria-current={isActive ? "page" : undefined}
             >
@@ -48,10 +48,10 @@ const Sidebar = () => {
         })}
       </nav>
 
-      <div className="mt-auto p-4 border-t">
+      <div className="mt-auto p-4 border-t border-border">
         <button
           onClick={handleLogout}
-          className="w-full flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded transition"
+          className="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg transition"
         >
           <LogOut size={16} />
           <span>Logout</span>

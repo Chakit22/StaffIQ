@@ -2,8 +2,8 @@ import React from "react";
 import { useQuery, useMutation } from "@apollo/client";
 import { GET_ALL_LECTURERS } from "../graphQL/queries";
 import { BLOCK_USER, UNBLOCK_USER } from "../graphQL/mutations";
+import DashboardLayout from "../components/DashboardLayout";
 
-// User interface to match the GraphQL response
 interface User {
   id: string;
   name: string;
@@ -13,99 +13,82 @@ interface User {
 }
 
 const BlockCandidate = () => {
-  // Query to get all lecturers
   const { data, loading, error, refetch } = useQuery(GET_ALL_LECTURERS);
-
-  // Mutations for blocking and unblocking users
   const [blockUser] = useMutation(BLOCK_USER);
   const [unblockUser] = useMutation(UNBLOCK_USER);
 
-  // Toggle the block status of a user
   const toggleBlock = async (userId: string, isBlocked: boolean) => {
     try {
       if (isBlocked) {
-        // If currently blocked, unblock the user
-        await unblockUser({
-          variables: { userId },
-        });
+        await unblockUser({ variables: { userId } });
       } else {
-        // If currently active, block the user
-        await blockUser({
-          variables: { userId },
-        });
+        await blockUser({ variables: { userId } });
       }
-      // Refresh the lecturers list
       refetch();
     } catch (err) {
       console.error("Error toggling user access:", err);
-      alert("Failed to update user access. Please try again.");
     }
   };
 
-  // Get the lecturers from the query response
   const candidates = data?.getAllLecturers || [];
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <div className="max-w-2xl mx-auto bg-white p-6 rounded shadow-md">
-        <h2 className="text-xl font-bold mb-4">Block / Unblock Lecturers</h2>
+    <DashboardLayout>
+      <div className="p-6">
+        <div className="max-w-2xl mx-auto bg-card p-6 rounded-xl shadow-lg border border-border">
+          <h2 className="text-xl font-bold mb-4 text-gray-200">Block / Unblock Lecturers</h2>
 
-        {loading && (
-          <div className="text-center py-4">Loading lecturers...</div>
-        )}
-        {error && (
-          <div className="text-red-500 text-center py-4">
-            Error loading lecturers: {error.message}
-          </div>
-        )}
+          {loading && <div className="text-center py-4 text-muted">Loading lecturers...</div>}
+          {error && <div className="text-red-400 text-center py-4">Error: {error.message}</div>}
 
-        <table className="w-full border text-left">
-          <thead className="bg-gray-200">
-            <tr>
-              <th className="p-2 border">Name</th>
-              <th className="p-2 border">Email</th>
-              <th className="p-2 border">Status</th>
-              <th className="p-2 border">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {candidates.map((user: User) => (
-              <tr
-                key={user.id}
-                className={
-                  !user.access ? "bg-red-50 text-gray-400 line-through" : ""
-                }
-              >
-                <td className="p-2 border">{user.name}</td>
-                <td className="p-2 border">{user.email}</td>
-                <td className="p-2 border">
-                  {user.access ? "Active" : "Blocked"}
-                </td>
-                <td className="p-2 border">
-                  <button
-                    onClick={() => toggleBlock(user.id, !user.access)}
-                    className={`px-4 py-1 rounded text-white ${
-                      !user.access
-                        ? "bg-green-500 hover:bg-green-600"
-                        : "bg-red-500 hover:bg-red-600"
-                    }`}
-                  >
-                    {!user.access ? "Unblock" : "Block"}
-                  </button>
-                </td>
-              </tr>
-            ))}
-            {!loading && candidates.length === 0 && (
+          <table className="w-full text-left">
+            <thead className="bg-background">
               <tr>
-                <td colSpan={4} className="text-center text-gray-500 p-4">
-                  No lecturers available.
-                </td>
+                <th className="p-2 border-b border-border text-gray-400 text-sm">Name</th>
+                <th className="p-2 border-b border-border text-gray-400 text-sm">Email</th>
+                <th className="p-2 border-b border-border text-gray-400 text-sm">Status</th>
+                <th className="p-2 border-b border-border text-gray-400 text-sm">Action</th>
               </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {candidates.map((user: User) => (
+                <tr
+                  key={user.id}
+                  className={!user.access ? "opacity-50" : ""}
+                >
+                  <td className="p-2 border-b border-border text-gray-300">{user.name}</td>
+                  <td className="p-2 border-b border-border text-gray-300">{user.email}</td>
+                  <td className="p-2 border-b border-border">
+                    <span className={`text-xs px-2 py-1 rounded ${user.access ? "bg-green-900/30 text-green-400" : "bg-red-900/30 text-red-400"}`}>
+                      {user.access ? "Active" : "Blocked"}
+                    </span>
+                  </td>
+                  <td className="p-2 border-b border-border">
+                    <button
+                      onClick={() => toggleBlock(user.id, !user.access)}
+                      className={`px-4 py-1 rounded-lg text-white text-sm transition ${
+                        !user.access
+                          ? "bg-green-600 hover:bg-green-700"
+                          : "bg-red-600 hover:bg-red-700"
+                      }`}
+                    >
+                      {!user.access ? "Unblock" : "Block"}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+              {!loading && candidates.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="text-center text-muted p-4">
+                    No lecturers available.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 };
 

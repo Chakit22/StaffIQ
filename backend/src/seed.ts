@@ -12,6 +12,7 @@ import { Application } from "./entity/Application";
 import { Experience } from "./entity/Experience";
 import Ranking from "./entity/Ranking";
 import { Comment } from "./entity/Comment";
+import { Position } from "./entity/Position";
 
 async function seed() {
   await AppDataSource.initialize();
@@ -327,6 +328,110 @@ async function seed() {
     await commentRepo.save(comment);
   }
   console.log(`Comments: ${commentConfigs.length}`);
+
+  // --- Positions ---
+  const positionRepo = AppDataSource.getRepository(Position);
+
+  const positionData = [
+    {
+      title: "Tutor — Full Stack Development",
+      description: "Looking for an experienced tutor to assist with Full Stack Development tutorials. You will help students with React, Node.js, Express, and database concepts. Must be able to explain complex topics clearly and have strong communication skills.",
+      courseIdx: 0,
+      roleIdx: 0,
+      requirements: "Strong knowledge of React, Node.js, TypeScript, and SQL. Prior tutoring experience preferred. Must be available for at least 10 hours/week.",
+      positions_available: 3,
+      deadline: new Date("2026-07-15"),
+      lecturerIdx: 0,
+    },
+    {
+      title: "Lab Assistant — Machine Learning",
+      description: "Assist students during ML lab sessions with Python, scikit-learn, TensorFlow, and Jupyter notebooks. Help debug code, explain algorithms, and grade lab submissions.",
+      courseIdx: 1,
+      roleIdx: 1,
+      requirements: "Proficiency in Python, machine learning fundamentals, and data analysis. Experience with Jupyter notebooks required.",
+      positions_available: 2,
+      deadline: new Date("2026-07-20"),
+      lecturerIdx: 0,
+    },
+    {
+      title: "Tutor — Database Concepts",
+      description: "Teach SQL, normalization, ER diagrams, and database design principles. Run weekly tutorial sessions and assist with assignment grading.",
+      courseIdx: 2,
+      roleIdx: 0,
+      requirements: "Strong SQL skills, understanding of relational database design, normalization up to 3NF. MySQL experience required.",
+      positions_available: 2,
+      deadline: new Date("2026-07-25"),
+      lecturerIdx: 1,
+    },
+    {
+      title: "Marker — Web Programming",
+      description: "Grade student assignments for Web Programming course. Provide constructive feedback on HTML, CSS, JavaScript, and responsive design projects.",
+      courseIdx: 3,
+      roleIdx: 2,
+      requirements: "Strong knowledge of HTML5, CSS3, JavaScript. Experience with responsive design and accessibility standards.",
+      positions_available: 4,
+      deadline: new Date("2026-08-01"),
+      lecturerIdx: 0,
+    },
+    {
+      title: "Teaching Assistant — Cloud Computing",
+      description: "Support the Cloud Computing course by helping students with AWS services, Docker, Kubernetes, and CI/CD pipelines. Assist with lab sessions and provide one-on-one support.",
+      courseIdx: 4,
+      roleIdx: 3,
+      requirements: "Hands-on experience with AWS (EC2, S3, Lambda), Docker, and basic Kubernetes. CI/CD pipeline experience is a plus.",
+      positions_available: 2,
+      deadline: new Date("2026-08-10"),
+      lecturerIdx: 1,
+    },
+    {
+      title: "Lab Assistant — Software Engineering",
+      description: "Help students with Agile methodologies, Git workflows, code reviews, and software design patterns during lab sessions.",
+      courseIdx: 5,
+      roleIdx: 1,
+      requirements: "Experience with Git, Agile/Scrum, design patterns, and code review practices. Java or TypeScript proficiency required.",
+      positions_available: 3,
+      deadline: new Date("2026-08-15"),
+      lecturerIdx: 1,
+    },
+    {
+      title: "Tutor — Full Stack Development (Evening)",
+      description: "Evening tutorial sessions for Full Stack Development. Same responsibilities as the day tutor role but for students attending evening classes.",
+      courseIdx: 0,
+      roleIdx: 0,
+      requirements: "Same as FSD Tutor. Must be available for evening sessions (6pm-9pm) at least 2 days per week.",
+      positions_available: 1,
+      deadline: new Date("2026-07-30"),
+      lecturerIdx: 2,
+    },
+    {
+      title: "Marker — Machine Learning",
+      description: "Grade ML assignments including Jupyter notebooks, model evaluations, and written reports. Provide detailed feedback on methodology and implementation.",
+      courseIdx: 1,
+      roleIdx: 2,
+      requirements: "Strong understanding of ML algorithms, model evaluation metrics, and Python. Academic writing skills for feedback.",
+      positions_available: 2,
+      deadline: new Date("2026-07-18"),
+      lecturerIdx: 0,
+    },
+  ];
+
+  const positions: Position[] = [];
+  for (const pd of positionData) {
+    const position = positionRepo.create({
+      title: pd.title,
+      description: pd.description,
+      courseId: courses[pd.courseIdx].id,
+      roleId: roles[pd.roleIdx].id,
+      requirements: pd.requirements,
+      positions_available: pd.positions_available,
+      deadline: pd.deadline,
+      status: "open",
+      created_by: lecturers[pd.lecturerIdx].id,
+    });
+    const saved = await positionRepo.save(position);
+    positions.push(saved);
+  }
+  console.log(`Positions: ${positions.length}`);
 
   console.log("\n--- Seed Complete ---");
   console.log("Login credentials for all users: Password@123");

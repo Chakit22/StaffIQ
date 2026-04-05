@@ -44,7 +44,7 @@ export default function HomePage() {
         >
           Welcome to{" "}
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">
-            TeachTeam
+            StaffIQ
           </span>
         </motion.h1>
 
@@ -91,7 +91,7 @@ export default function HomePage() {
         animate={{ opacity: 1 }}
         transition={{ delay: 0.8 }}
       >
-        Built by Team TeachTeam
+        Built by Team StaffIQ
       </motion.footer>
     </div>
   );

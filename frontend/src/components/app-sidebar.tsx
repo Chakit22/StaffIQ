@@ -32,7 +32,7 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel className="text-2xl font-bold">
-            TeachTeam
+            StaffIQ
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
