@@ -662,7 +662,7 @@ export default function LecturerComponent() {
                                   Resume
                                 </div>
                                 <a
-                                  href={`http://localhost:3000/api/applications/${application.id}/resume`}
+                                  href={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/api/applications/${application.id}/resume`}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className="inline-flex items-center gap-2 text-sm text-primary hover:underline"

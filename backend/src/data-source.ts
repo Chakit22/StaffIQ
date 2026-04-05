@@ -13,16 +13,24 @@ import { Availability } from "./entity/Availability";
 import { Avatar } from "./entity/Avatar";
 import { Position } from "./entity/Position";
 
+const dbUrl = process.env.DATABASE_URL;
+
 export const AppDataSource = new DataSource({
   type: "mysql",
-  host: process.env.DB_HOST,
-  port: Number(process.env.DB_PORT),
-  username: process.env.DB_USER,
-  password: process.env.DB_PASS,
-  database: process.env.DB_NAME,
-  // Indicates if database schema should be auto created on every application launch. Should be false in production.
-  synchronize: false,
-  logging: true,
+  ...(dbUrl
+    ? {
+        url: dbUrl,
+        ssl: { rejectUnauthorized: true },
+      }
+    : {
+        host: process.env.DB_HOST,
+        port: Number(process.env.DB_PORT),
+        username: process.env.DB_USER,
+        password: process.env.DB_PASS,
+        database: process.env.DB_NAME,
+      }),
+  synchronize: dbUrl ? true : false,
+  logging: !dbUrl,
   entities: [
     User,
     Course,
