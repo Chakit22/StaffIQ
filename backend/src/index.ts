@@ -20,10 +20,10 @@ const app = express();
 const allowedOrigins = [
   "http://localhost:3001",
   process.env.FRONTEND_URL,
-].filter(Boolean) as string[];
+].filter(Boolean);
 
 app.use(cors({
-  origin: (origin, callback) => {
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
