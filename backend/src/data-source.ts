@@ -44,7 +44,7 @@ export const AppDataSource = new DataSource({
     Avatar,
     Position,
   ],
-  migrations: ["src/migration/*.ts"],
+  migrations: dbUrl ? [] : ["src/migration/*.ts"],
   migrationsRun: false,
   migrationsTableName: "typeorm_migrations",
   charset: "utf8mb4",
