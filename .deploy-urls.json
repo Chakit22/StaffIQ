@@ -1,6 +1,8 @@
 {
   "backend_url": "https://teachteam-oexw.onrender.com",
   "frontend_url": "https://teach-team.vercel.app",
-  "updated_by": "vercel-instance",
-  "updated_at": "2026-04-06T02:20:00Z"
+  "admin_backend_url": "https://staffiq-admin.onrender.com",
+  "admin_frontend_url": null,
+  "updated_by": "render-instance",
+  "updated_at": "2026-04-06T03:30:00Z"
 }
