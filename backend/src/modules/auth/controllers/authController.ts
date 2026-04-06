@@ -133,21 +133,21 @@ export class AuthController {
           secure: process.env.NODE_ENV === "production",
           maxAge: 60 * 15, // 15 minutes
           path: "/",
-          sameSite: "lax",
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
         }),
         cookie.serialize("refreshToken", refreshToken, {
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",
           maxAge: 60 * 60 * 24 * 7, // 7 days
           path: "/",
-          sameSite: "lax",
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
         }),
         cookie.serialize("user", JSON.stringify(user), {
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",
           maxAge: 60 * 60 * 24 * 7, // 7 days
           path: "/",
-          sameSite: "lax",
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
         }),
       ]);
 
@@ -327,21 +327,21 @@ export class AuthController {
           path: "/",
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",
-          sameSite: "lax",
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
         }),
         cookie.serialize("refreshToken", "", {
           maxAge: 0,
           path: "/",
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",
-          sameSite: "lax",
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
         }),
         cookie.serialize("user", "", {
           maxAge: 0,
           path: "/",
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",
-          sameSite: "lax",
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
         }),
       ]);
 
