@@ -1,6 +1,6 @@
 import { MiddlewareFn } from "type-graphql";
 import { GraphQLError } from "graphql";
-import { AdminRole } from "../entities/Admin";
+type AdminRole = string;
 import { AuthService } from "../services/auth.service";
 import { Request, Response, NextFunction } from "express";
 

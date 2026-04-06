@@ -10,7 +10,9 @@
     "migration:generate": "npm run typeorm -- migration:generate -d src/data-source.ts",
     "migration:run": "npm run typeorm -- migration:run -d src/data-source.ts",
     "migration:revert": "npm run typeorm -- migration:revert -d src/data-source.ts",
-    "setup:db": "ts-node -r tsconfig-paths/register src/run-migrations.ts"
+    "setup:db": "ts-node -r tsconfig-paths/register src/run-migrations.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
   },
   "keywords": [],
   "author": "",
