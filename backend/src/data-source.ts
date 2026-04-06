@@ -19,8 +19,8 @@ export const AppDataSource = new DataSource({
   type: "mysql",
   ...(dbUrl
     ? {
-        url: dbUrl,
-        ssl: { rejectUnauthorized: true },
+        url: dbUrl.replace(/\?ssl-mode=REQUIRED/, ""),
+        ssl: { rejectUnauthorized: false },
       }
     : {
         host: process.env.DB_HOST,
