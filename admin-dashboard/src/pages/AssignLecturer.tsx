@@ -1,9 +1,9 @@
-// src/pages/AssignLecturer.tsx
 import React, { useState } from "react";
 import { useQuery, useMutation } from "@apollo/client";
 import { GET_ALL_LECTURERS, GET_ALL_COURSES } from "../graphQL/queries";
 import { ASSIGN_LECTURER_TO_COURSES } from "../graphQL/mutations";
 import DashboardLayout from "../components/DashboardLayout";
+import { Users, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 
 interface Lecturer {
   id: string;
@@ -26,19 +26,16 @@ const AssignLecturer = () => {
     useQuery(GET_ALL_LECTURERS);
   const { data: coursesData, loading: coursesLoading } =
     useQuery(GET_ALL_COURSES);
-
   const [assignLecturerMutation, { loading: assignLoading }] = useMutation(
-    ASSIGN_LECTURER_TO_COURSES
+    ASSIGN_LECTURER_TO_COURSES,
   );
 
   const handleCourseSelection = (courseId: string) => {
-    setSelectedCourses((prev) => {
-      if (prev.includes(courseId)) {
-        return prev.filter((id) => id !== courseId);
-      } else {
-        return [...prev, courseId];
-      }
-    });
+    setSelectedCourses((prev) =>
+      prev.includes(courseId)
+        ? prev.filter((id) => id !== courseId)
+        : [...prev, courseId],
+    );
   };
 
   const handleAssign = async () => {
@@ -50,7 +47,6 @@ const AssignLecturer = () => {
       setMessageType("error");
       return;
     }
-
     if (selectedCourses.length === 0) {
       setMessage("Please select at least one course.");
       setMessageType("error");
@@ -60,10 +56,7 @@ const AssignLecturer = () => {
     try {
       const response = await assignLecturerMutation({
         variables: {
-          input: {
-            lecturerId: selectedLecturer,
-            courseIds: selectedCourses,
-          },
+          input: { lecturerId: selectedLecturer, courseIds: selectedCourses },
         },
       });
 
@@ -73,9 +66,7 @@ const AssignLecturer = () => {
         setSelectedLecturer("");
         setSelectedCourses([]);
       } else {
-        setMessage(
-          response.data?.assignLecturerToCourses?.error || "Assignment failed."
-        );
+        setMessage(response.data?.assignLecturerToCourses?.error || "Assignment failed.");
         setMessageType("error");
       }
     } catch (error) {
@@ -90,35 +81,53 @@ const AssignLecturer = () => {
 
   return (
     <DashboardLayout>
-      <div className="p-6">
-        <div className="max-w-xl mx-auto bg-card rounded-xl shadow-lg border border-border p-6">
-          <h2 className="text-2xl font-semibold mb-6 text-center text-gray-200">
-            Assign Lecturer to Courses
-          </h2>
+      <div className="p-8 max-w-2xl mx-auto">
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+              <Users size={18} className="text-white" />
+            </div>
+            <h2 className="text-2xl font-extrabold text-white tracking-tight">
+              Assign Lecturer
+            </h2>
+          </div>
+          <p className="text-muted-text text-sm">
+            Map lecturers to their courses for the current semester.
+          </p>
+        </div>
 
+        <div className="glass-panel-elevated p-7 space-y-6">
           {message && (
-            <p
-              className={`text-center text-sm mb-4 ${
+            <div
+              className={`flex items-center gap-2 text-sm p-3 rounded-xl animate-fade-in ${
                 messageType === "success"
-                  ? "text-green-400 bg-green-900/20 border border-green-800/30"
-                  : "text-red-400 bg-red-900/20 border border-red-800/30"
-              } rounded p-2`}
+                  ? "text-success bg-success/10 border border-success/20"
+                  : "text-danger bg-danger/10 border border-danger/20"
+              }`}
             >
+              {messageType === "success" ? (
+                <CheckCircle2 size={16} />
+              ) : (
+                <AlertCircle size={16} />
+              )}
               {message}
-            </p>
+            </div>
           )}
 
-          <div className="mb-5">
-            <label className="block text-sm font-medium text-gray-400 mb-1">
+          {/* Lecturer Select */}
+          <div>
+            <label className="text-[11px] text-muted-text uppercase tracking-[0.15em] font-semibold mb-2 block">
               Select Lecturer
             </label>
             {lecturersLoading ? (
-              <p className="text-sm text-muted">Loading lecturers...</p>
+              <div className="flex items-center gap-2 text-sm text-muted-text py-3">
+                <Loader2 size={14} className="animate-spin" /> Loading...
+              </div>
             ) : (
               <select
                 value={selectedLecturer}
                 onChange={(e) => setSelectedLecturer(e.target.value)}
-                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary"
+                className="input-field appearance-none"
                 disabled={assignLoading}
               >
                 <option value="">-- Choose a Lecturer --</option>
@@ -131,54 +140,70 @@ const AssignLecturer = () => {
             )}
           </div>
 
-          <div className="mb-5">
-            <label className="block text-sm font-medium text-gray-400 mb-2">
+          {/* Course Selection */}
+          <div>
+            <label className="text-[11px] text-muted-text uppercase tracking-[0.15em] font-semibold mb-2 block">
               Select Courses
             </label>
             {coursesLoading ? (
-              <p className="text-sm text-muted">Loading courses...</p>
+              <div className="flex items-center gap-2 text-sm text-muted-text py-3">
+                <Loader2 size={14} className="animate-spin" /> Loading...
+              </div>
             ) : (
-              <div className="border border-border rounded-lg p-3 max-h-60 overflow-y-auto">
+              <div className="bg-surface border border-border rounded-xl p-3 max-h-60 overflow-y-auto space-y-1">
                 {courses.length === 0 ? (
-                  <p className="text-muted text-sm">No courses available</p>
+                  <p className="text-muted-text text-sm p-2">No courses available</p>
                 ) : (
-                  courses.map((course: Course) => (
-                    <div key={course.id} className="mb-2">
-                      <label className="flex items-start cursor-pointer">
+                  courses.map((course: Course) => {
+                    const isSelected = selectedCourses.includes(course.id);
+                    return (
+                      <label
+                        key={course.id}
+                        className={`flex items-start cursor-pointer p-2.5 rounded-lg transition-all duration-150 ${
+                          isSelected
+                            ? "bg-primary/10 border border-primary/20"
+                            : "border border-transparent hover:bg-white/[0.02]"
+                        }`}
+                      >
                         <input
                           type="checkbox"
-                          checked={selectedCourses.includes(course.id)}
+                          checked={isSelected}
                           onChange={() => handleCourseSelection(course.id)}
                           disabled={assignLoading}
-                          className="mt-1 h-4 w-4 accent-primary rounded"
+                          className="mt-0.5 accent-primary"
                         />
-                        <span className="ml-2">
-                          <span className="block text-sm font-medium text-gray-300">
+                        <span className="ml-3">
+                          <span className="block text-[13px] font-medium text-gray-300">
                             {course.name}
                           </span>
-                          <span className="block text-xs text-muted">
+                          <span className="block text-[11px] text-muted-text">
                             {course.course_code}
                           </span>
                         </span>
                       </label>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
             )}
-            <div className="mt-1 text-xs text-muted">
+            <p className="mt-2 text-[11px] text-muted-text">
               {selectedCourses.length} course
               {selectedCourses.length !== 1 ? "s" : ""} selected
-            </div>
+            </p>
           </div>
 
           <button
             onClick={handleAssign}
             disabled={assignLoading || lecturersLoading || coursesLoading}
-            className={`w-full ${
-              assignLoading ? "bg-gray-600" : "bg-primary hover:bg-primary-hover"
-            } text-white py-2 rounded-lg transition`}
+            className={`btn-primary w-full flex items-center justify-center gap-2 ${
+              assignLoading ? "opacity-60 cursor-not-allowed" : ""
+            }`}
           >
+            {assignLoading ? (
+              <Loader2 size={16} className="animate-spin" />
+            ) : (
+              <Users size={16} />
+            )}
             {assignLoading ? "Assigning..." : "Assign to Courses"}
           </button>
         </div>

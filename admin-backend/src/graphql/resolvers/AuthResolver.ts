@@ -14,30 +14,13 @@ export class AuthResolver {
 
   @Mutation(() => AuthResponse)
   async adminLogin(@Arg("input") input: LoginInput): Promise<AuthResponse> {
-    // Hardcoded admin credentials as per requirement
-    const ADMIN_USERNAME = "admin";
-    const ADMIN_PASSWORD = "admin";
-
-    if (
-      input.username !== ADMIN_USERNAME ||
-      input.password !== ADMIN_PASSWORD
-    ) {
-      throw new Error("Invalid credentials");
-    }
-
-    // Get or create admin user
     const adminRepository = AppDataSource.getRepository(Admin);
-    let admin = await adminRepository.findOne({
-      where: { username: ADMIN_USERNAME },
+    const admin = await adminRepository.findOne({
+      where: { username: input.username },
     });
 
-    if (!admin) {
-      // Create default admin if doesn't exist
-      admin = adminRepository.create({
-        username: ADMIN_USERNAME,
-        password: ADMIN_PASSWORD, // In production, this should be hashed
-      });
-      admin = await adminRepository.save(admin);
+    if (!admin || admin.password !== input.password) {
+      throw new Error("Invalid credentials");
     }
 
     const token = this.authService.generateAccessToken(

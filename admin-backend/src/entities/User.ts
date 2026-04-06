@@ -54,7 +54,7 @@ export class User {
   @Column({ default: false })
   is_verified: boolean;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   @Column({ nullable: true })
   avatarId?: string;
 

@@ -27,11 +27,11 @@ export class Application {
   @Column()
   academic_creds: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   @Column({ type: "text", nullable: true })
   cover_letter: string | null;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   @Column({ type: "varchar", length: 500, nullable: true })
   resume_path: string | null;
 
@@ -43,7 +43,7 @@ export class Application {
   })
   status: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   @Column({ nullable: true })
   positionId: string | null;
 

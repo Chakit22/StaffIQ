@@ -31,7 +31,7 @@ export class Experience {
   @Column()
   start_date: Date;
 
-  @Field({ nullable: true })
+  @Field(() => Date, { nullable: true })
   @Column({ nullable: true })
   end_date?: Date;
 

@@ -36,7 +36,7 @@ export class Position {
   @Column()
   roleId: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   @Column({ type: "text", nullable: true })
   requirements: string | null;
 
