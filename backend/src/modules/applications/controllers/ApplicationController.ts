@@ -385,7 +385,8 @@ export class ApplicationController {
    */
   deleteRanking = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { lecturerId, applicationId } = req.params;
+      const lecturerId = req.params.lecturerId as string;
+      const applicationId = req.params.applicationId as string;
 
       // Delete the ranking
       await this.rankingRepository.delete({
@@ -449,7 +450,7 @@ export class ApplicationController {
   // Upload resume for an application
   uploadResume = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
       const authReq = req as AuthRequest;
 
       const application = await this.applicationRepository.findOne({
@@ -491,7 +492,7 @@ export class ApplicationController {
   // Download resume for an application
   downloadResume = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
 
       const application = await this.applicationRepository.findOne({
         where: { id },

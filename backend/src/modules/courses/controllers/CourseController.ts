@@ -42,7 +42,7 @@ export class CourseController {
     next: NextFunction
   ) => {
     try {
-      const courseId = req.params.courseId;
+      const courseId = req.params.courseId as string;
       const course = await this.courseRepository.findOne({
         where: { id: courseId },
         relations: ["applications"],
@@ -68,7 +68,7 @@ export class CourseController {
   // Get the most, least and unchosen candidates for a course
   getStats = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { courseId } = req.params;
+      const courseId = req.params.courseId as string;
 
       const course = await this.courseRepository.findOne({
         where: { id: courseId },
@@ -229,7 +229,8 @@ export class CourseController {
   // Get the preferences/ ranking set by a lecturer for a particular course
   getPreferences = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { lecturerId, courseId } = req.params;
+      const lecturerId = req.params.lecturerId as string;
+      const courseId = req.params.courseId as string;
 
       const lecturer = await this.userRepository.findOne({
         where: { id: lecturerId },

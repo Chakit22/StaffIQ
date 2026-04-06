@@ -23,7 +23,7 @@ export class UserController {
    */
   getUserDetails = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const userId = req.params.userId;
+      const userId = req.params.userId as string;
       const user = await this.userRepository.findOne({
         where: { id: userId },
         relations: ["avatar"],
@@ -59,7 +59,7 @@ export class UserController {
     next: NextFunction
   ) => {
     try {
-      const userId = req.params.userId;
+      const userId = req.params.userId as string;
       const user = await this.userRepository.findOne({
         where: { id: userId },
         relations: ["experiences"],
@@ -90,7 +90,7 @@ export class UserController {
     next: NextFunction
   ) => {
     try {
-      const lecturerId = req.params.lecturerId;
+      const lecturerId = req.params.lecturerId as string;
       const lecturer = await this.userRepository.findOne({
         where: { id: lecturerId },
         relations: ["courses"],
@@ -126,7 +126,7 @@ export class UserController {
     next: NextFunction
   ) => {
     try {
-      const userId = req.params.userId;
+      const userId = req.params.userId as string;
       const user = await this.userRepository.findOne({
         where: { id: userId },
         relations: [

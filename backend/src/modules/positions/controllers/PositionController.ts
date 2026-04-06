@@ -43,7 +43,7 @@ export class PositionController {
     next: NextFunction,
   ) => {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
 
       const position = await this.positionRepository.findOne({
         where: { id },
@@ -120,7 +120,7 @@ export class PositionController {
     next: NextFunction,
   ) => {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
       const body = req.body;
 
       const position = await this.positionRepository.findOne({
@@ -157,7 +157,7 @@ export class PositionController {
     next: NextFunction,
   ) => {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
 
       const position = await this.positionRepository.findOne({
         where: { id },
@@ -189,7 +189,7 @@ export class PositionController {
     next: NextFunction,
   ) => {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
       const { status } = req.body;
 
       const application = await this.applicationRepository.findOne({

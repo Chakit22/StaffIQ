@@ -278,7 +278,7 @@ export class AuthController {
   // GET VERIFICATION STATUS — poll SheerID for result
   getVerificationStatus: RequestHandler = async (req, res, next) => {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
 
       // Dev bypass
       if (id === "dev-bypass") {
